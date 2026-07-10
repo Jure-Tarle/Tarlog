@@ -1,0 +1,36 @@
+# Build-Kontext klein halten. Ohne diese Datei sendet Docker ~5,4 GB
+# (allein apps/desktop/src-tauri/target sind ~4 GB Rust-Artefakte).
+# Der Web-Image-Build braucht nur Manifeste, Lockfile und Quellen.
+
+.git
+.github
+.claude
+
+# Abhängigkeiten und Build-Artefakte werden im Image neu erzeugt.
+node_modules
+**/node_modules
+**/dist
+apps/web/.next
+apps/desktop/src-tauri/target
+apps/desktop/dist
+apps/mobile/.expo
+# Die Manifeste von desktop/mobile bleiben im Kontext: `pnpm install
+# --frozen-lockfile` erwartet alle Workspace-Importer aus dem Lockfile.
+
+# Secrets und lokale Zustände dürfen nie ins Image.
+.env
+.env.*
+!.env.example
+*.db
+*.db-wal
+*.db-shm
+
+# Dokumentation, Skripte und Editor-Kram sind zur Laufzeit irrelevant.
+docs
+scripts
+*.md
+!README.md
+.DS_Store
+.vscode
+.idea
+coverage

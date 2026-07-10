@@ -1,0 +1,48 @@
+[package]
+name = "ptl-desktop"
+version = "0.0.0"
+description = "Project Time Ledger — Desktop (macOS/Windows)"
+authors = ["Project Time Ledger"]
+edition = "2021"
+rust-version = "1.77"
+
+# Library target: the Tauri app logic lives in lib.rs (mobile-ready convention);
+# main.rs is a thin binary that calls into it.
+[lib]
+name = "ptl_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# tray-icon: menu-bar / system-tray timer (doc 11 §5 nr. 1, §6 nr. 1).
+tauri = { version = "2", features = ["tray-icon"] }
+# Local SQLite database (doc 05 §2.1, doc 02 §3.1 local-first).
+tauri-plugin-sql = { version = "2", features = ["sqlite"] }
+# Native local notifications / reminders (doc 11 §5 nr. 4, §6 nr. 3).
+tauri-plugin-notification = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# Direkte, synchrone SQLite-Persistenz im lokalen Desktop-Modus (doc 02 §3.1
+# local-first). rusqlite mit `bundled` kompiliert SQLite mit — portabel über
+# macOS und Windows, kein System-SQLite nötig. tauri-plugin-sql bleibt für den
+# JS-seitigen Read-Zugriff geladen; die schreibenden Commands laufen über rusqlite.
+rusqlite = { version = "0.32", features = ["bundled"] }
+# UUIDv7 für alle Primärschlüssel (doc 05 §Konventionen).
+uuid = { version = "1", features = ["v7"] }
+# App-Data-Verzeichnis für die lokale DB + Backups (plattformkonform).
+dirs = "5"
+# Argon2id für den optionalen App-Passwort-Lock (doc 09 §6.1).
+argon2 = "0.5"
+
+[features]
+# Default no custom features; kept for parity with the Tauri template.
+custom-protocol = ["tauri/custom-protocol"]
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true

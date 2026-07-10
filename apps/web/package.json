@@ -1,0 +1,46 @@
+{
+  "name": "@ptl/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "NODE_ENV=production node server.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "db:generate": "drizzle-kit generate --config=../../packages/db/drizzle.config.postgres.ts",
+    "db:migrate": "node scripts/migrate.mjs"
+  },
+  "dependencies": {
+    "@node-rs/argon2": "^2.0.2",
+    "@ptl/core": "workspace:*",
+    "@ptl/db": "workspace:*",
+    "cookie": "^1.0.2",
+    "drizzle-orm": "^0.38.3",
+    "luxon": "^3.5.0",
+    "next": "^15.1.4",
+    "pdfmake": "^0.2.15",
+    "pg": "^8.13.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "uuidv7": "^1.0.2",
+    "ws": "^8.18.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.0",
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.10.2",
+    "@types/pdfmake": "^0.2.9",
+    "@types/pg": "^8.11.10",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/ws": "^8.5.13",
+    "better-sqlite3": "^11.7.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

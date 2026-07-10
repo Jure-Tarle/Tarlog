@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.next/
+target/
+# Lokale Agent- und Editor-Konfiguration, kein Produktartefakt.
+.claude/
+*.db
+.env
+.env.*
+!.env.example
+.DS_Store
+*.tsbuildinfo
+coverage/
