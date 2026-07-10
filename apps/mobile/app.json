@@ -3,13 +3,14 @@
     "name": "Project Time Ledger",
     "slug": "ptl-mobile",
     "scheme": "ptl",
-    "version": "0.0.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "bundleIdentifier": "com.ptl.mobile",
-      "supportsTablet": true
+      "supportsTablet": true,
+      "buildNumber": "1"
     },
     "plugins": [
       "expo-router",

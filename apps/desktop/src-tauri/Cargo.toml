@@ -1,6 +1,6 @@
 [package]
 name = "ptl-desktop"
-version = "0.0.0"
+version = "1.0.0"
 description = "Project Time Ledger — Desktop (macOS/Windows)"
 authors = ["Project Time Ledger"]
 edition = "2021"

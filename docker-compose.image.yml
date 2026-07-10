@@ -1,0 +1,13 @@
+# docker-compose.image.yml — Betrieb aus dem veröffentlichten GHCR-Image, ohne
+# lokalen Build. Für Nutzer, die nur deployen wollen.
+#
+#   cp .env.example .env   # Werte anpassen (SESSION_SECRET, Passwörter!)
+#   docker compose -f docker-compose.yml -f docker-compose.image.yml up -d
+#
+# Legt `build:` des web-Dienstes still und zieht stattdessen das Release-Image.
+# Version über PTL_VERSION (Default: latest), z. B. PTL_VERSION=1.0.0.
+
+services:
+  web:
+    build: !reset null
+    image: ghcr.io/jure-tarle/project-time-ledger-web:${PTL_VERSION:-latest}
