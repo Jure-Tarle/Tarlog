@@ -4,7 +4,7 @@ Alle nennenswerten Änderungen an Project Time Ledger. Format nach
 [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionierung nach
 [SemVer](https://semver.org/lang/de/).
 
-## [1.0.0] — 2026-07-10
+## [0.0.1] — 2026-07-10
 
 Erste Release-Version. Lokale-zuerst, revisionsfähige, DSGVO-freundliche
 Zeiterfassung für eine Einzelperson, optional mit selbst gehostetem Server für
@@ -49,7 +49,7 @@ Synchronisierung zwischen Desktop, Browser und iOS.
 - Für den Server-Modus ist eine HTTPS-Terminierung (Reverse Proxy) vorzuschalten;
   Session-Cookies sind in Produktion `secure`.
 - Desktop-Bundles und iOS-App sind nicht signiert/notarisiert.
-- XLSX-/ZIP-Export, Import-Assistent und Webhooks sind vorgesehen, aber in 1.0.0
+- XLSX-/ZIP-Export, Import-Assistent und Webhooks sind vorgesehen, aber in 0.0.1
   noch nicht enthalten.
 
-[1.0.0]: https://github.com/Jure-Tarle/Tarlog/releases/tag/v1.0.0
+[0.0.1]: https://github.com/Jure-Tarle/Tarlog/releases/tag/v0.0.1

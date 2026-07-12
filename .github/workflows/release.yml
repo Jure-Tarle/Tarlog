@@ -1,6 +1,6 @@
 name: Release
 
-# Auslöser: ein Versions-Tag wie v1.0.0. Erzeugt das Container-Image (GHCR),
+# Auslöser: ein Versions-Tag wie v0.0.1. Erzeugt das Container-Image (GHCR),
 # die Desktop-Bundles (macOS + Windows) und einen GitHub Release mit Artefakten.
 on:
   push:
@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Version-Tag (z. B. v1.0.0)"
+        description: "Version-Tag (z. B. v0.0.1)"
         required: true
 
 permissions:
