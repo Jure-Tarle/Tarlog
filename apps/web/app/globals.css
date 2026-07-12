@@ -1,0 +1,147 @@
+@import "tailwindcss";
+
+/*
+ * Project Time Ledger — Design-Direktion (doc 11 §1, verbindlich).
+ *
+ * Ruhige, dichte "Ledger"-Ästhetik: Anmutung eines präzisen Kontobuchs, kein
+ * verspieltes Timer-Dashboard. Inhalt vor Chrome.
+ *
+ *  - Farbsystem: neutrale Graustufen-Basis + GENAU EINE Akzentfarbe (aktiver
+ *    Timer / Primäraktion). Compliance-Ampel (grün/gelb/rot) ist die einzige
+ *    zusätzliche, rein SEMANTISCHE Farbcodierung — nie dekorativ.
+ *  - Ziffern: tabulare Ziffern (font-variant-numeric: tabular-nums) für Zeiten
+ *    (HH:MM:SS) und Beträge, damit sie spaltenweise ausrichten.
+ *  - Typografie: neutrale Grotesk für Text, monospace/tabulare Ziffern für Daten.
+ *  - Motion: zurückhaltend; Bewegung signalisiert nur echten Zustand
+ *    (Timer läuft, Sync aktiv, Konflikt). Respektiert prefers-reduced-motion.
+ *  - Barrierefreiheit: Kontrast AA+, sichtbarer Fokus, Farbe nie alleiniger
+ *    Bedeutungsträger (Compliance trägt zusätzlich Symbol + Text).
+ */
+
+@theme {
+  /* Neutrale Basis — abgestufte Graustufen (kühl-neutral, leichter Blaustich). */
+  --color-ink-50: #f7f8f8;
+  --color-ink-100: #eceeef;
+  --color-ink-200: #d9dcde;
+  --color-ink-300: #b9bfc3;
+  --color-ink-400: #8b9298;
+  --color-ink-500: #656c72;
+  --color-ink-600: #4a5158;
+  --color-ink-700: #363c42;
+  --color-ink-800: #23282d;
+  --color-ink-900: #14181b;
+  --color-ink-950: #0b0d0f;
+
+  /* GENAU EINE Akzentfarbe — zurückhaltendes Tinten-Teal für aktive Zustände
+     (laufender Timer, Primäraktion). Kein zweiter dekorativer Akzent. */
+  --color-accent-soft: #dbeceb;
+  --color-accent: #0f766e;
+  --color-accent-strong: #0b5a53;
+  --color-accent-contrast: #ffffff;
+
+  /* Compliance-Ampel — semantisch (grün/gelb/rot), immer mit Symbol + Text. */
+  --color-ok: #15803d;
+  --color-ok-soft: #dcf0e2;
+  --color-warn: #b45309;
+  --color-warn-soft: #f6e8d3;
+  --color-danger: #b91c1c;
+  --color-danger-soft: #f3dada;
+
+  /* Semantische Flächen-Rollen (Light-Default). */
+  --color-surface: #ffffff;
+  --color-surface-sunken: var(--color-ink-50);
+  --color-surface-raised: #ffffff;
+  --color-border: var(--color-ink-200);
+  --color-border-strong: var(--color-ink-300);
+  --color-text: var(--color-ink-900);
+  --color-text-muted: var(--color-ink-500);
+  --color-text-faint: var(--color-ink-400);
+
+  /* Typografie. Systemgrotesk für Text; monospace-Stack für tabulare Daten. */
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+  --font-mono:
+    ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas,
+    monospace;
+
+  /* Radius — dezent, kein verspieltes Runden. */
+  --radius-sm: 4px;
+  --radius: 6px;
+  --radius-lg: 10px;
+
+  /* Motion — zurückhaltend. */
+  --ease-quiet: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-state: 180ms;
+}
+
+/* Dark-Mode — dieselbe Ledger-Direktion, invertierte neutrale Basis. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-surface: var(--color-ink-950);
+    --color-surface-sunken: #090b0d;
+    --color-surface-raised: var(--color-ink-900);
+    --color-border: var(--color-ink-800);
+    --color-border-strong: var(--color-ink-700);
+    --color-text: var(--color-ink-100);
+    --color-text-muted: var(--color-ink-400);
+    --color-text-faint: var(--color-ink-500);
+    --color-accent: #2dd4bf;
+    --color-accent-strong: #14b8a6;
+    --color-accent-soft: #123b38;
+    --color-accent-contrast: #04120f;
+  }
+}
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  background: var(--color-surface-sunken);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Tabulare Ziffern — Utility für Zeiten/Beträge (doc 11 §1). Spaltenweise
+   Ausrichtung, keine springenden Ziffern beim Live-Tick. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+  letter-spacing: -0.01em;
+}
+
+/* Sichtbarer Fokus (AA+). */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Dezenter Timer-Puls — signalisiert NUR echten laufenden Zustand. */
+@keyframes ptl-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.timer-pulse {
+  animation: ptl-pulse 2s var(--ease-quiet) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

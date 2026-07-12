@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "Project Time Ledger",
+    "slug": "ptl-mobile",
+    "scheme": "ptl",
+    "version": "0.0.1",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "bundleIdentifier": "com.ptl.mobile",
+      "supportsTablet": true,
+      "buildNumber": "1"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-secure-store",
+      "expo-notifications"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
