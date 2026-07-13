@@ -32,7 +32,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Build (core, db, web, desktop-frontend)
         run: pnpm -r build
-      - name: Unit-Tests (core 98, web 45)
+      - name: Unit-Tests (core 98, web 59, desktop 10)
         run: pnpm -r test
       - name: Typecheck iOS-App
         run: pnpm --filter @tarlog/mobile exec tsc --noEmit
@@ -92,7 +92,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Web bauen (server.mjs braucht .next)
-        run: pnpm --filter @tarlog/web build
+      - name: Web samt Workspace-Abhängigkeiten bauen (server.mjs braucht .next)
+        run: pnpm --filter '@tarlog/web...' build
       - name: Smoke — 22 Invarianten (Rundung, Compliance, PDF, Rechnung, Sync, WS)
         run: bash scripts/smoke.sh
