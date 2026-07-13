@@ -79,6 +79,11 @@ jobs:
       PORT: "3099"
     steps:
       - uses: actions/checkout@v4
+      # smoke.sh nutzt in CI (SKIP_DB=1) den psql-Client für DB-Assertions und
+      # lsof zum Freigeben des Ports. Beide explizit installieren, statt sich auf
+      # das Runner-Image zu verlassen.
+      - name: DB-/Netz-Tools
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client lsof
       - uses: pnpm/action-setup@v4
         with:
           version: 10
@@ -89,5 +94,5 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Web bauen (server.mjs braucht .next)
         run: pnpm --filter @ptl/web build
-      - name: Smoke — 20 Invarianten (Rundung, Compliance, PDF, Rechnung, Sync, WS)
+      - name: Smoke — 22 Invarianten (Rundung, Compliance, PDF, Rechnung, Sync, WS)
         run: bash scripts/smoke.sh

@@ -57,8 +57,11 @@ jobs:
 
   # 3) Desktop-Bundles: macOS (dmg/app) und Windows (nsis/msi). Ungesigniert;
   #    Signing-Secrets können später ergänzt werden (siehe tauri-action-Doku).
+  #
+  #    BEWUSST NICHT an `verify` gekoppelt: die Desktop-App hängt nicht vom
+  #    Server-Smoke-Test ab. Ein flüchtiger Server-Test darf die Bundles nicht
+  #    blockieren. Der Desktop hat sein eigenes Gate (cargo test unten).
   desktop:
-    needs: verify
     strategy:
       fail-fast: false
       matrix:
@@ -86,6 +89,12 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # Core wird vom Desktop-Frontend importiert und muss gebaut vorliegen.
       - run: pnpm --filter @ptl/core build && pnpm --filter @ptl/db build
+      # Desktop-eigenes Gate: der headless Integrationstest des lokalen Modus
+      # (Migration, Timer, Single-Timer, Nachtrag, Backup). Fängt Startup- und
+      # Persistenzfehler VOR dem Bundling.
+      - name: Desktop-Integrationstest
+        working-directory: apps/desktop/src-tauri
+        run: cargo test --test local_mode
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
