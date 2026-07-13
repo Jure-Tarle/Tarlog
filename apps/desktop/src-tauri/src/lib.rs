@@ -11,6 +11,8 @@
 pub mod commands;
 pub mod db;
 mod menu;
+mod native_timer;
+mod sync_http;
 mod system_symbols;
 mod tray;
 
@@ -18,17 +20,27 @@ mod tray;
 /// attribute keeps the crate iOS/Android-ready even though V1 targets desktop.
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    use tauri::Manager;
+
     tauri::Builder::default()
         // Local SQLite database (doc 05 §2.1).
         .plugin(tauri_plugin_sql::Builder::new().build())
         // Native local notifications / reminders (doc 11 §5 nr. 4).
         .plugin(tauri_plugin_notification::init())
+        // Rust-backed HTTP avoids WebView CORS while Tauri's scoped ACL limits
+        // each request to a base URL explicitly configured by the user.
+        .plugin(tauri_plugin_http::init())
+        .manage(sync_http::SyncHttpScopes::default())
         .setup(|app| {
             // Native application menu. On macOS this follows Apple's standard
             // Tarlog/Ablage/Bearbeiten/Darstellung/Fenster/Hilfe hierarchy.
-            menu::install(app.handle())?;
+            let mut native_timer_commands = menu::install(app.handle())?;
             // Menu-bar / system-tray timer (doc 11 §5 nr. 1, §6 nr. 1).
-            tray::build_tray(app.handle())?;
+            native_timer_commands.extend(tray::build_tray(app.handle())?);
+            // Keep strong menu-item handles in managed state. All mutations
+            // start disabled and the mounted frontend timer controller updates
+            // them only after loading the persisted state.
+            let _ = app.manage(native_timer_commands);
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -50,6 +62,8 @@ pub fn run() {
             commands::set_server_connection,
             commands::sync_push,
             commands::sync_pull,
+            sync_http::allow_sync_server_http,
+            native_timer::native_timer_commands_update,
             system_symbols::native_system_symbols,
         ])
         .run(tauri::generate_context!())

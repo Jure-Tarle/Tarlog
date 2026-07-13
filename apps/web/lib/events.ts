@@ -89,6 +89,14 @@ export interface PtlEventEnvelope {
   correlation_id?: string;
 }
 
+/** Notify an envelope that was already inserted transactionally in an outbox. */
+export async function notifyEvent(envelope: PtlEventEnvelope): Promise<void> {
+  await pool.query("SELECT pg_notify($1, $2)", [
+    PTL_EVENTS_CHANNEL,
+    JSON.stringify(envelope),
+  ]);
+}
+
 let hlcCounter = 0;
 /** Minimaler monotoner HLC-Fallback (echte HLC liefert der Sync-Autor). */
 function fallbackHlc(now: number): string {

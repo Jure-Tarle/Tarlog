@@ -16,7 +16,7 @@ import { pool } from "@/lib/db";
 import { publishEvent } from "@/lib/events";
 import { ApiError } from "@/lib/api";
 import type { AuthContext } from "@/lib/session";
-import { toNum } from "./mutation.js";
+import { MutationAlreadyAppliedError, toNum } from "./mutation.js";
 import { timeEntryCreateSchema, timeEntryUpdateSchema } from "@/lib/timer/schemas";
 import {
   createTimeEntry,
@@ -158,7 +158,9 @@ export async function pushEvents(auth: AuthContext, events: SyncEventInput[]): P
       await applyEvent(auth, ev);
       accepted.push(ev.event_id);
     } catch (err) {
-      if (err instanceof ApiError && err.code === "conflict") {
+      if (err instanceof MutationAlreadyAppliedError) {
+        accepted.push(ev.event_id);
+      } else if (err instanceof ApiError && err.code === "conflict") {
         const details = (err.details ?? {}) as Record<string, unknown>;
         conflicts.push({
           event_id: ev.event_id,
@@ -268,7 +270,9 @@ export async function pullChanges(
   if (auth.device_id) {
     const now = Date.now();
     const lastEvent = events.length > 0 ? events[events.length - 1] : undefined;
-    const pulledTo = lastEvent ? lastEvent.server_revision : params.since;
+    const pulledTo = lastEvent
+      ? lastEvent.server_revision
+      : Math.min(params.since, hw);
     await pool.query(
       `INSERT INTO sync_states (id, main_account_id, device_id, last_pulled_server_revision, updated_at)
        VALUES ($1,$2,$3,$4,$5)

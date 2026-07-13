@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type Ref } from "react";
 import {
   BriefcaseBusiness,
   CalendarDays,
   CalendarRange,
   ChartNoAxesCombined,
   ChevronRight,
+  CircleHelp,
   CloudCog,
   History,
   LayoutDashboard,
@@ -30,6 +31,9 @@ import { dbInit, dbMigrate } from "./lib/bridge";
 import type { NativeSystemSymbolKey } from "./lib/bridge";
 import { detectDesktopPlatform, type DesktopPlatform } from "./lib/platform";
 import { AppleSystemSymbol } from "./components/AppleSystemSymbol";
+import { Button } from "./components/ui";
+import { DesktopOnboarding } from "./onboarding/DesktopOnboarding";
+import { useDesktopOnboarding } from "./onboarding/useDesktopOnboarding";
 import brandMarkUrl from "../../../assets/brand/tarlog-flow-mark.svg?url";
 import {
   elapsedSeconds,
@@ -197,6 +201,7 @@ function useDbBoot(): BootState {
         await dbMigrate();
         if (alive) setState({ phase: "ready" });
       } catch (error) {
+        console.error("Tarlog database boot failed", error);
         if (alive) {
           setState({
             phase: "error",
@@ -259,6 +264,7 @@ function useNativeMenuNavigation(platform: DesktopPlatform) {
       unlisten?.();
     };
   }, [platform]);
+
 }
 
 function useAppShortcuts(platform: DesktopPlatform) {
@@ -341,6 +347,17 @@ function useSidebar(platform: DesktopPlatform) {
     };
   }, [platform]);
 
+  useEffect(() => {
+    if (platform === "macos") return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!event.ctrlKey || !event.altKey || event.shiftKey || event.key.toLowerCase() !== "s") return;
+      event.preventDefault();
+      setHidden((current) => !current);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [platform]);
+
   return {
     hidden,
     width,
@@ -362,6 +379,8 @@ function Sidebar({
   onResizeStart,
   onResizeEnd,
   onResetWidth,
+  onIntroduction,
+  introductionButtonRef,
 }: {
   activeId: string;
   platform: DesktopPlatform;
@@ -371,6 +390,8 @@ function Sidebar({
   onResizeStart: () => void;
   onResizeEnd: () => void;
   onResetWidth: () => void;
+  onIntroduction: () => void;
+  introductionButtonRef: Ref<HTMLButtonElement>;
 }) {
   const routeMap = useMemo(() => new Map(ROUTES.map((route) => [route.id, route])), []);
   const resizeStart = useRef<{ x: number; width: number } | null>(null);
@@ -442,6 +463,22 @@ function Sidebar({
           </section>
         ))}
       </nav>
+
+      <button
+        ref={introductionButtonRef}
+        className="sidebar__introduction"
+        type="button"
+        onClick={onIntroduction}
+        title="Einführung erneut öffnen"
+      >
+        <AppleSystemSymbol
+          name="onboarding"
+          className="apple-system-symbol"
+          size={16}
+          fallback={<CircleHelp size={16} strokeWidth={1.9} aria-hidden />}
+        />
+        <span>Einführung</span>
+      </button>
 
       <div className="sidebar__foot">
         <span className="sidebar__privacy-icon" aria-hidden>
@@ -609,22 +646,20 @@ function Topbar({
       style={platform === "macos" ? { paddingLeft: sidebarHidden ? "5.25rem" : "0.75rem" } : undefined}
     >
       <div className="topbar__leading">
-        {platform === "macos" ? (
-          <button
-            className="toolbar-icon-button sidebar-toggle"
-            type="button"
-            onClick={onSidebarToggle}
-            aria-label={sidebarHidden ? "Seitenleiste einblenden" : "Seitenleiste ausblenden"}
-            title={`${sidebarHidden ? "Seitenleiste einblenden" : "Seitenleiste ausblenden"} (⌥⌘S)`}
-          >
-            <AppleSystemSymbol
-              name="sidebarToggle"
-              className="apple-system-symbol"
-              size={16}
-              fallback={sidebarHidden ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
-            />
-          </button>
-        ) : null}
+        <button
+          className="toolbar-icon-button sidebar-toggle icon-btn"
+          type="button"
+          onClick={onSidebarToggle}
+          aria-label={sidebarHidden ? "Seitenleiste einblenden" : "Seitenleiste ausblenden"}
+          title={`${sidebarHidden ? "Seitenleiste einblenden" : "Seitenleiste ausblenden"} (${platform === "macos" ? "⌥⌘S" : "Ctrl+Alt+S"})`}
+        >
+          <AppleSystemSymbol
+            name="sidebarToggle"
+            className="apple-system-symbol"
+            size={16}
+            fallback={sidebarHidden ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+          />
+        </button>
         <div className="topbar__current" data-tauri-drag-region>
           <span className="topbar__eyebrow" data-tauri-drag-region>{group?.label ?? "Tarlog"}</span>
           <strong className="topbar__title" id="current-route-title" data-tauri-drag-region>{route.label}</strong>
@@ -670,9 +705,13 @@ function AppContent() {
   useWindowActivity(platform);
   const { preference, setPreference } = useAppearance(platform);
   const sidebar = useSidebar(platform);
+  const onboarding = useDesktopOnboarding(boot.phase === "ready");
   const reduceMotion = useReducedMotion();
   const mainRef = useRef<HTMLElement>(null);
   const previousRoute = useRef(route.id);
+  const introductionButtonRef = useRef<HTMLButtonElement>(null);
+  const restoreIntroductionFocus = useRef(false);
+  const previousOnboardingOpen = useRef(onboarding.open);
 
   useEffect(() => {
     if (previousRoute.current === route.id) return;
@@ -680,6 +719,18 @@ function AppContent() {
     const frame = window.requestAnimationFrame(() => mainRef.current?.focus({ preventScroll: true }));
     return () => window.cancelAnimationFrame(frame);
   }, [route.id]);
+
+  useEffect(() => {
+    const wasOpen = previousOnboardingOpen.current;
+    previousOnboardingOpen.current = onboarding.open;
+    if (!wasOpen || onboarding.open || !restoreIntroductionFocus.current) return;
+
+    restoreIntroductionFocus.current = false;
+    const frame = window.requestAnimationFrame(() => {
+      introductionButtonRef.current?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [onboarding.open]);
 
   if (boot.phase === "loading") {
     return (
@@ -698,10 +749,58 @@ function AppContent() {
       <BootScreen error>
         <div>
           <p className="boot__title boot__error">Tarlog konnte nicht gestartet werden</p>
-          <p className="boot__copy">Die lokale Datenbank ist nicht verfügbar.</p>
-          <code className="boot__detail">{boot.message}</code>
+          <p className="boot__copy">
+            Die lokale Datenbank ist momentan nicht verfügbar. Beende Tarlog vollständig
+            und versuche es erneut; deine vorhandenen Daten wurden nicht verändert.
+          </p>
+          <div className="boot__actions">
+            <Button variant="primary" onClick={() => window.location.reload()}>Erneut versuchen</Button>
+          </div>
         </div>
       </BootScreen>
+    );
+  }
+
+  if (onboarding.phase === "idle" || onboarding.phase === "loading") {
+    return (
+      <BootScreen>
+        <span className="boot__spinner" aria-hidden />
+        <div>
+          <p className="boot__title">Arbeitsbereich wird geprüft</p>
+          <p className="boot__copy">Tarlog lädt deine lokale Einrichtung …</p>
+        </div>
+      </BootScreen>
+    );
+  }
+
+  if (onboarding.phase === "error") {
+    return (
+      <BootScreen error>
+        <div>
+          <p className="boot__title boot__error">Einrichtung konnte nicht geladen werden</p>
+          <p className="boot__copy">Dein lokaler Arbeitsbereich wurde nicht verändert.</p>
+          <div className="boot__actions">
+            <Button variant="primary" onClick={onboarding.retry}>Erneut versuchen</Button>
+          </div>
+        </div>
+      </BootScreen>
+    );
+  }
+
+  if (onboarding.open) {
+    return (
+      <DesktopOnboarding
+        progress={onboarding.progress}
+        required={onboarding.required}
+        toolbar={<AppearancePicker value={preference} onChange={setPreference} />}
+        onCheckpoint={onboarding.checkpoint}
+        onDismiss={onboarding.dismissReplay}
+        onFinish={async (progress, destination) => {
+          await onboarding.complete(progress);
+          restoreIntroductionFocus.current = false;
+          navigateTo(destination);
+        }}
+      />
     );
   }
 
@@ -722,6 +821,11 @@ function AppContent() {
           onResizeStart={sidebar.startResize}
           onResizeEnd={sidebar.stopResize}
           onResetWidth={sidebar.resetWidth}
+          onIntroduction={() => {
+            restoreIntroductionFocus.current = true;
+            onboarding.openReplay();
+          }}
+          introductionButtonRef={introductionButtonRef}
         />
         <div className="main">
           <Topbar

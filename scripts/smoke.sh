@@ -29,6 +29,10 @@ log()  { printf '\n\033[1m▸ %s\033[0m\n' "$*"; }
 pass() { printf '  \033[32m✓\033[0m %s\n' "$*"; }
 fail() { printf '  \033[31m✗\033[0m %s\n' "$*"; FAILURES=$((FAILURES + 1)); }
 
+# Session-authentifizierte Mutationen müssen den zentralen CSRF-Origin-Gate
+# passieren. Geräte-Bearer bleiben davon unabhängig.
+browser_curl() { curl -H "origin: $BASE" "$@"; }
+
 assert_eq() { # assert_eq <actual> <expected> <label>
   if [ "$1" = "$2" ]; then pass "$3 ($2)"; else fail "$3: erwartet '$2', erhalten '$1'"; fi
 }
@@ -96,15 +100,15 @@ assert_contains "$HEALTH" '"db":"up"' "Health-Check meldet DB verbunden"
 # ---------------------------------------------------------------------------
 log "Setup, Stammdaten"
 # ---------------------------------------------------------------------------
-curl -s -c "$JAR" -X POST "$BASE/api/auth/setup" -H 'content-type: application/json' \
+browser_curl -s -c "$JAR" -X POST "$BASE/api/auth/setup" -H 'content-type: application/json' \
   -d '{"display_name":"Smoke","password":"Sicher123!pass"}' >/dev/null
 RULE="$(psql_q "SELECT mode||':'||interval_minutes FROM rounding_rules;")"
 assert_eq "$RULE" "ceil_started_interval:15" "Standard-Rundungsregel geseedet (AC18)"
 
-CID="$(curl -s -b "$JAR" -X POST "$BASE/api/customers" -H 'content-type: application/json' \
+CID="$(browser_curl -s -b "$JAR" -X POST "$BASE/api/customers" -H 'content-type: application/json' \
   -d '{"name":"ACME","default_currency":"EUR","default_hourly_rate_cents":9000,"status":"active"}' \
   | sed -nE 's/.*"id":"([^"]+)".*/\1/p' | head -1)"
-PID_="$(curl -s -b "$JAR" -X POST "$BASE/api/projects" -H 'content-type: application/json' \
+PID_="$(browser_curl -s -b "$JAR" -X POST "$BASE/api/projects" -H 'content-type: application/json' \
   -d "{\"name\":\"Web\",\"customer_id\":\"$CID\",\"billing_type\":\"hourly\",\"hourly_rate_cents\":9000,\"status\":\"active\"}" \
   | sed -nE 's/.*"id":"([^"]+)".*/\1/p' | head -1)"
 [ -n "$PID_" ] && pass "Kunde + Projekt angelegt" || fail "Kunde/Projekt anlegen"
@@ -114,14 +118,14 @@ log "Timer: 70 Minuten → 75 Minuten Abrechnungszeit (AC17/AC18)"
 # ---------------------------------------------------------------------------
 NOW="$(node -e 'console.log(Date.now())')"
 START=$((NOW - 4200000))
-curl -s -b "$JAR" -X POST "$BASE/api/timer/start" -H 'content-type: application/json' \
+browser_curl -s -b "$JAR" -X POST "$BASE/api/timer/start" -H 'content-type: application/json' \
   -d "{\"project_id\":\"$PID_\",\"started_at\":$START}" >/dev/null
 
-SECOND="$(curl -s -b "$JAR" -o /dev/null -w '%{http_code}' -X POST "$BASE/api/timer/start" \
+SECOND="$(browser_curl -s -b "$JAR" -o /dev/null -w '%{http_code}' -X POST "$BASE/api/timer/start" \
   -H 'content-type: application/json' -d "{\"project_id\":\"$PID_\"}")"
 assert_eq "$SECOND" "409" "Zweiter Timer-Start wird abgelehnt (Single-Timer)"
 
-curl -s -b "$JAR" -X POST "$BASE/api/timer/stop" -H 'content-type: application/json' \
+browser_curl -s -b "$JAR" -X POST "$BASE/api/timer/stop" -H 'content-type: application/json' \
   -d '{"description":"Konzeptarbeit"}' >/dev/null
 
 ROW="$(psql_q "SELECT actual_duration_seconds||'|'||billing_duration_seconds||'|'||rounding_delta_seconds||'|'||billing_amount_snapshot FROM time_entries WHERE status='completed' ORDER BY created_at DESC LIMIT 1;")"
@@ -131,7 +135,7 @@ assert_eq "$ROW" "4200|4500|300|11250" "actual=4200s bleibt, billing=4500s, delt
 log "Nachtrag + Compliance (AC14, AC19/20)"
 # ---------------------------------------------------------------------------
 BD_START=$((NOW - 86400000)); BD_END=$((BD_START + 25200000)) # 7 h ohne Pause
-curl -s -b "$JAR" -X POST "$BASE/api/time-entries" -H 'content-type: application/json' \
+browser_curl -s -b "$JAR" -X POST "$BASE/api/time-entries" -H 'content-type: application/json' \
   -d "{\"project_id\":\"$PID_\",\"actual_started_at\":$BD_START,\"actual_ended_at\":$BD_END,\"timezone\":\"Europe/Berlin\",\"description\":\"Langer Tag\",\"source\":\"manual_backdated\",\"backdate_reason\":\"forgot_to_start\"}" >/dev/null
 BD="$(psql_q "SELECT source||'|'||is_backdated::text||'|'||backdate_reason FROM time_entries WHERE is_backdated;")"
 assert_eq "$BD" "manual_backdated|true|forgot_to_start" "Nachtrag markiert und begründet"
@@ -159,12 +163,12 @@ EID="$(psql_q "SELECT id FROM time_entries WHERE source='live_timer' AND status=
 SV="$(psql_q "SELECT sync_version FROM time_entries WHERE id='$EID';")"
 U1="$(node -e 'console.log(require("crypto").randomUUID())')"
 U2="$(node -e 'console.log(require("crypto").randomUUID())')"
-curl -s -b "$JAR" -o /dev/null -X POST "$BASE/api/sync/events" -H 'content-type: application/json' \
+browser_curl -s -b "$JAR" -o /dev/null -X POST "$BASE/api/sync/events" -H 'content-type: application/json' \
   -d "{\"events\":[{\"event_id\":\"$U1\",\"entity_type\":\"time_entries\",\"entity_id\":\"$EID\",\"operation\":\"update\",\"base_version\":$SV,\"local_revision\":1,\"data\":{\"description\":\"Gerät A\"}}]}"
 assert_eq "$(psql_q "SELECT description FROM time_entries WHERE id='$EID';")" "Gerät A" \
   "Gültiges Sync-Event wird angewendet"
 
-CONFLICT_CODE="$(curl -s -b "$JAR" -o /tmp/smoke-conf.json -w '%{http_code}' -X POST "$BASE/api/sync/events" \
+CONFLICT_CODE="$(browser_curl -s -b "$JAR" -o /tmp/smoke-conf.json -w '%{http_code}' -X POST "$BASE/api/sync/events" \
   -H 'content-type: application/json' \
   -d "{\"events\":[{\"event_id\":\"$U2\",\"entity_type\":\"time_entries\",\"entity_id\":\"$EID\",\"operation\":\"update\",\"base_version\":$SV,\"local_revision\":2,\"data\":{\"description\":\"Gerät B offline\"}}]}")"
 assert_eq "$CONFLICT_CODE" "409" "Veraltete base_version wird als Konflikt abgewiesen"
@@ -177,13 +181,13 @@ assert_eq "$(psql_q "SELECT description FROM time_entries WHERE id='$EID';")" "G
 # ---------------------------------------------------------------------------
 log "Rechnung: erstellen → finalisieren → PDF → Storno (AC22)"
 # ---------------------------------------------------------------------------
-IID="$(curl -s -b "$JAR" -X POST "$BASE/api/invoices" -H 'content-type: application/json' \
+IID="$(browser_curl -s -b "$JAR" -X POST "$BASE/api/invoices" -H 'content-type: application/json' \
   -d "{\"customer_id\":\"$CID\",\"period\":{\"from\":$MFROM,\"to\":$NOW}}" \
   | sed -nE 's/.*"id":"([^"]+)".*/\1/p' | head -1)"
 assert_eq "$(psql_q "SELECT coalesce(invoice_number,'-') FROM invoices WHERE id='$IID';")" "-" \
   "Entwurf trägt noch keine Rechnungsnummer"
 
-curl -s -b "$JAR" -o /dev/null -X POST "$BASE/api/invoices/$IID/finalize" -H 'content-type: application/json' -d '{}'
+browser_curl -s -b "$JAR" -o /dev/null -X POST "$BASE/api/invoices/$IID/finalize" -H 'content-type: application/json' -d '{}'
 assert_eq "$(psql_q "SELECT invoice_number FROM invoices WHERE id='$IID';")" "RE-$(date +%Y)-0001" \
   "Fortlaufende Nummer erst bei Finalisierung"
 NET="$(psql_q "SELECT net_amount_cents FROM invoices WHERE id='$IID';")"
@@ -191,7 +195,7 @@ NET="$(psql_q "SELECT net_amount_cents FROM invoices WHERE id='$IID';")"
 INV_CT="$(curl -s -b "$JAR" -o /tmp/smoke-inv.pdf -w '%{content_type}' "$BASE/api/invoices/$IID/pdf")"
 assert_contains "$INV_CT" "application/pdf" "Rechnungs-PDF ausgeliefert"
 
-curl -s -b "$JAR" -o /dev/null -X POST "$BASE/api/invoices/$IID/cancel" -H 'content-type: application/json' -d '{"reason":"Smoke"}'
+browser_curl -s -b "$JAR" -o /dev/null -X POST "$BASE/api/invoices/$IID/cancel" -H 'content-type: application/json' -d '{"reason":"Smoke"}'
 CANCEL="$(psql_q "SELECT status||'|'||net_amount_cents FROM invoices WHERE type='cancellation';")"
 assert_eq "$CANCEL" "finalized|-${NET}" "Storno erzeugt Gegenrechnung mit negiertem Betrag"
 assert_eq "$(psql_q "SELECT status FROM invoices WHERE id='$IID';")" "cancelled" "Original bleibt erhalten (storniert)"
@@ -199,13 +203,17 @@ assert_eq "$(psql_q "SELECT status FROM invoices WHERE id='$IID';")" "cancelled"
 # ---------------------------------------------------------------------------
 log "Live-Sync über WebSocket (AC27)"
 # ---------------------------------------------------------------------------
-TOKEN="$(curl -s -b "$JAR" -X POST "$BASE/api/tokens" -H 'content-type: application/json' \
-  -d '{"name":"smoke-ws"}' | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).token))')"
+PAIRING_CODE="$(browser_curl -s -b "$JAR" -X POST "$BASE/api/devices/pairing" -H 'content-type: application/json' \
+  -d '{"device_name":"Smoke-Live-Gerät"}' | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).code||""))')"
+CONNECTED="$(curl -s -X POST "$BASE/api/devices/connect" -H 'content-type: application/json' \
+  -d "{\"code\":\"$PAIRING_CODE\",\"device_name\":\"Smoke-Live-Gerät\",\"platform\":\"macos\",\"app_version\":\"0.0.3\",\"local_db_version\":2}")"
+WEB_DEVICE_ID="$(printf '%s' "$CONNECTED" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).device_id||""))')"
+TOKEN="$(printf '%s' "$CONNECTED" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).device_token||""))')"
 COOKIE="ptl_session=$(awk '/ptl_session/{print $7}' "$JAR" | head -1)"
-if ( cd "$ROOT/apps/web" && node scripts/ws-smoke.mjs "$BASE" "$TOKEN" "$COOKIE" "$PID_" >/dev/null ); then
-  pass "Zweiter Client empfängt timer.started über /api/ws"
+if ( cd "$ROOT/apps/web" && node scripts/ws-smoke.mjs "$BASE" "$TOKEN" "$COOKIE" "$PID_" "$WEB_DEVICE_ID" >/dev/null ); then
+  pass "Zweiter Client empfängt timer.started; Gerätewiderruf schließt den Live-Kanal"
 else
-  fail "WebSocket-Broadcast erreicht den zweiten Client nicht"
+  fail "WebSocket-Broadcast oder sofortiger Gerätewiderruf fehlgeschlagen"
 fi
 
 # ---------------------------------------------------------------------------
@@ -213,6 +221,10 @@ log "Audit-Log (AC30)"
 # ---------------------------------------------------------------------------
 AUDITS="$(psql_q "SELECT count(*) FROM audit_logs;")"
 [ "$AUDITS" -gt 0 ] && pass "Audit-Log geschrieben ($AUDITS Einträge)" || fail "Audit-Log leer"
+NULL_CANONICAL="$(psql_q "SELECT count(*) FROM sync_events WHERE entity_type IN ('timer_states','time_entries') AND server_revision IS NULL;")"
+assert_eq "$NULL_CANONICAL" "0" "Kanonische Timer-/Zeiteintrag-Events besitzen eine Revision"
+DUPLICATE_REVISIONS="$(psql_q "SELECT count(*) FROM (SELECT main_account_id, server_revision FROM sync_events WHERE server_revision IS NOT NULL GROUP BY main_account_id, server_revision HAVING count(*) > 1) duplicates;")"
+assert_eq "$DUPLICATE_REVISIONS" "0" "Server-Revisionen sind pro Konto eindeutig"
 
 # ---------------------------------------------------------------------------
 if [ "$FAILURES" -eq 0 ]; then

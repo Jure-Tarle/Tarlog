@@ -7,10 +7,11 @@
  *   2. Nächste kanonische `server_revision` (Hochwassermarke, doc 04 §1.2).
  *   3. Fachliche Entitäts-Mutation (Callback) IN derselben Transaktion.
  *   4. `audit_logs`-Eintrag (before/after/reason) IN derselben Transaktion.
- *   5. COMMIT.
- *   6. `publishEvent` (sync_events + pg_notify Live-Kanal) NACH Commit; die
- *      erzeugten `sync_events` bekommen dieselbe `server_revision` gesetzt,
- *      damit `GET /api/sync/changes?since=` sie als Delta zieht.
+ *   5. Event-Outbox (`sync_events`) mit finaler Revision IN derselben
+ *      Transaktion. So kann weder ein Fehler noch konkurrierendes Publishing
+ *      die Revisionsreihenfolge vom Fach-Commit trennen.
+ *   6. COMMIT, danach best-effort `pg_notify`; Pull/Long-Poll bleibt selbst bei
+ *      einem Notify-Ausfall vollständig, weil die Outbox bereits kanonisch ist.
  *
  * Revisionsquelle ist `audit_logs.server_revision` (wird IN der gesperrten
  * Transaktion geschrieben), nicht `sync_events` (wird erst nach Commit
@@ -20,7 +21,8 @@ import type { PoolClient } from "pg";
 import { uuidv7 } from "uuidv7";
 import { pool } from "@/lib/db";
 import {
-  publishEvent,
+  notifyEvent,
+  type PtlEventEnvelope,
   type PtlEventType,
   type PtlOperation,
 } from "@/lib/events";
@@ -122,6 +124,14 @@ export interface ApplyMutationResult<T> {
   hlc: string;
 }
 
+/** Concurrent retry detected after the caller's optimistic fast-path check. */
+export class MutationAlreadyAppliedError extends Error {
+  constructor(readonly serverRevision: number) {
+    super("mutation correlation was already applied");
+    this.name = "MutationAlreadyAppliedError";
+  }
+}
+
 async function insertAudit(
   client: PoolClient,
   input: {
@@ -182,16 +192,37 @@ export async function applyMutation<T>(
   let result: T;
   let rev: number;
   const events: EventSpec[] = [];
+  const envelopes: PtlEventEnvelope[] = [];
   try {
     await client.query("BEGIN");
     // Pro-Account serialisieren (Auto-Release bei COMMIT/ROLLBACK).
     await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [
       input.main_account_id,
     ]);
+    if (correlationId) {
+      const duplicate = await client.query<{ server_revision: string | number | null }>(
+        `SELECT server_revision
+           FROM sync_events
+          WHERE main_account_id = $1 AND correlation_id = $2
+          UNION ALL
+         SELECT server_revision
+           FROM audit_logs
+          WHERE main_account_id = $1 AND correlation_id = $2
+          LIMIT 1`,
+        [input.main_account_id, correlationId],
+      );
+      if (duplicate.rows.length > 0) {
+        throw new MutationAlreadyAppliedError(
+          toNum(duplicate.rows[0]?.server_revision ?? 0),
+        );
+      }
+    }
     // Nächste kanonische Revision aus der in-Transaktion geschriebenen Quelle.
     const revRes = await client.query<{ next: string | number }>(
-      `SELECT COALESCE(MAX(server_revision), 0) + 1 AS next
-         FROM audit_logs WHERE main_account_id = $1`,
+      `SELECT GREATEST(
+          COALESCE((SELECT MAX(server_revision) FROM audit_logs WHERE main_account_id = $1), 0),
+          COALESCE((SELECT MAX(server_revision) FROM sync_events WHERE main_account_id = $1), 0)
+        ) + 1 AS next`,
       [input.main_account_id],
     );
     rev = toNum(revRes.rows[0]?.next ?? 1);
@@ -219,6 +250,45 @@ export async function applyMutation<T>(
       events.push(...evList);
     }
 
+    for (const [index, event] of events.entries()) {
+      const eventId = uuidv7();
+      const eventRevision = rev + index;
+      const envelope: PtlEventEnvelope = {
+        event_id: eventId,
+        type: event.type,
+        created_at: now,
+        main_account_id: input.main_account_id,
+        device_id: input.device_id,
+        entity_type: event.entity_type,
+        entity_id: event.entity_id,
+        operation: event.operation,
+        data: event.data,
+        ...(correlationId ? { correlation_id: correlationId } : {}),
+      };
+      await client.query(
+        `INSERT INTO sync_events
+           (id, main_account_id, device_id, entity_type, entity_id, operation,
+            payload_json, hlc, local_revision, server_revision, correlation_id,
+            applied, created_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,false,$12)`,
+        [
+          eventId,
+          input.main_account_id,
+          input.device_id,
+          event.entity_type,
+          event.entity_id,
+          event.operation,
+          JSON.stringify(event.data),
+          hlc,
+          localRevision,
+          eventRevision,
+          correlationId,
+          now,
+        ],
+      );
+      envelopes.push(envelope);
+    }
+
     await client.query("COMMIT");
   } catch (err) {
     await client.query("ROLLBACK");
@@ -227,24 +297,15 @@ export async function applyMutation<T>(
     client.release();
   }
 
-  // Live-Kanal + Outbox NACH Commit; Event bekommt dieselbe Revision.
-  for (const ev of events) {
-    const envelope = await publishEvent({
-      type: ev.type,
-      main_account_id: input.main_account_id,
-      device_id: input.device_id,
-      entity_type: ev.entity_type,
-      entity_id: ev.entity_id,
-      operation: ev.operation,
-      data: ev.data,
-      correlation_id: correlationId ?? undefined,
-      hlc,
-      local_revision: localRevision,
-    });
-    await pool.query(
-      `UPDATE sync_events SET server_revision = $1 WHERE id = $2`,
-      [rev, envelope.event_id],
-    );
+  for (const envelope of envelopes) {
+    try {
+      await notifyEvent(envelope);
+    } catch (error) {
+      // The committed outbox is the delivery truth. Poll/catch-up will recover;
+      // a transient notification failure must not turn a committed mutation
+      // into a client-visible failure and unsafe retry.
+      console.error("[sync] pg_notify failed; event remains pullable", error);
+    }
   }
 
   return { result, server_revision: rev, hlc };

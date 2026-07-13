@@ -4,7 +4,7 @@
  * NUR jetzt im Klartext zurückgegeben; das neue Gerät löst ihn an
  * `POST /api/devices/connect` ein.
  */
-import { json, parseJson, requireAuth } from "@/lib/api";
+import { json, parseJson, requireSessionAuth } from "@/lib/api";
 import { assertSameOrigin } from "@/lib/auth/http";
 import { createPairingCode } from "@/lib/auth/pairing";
 import { PairingCreateSchema } from "@/lib/auth/schemas";
@@ -12,7 +12,7 @@ import { PairingCreateSchema } from "@/lib/auth/schemas";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export const POST = requireAuth(async (req, _ctx, auth) => {
+export const POST = requireSessionAuth(async (req, _ctx, auth) => {
   assertSameOrigin(req);
   const body = await parseJson(req, PairingCreateSchema);
   const pairing = createPairingCode(auth.main_account_id, {

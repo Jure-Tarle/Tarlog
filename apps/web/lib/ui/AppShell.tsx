@@ -14,6 +14,7 @@ import {
   CalendarRange,
   CheckSquare2,
   ChevronRight,
+  CircleHelp,
   Clock3,
   FileDown,
   FolderKanban,
@@ -91,6 +92,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: "System",
     items: [
+      { href: "/onboarding?replay=1", label: "Einführung", icon: CircleHelp },
       { href: "/compliance", label: "Compliance", icon: ShieldCheck },
       { href: "/sync", label: "Synchronisierung", icon: RefreshCw },
       { href: "/settings", label: "Einstellungen", icon: Settings2 },
@@ -101,7 +103,8 @@ const NAV_GROUPS: NavGroup[] = [
 const SPRING = { type: "spring" as const, bounce: 0, duration: 0.36 };
 
 function isActive(pathname: string, href: string): boolean {
-  return pathname === href || pathname.startsWith(`${href}/`);
+  const baseHref = href.split("?", 1)[0] ?? href;
+  return pathname === baseHref || pathname.startsWith(`${baseHref}/`);
 }
 
 function initials(name: string): string {
@@ -373,11 +376,33 @@ export function AppShell({
   const pathname = usePathname() || "/dashboard";
   const reduceMotion = useReducedMotion();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [online, setOnline] = useState(true);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const mainRef = useRef<HTMLElement>(null);
+  const initialRouteRef = useRef(true);
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
   const timer = useLiveTimer(initialTimer);
 
   useEffect(() => setDrawerOpen(false), [pathname]);
+
+  useEffect(() => {
+    if (initialRouteRef.current) {
+      initialRouteRef.current = false;
+      return;
+    }
+    window.requestAnimationFrame(() => mainRef.current?.focus());
+  }, [pathname]);
+
+  useEffect(() => {
+    const update = () => setOnline(navigator.onLine);
+    update();
+    window.addEventListener("online", update);
+    window.addEventListener("offline", update);
+    return () => {
+      window.removeEventListener("online", update);
+      window.removeEventListener("offline", update);
+    };
+  }, []);
 
   return (
     <MotionConfig reducedMotion="user" transition={SPRING}>
@@ -412,7 +437,14 @@ export function AppShell({
             triggerRef={menuButtonRef}
           />
 
-          <main className="app-main" id="app-content">
+          <main ref={mainRef} className="app-main" id="app-content" tabIndex={-1}>
+            {!online ? (
+              <div className="offline-banner" role="status">
+                Offline – der letzte geladene Stand bleibt sichtbar. Speichern
+                ist nicht möglich; sichere deine Eingaben und versuche es nach
+                Wiederherstellung der Verbindung erneut.
+              </div>
+            ) : null}
             <AnimatePresence initial={false} mode="popLayout">
               <motion.div
                 key={pathname}

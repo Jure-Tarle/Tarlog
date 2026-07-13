@@ -26,6 +26,9 @@ export default async function SyncPage(): Promise<React.ReactElement> {
 
     body = (
       <>
+        <div className="sync-experimental-note" role="note">
+          Native Gerätesynchronisierung ist derzeit eine technische Vorschau. Lokale Zeiten bleiben offline verfügbar; prüfe den Sync-Status, bevor du ein Gerät entfernst oder zurücksetzt.
+        </div>
         <Grid min={190} style={{ marginBottom: 18 }}>
           <StatTile label="Verbundene Geräte" value={connected} accent />
           <StatTile label="Letzter Sync" value={formatRelative(lastSync, account.locale)} />
@@ -34,7 +37,7 @@ export default async function SyncPage(): Promise<React.ReactElement> {
         </Grid>
 
         {devices.length === 0 ? (
-          <EmptyState title="Keine Geräte registriert" hint="Desktop-/iOS-App verbinden, um Zeiten geräteübergreifend zu synchronisieren." />
+          <EmptyState title="Keine Geräte registriert" hint="Die experimentelle Desktop-App kann über einen einmaligen Verbindungscode gekoppelt werden. iOS-Sync ist noch nicht produktionsreif." />
         ) : (
           <Table
             head={
@@ -75,8 +78,8 @@ export default async function SyncPage(): Promise<React.ReactElement> {
   return (
     <section>
       <PageHeader
-        title="Sync-Status"
-        subtitle="Geräte, letzter Sync, Live-Kanal und Konflikte"
+        title="Synchronisierung"
+        subtitle="Geräte, letzter Sync, Live-Kanal und Konflikte – transparent und offline-first"
         actions={<RealtimeRefresher types={["sync.", "device."]} showIndicator />}
       />
       {body}

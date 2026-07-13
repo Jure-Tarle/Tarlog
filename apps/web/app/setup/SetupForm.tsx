@@ -2,7 +2,8 @@
 /**
  * SetupForm — Erststart-Formular (Client). POSTet an /api/auth/setup; bei Erfolg
  * ist der Admin sofort angemeldet (Session-Cookie gesetzt) → harte Navigation
- * nach /dashboard, damit die Middleware die neuen Cookies liest.
+ * nach /onboarding, damit die Middleware die neuen Cookies liest und der
+ * fachliche First-Run-Assistent den ersten Arbeitsbereich einrichtet.
  */
 import { useState } from "react";
 import { Field, FormError, SubmitButton, TextInput, readApiError } from "./ui";
@@ -14,18 +15,24 @@ export function SetupForm(): React.ReactElement {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: React.FormEvent): Promise<void> {
     e.preventDefault();
     setError(null);
+    setPasswordError(null);
+    setConfirmError(null);
 
     if (password !== confirm) {
-      setError("Passwörter stimmen nicht überein.");
+      setConfirmError("Passwörter stimmen nicht überein.");
+      document.getElementById("setup-password-confirm")?.focus();
       return;
     }
     if (password.length < 10) {
-      setError("Passwort muss mindestens 10 Zeichen haben.");
+      setPasswordError("Das Passwort muss mindestens 10 Zeichen haben.");
+      document.getElementById("setup-password")?.focus();
       return;
     }
 
@@ -47,7 +54,7 @@ export function SetupForm(): React.ReactElement {
         setLoading(false);
         return;
       }
-      window.location.assign("/dashboard");
+      window.location.assign("/onboarding");
     } catch {
       setError("Netzwerkfehler. Server erreichbar?");
       setLoading(false);
@@ -55,10 +62,10 @@ export function SetupForm(): React.ReactElement {
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate>
+    <form onSubmit={onSubmit}>
       <FormError message={error} />
 
-      <Field label="Anzeigename">
+      <Field label="Anzeigename" required>
         <TextInput
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
@@ -89,22 +96,30 @@ export function SetupForm(): React.ReactElement {
         />
       </Field>
 
-      <Field label="Passwort" hint="Mindestens 10 Zeichen. Argon2id-gehasht.">
+      <Field label="Passwort" hint="Mindestens 10 Zeichen. Argon2id-gehasht." error={passwordError} required>
         <TextInput
+          id="setup-password"
           type="password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            setPasswordError(null);
+          }}
           autoComplete="new-password"
           required
           minLength={10}
         />
       </Field>
 
-      <Field label="Passwort bestätigen">
+      <Field label="Passwort bestätigen" error={confirmError} required>
         <TextInput
+          id="setup-password-confirm"
           type="password"
           value={confirm}
-          onChange={(e) => setConfirm(e.target.value)}
+          onChange={(e) => {
+            setConfirm(e.target.value);
+            setConfirmError(null);
+          }}
           autoComplete="new-password"
           required
           minLength={10}

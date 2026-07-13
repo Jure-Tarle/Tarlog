@@ -111,6 +111,26 @@ export interface AuthContext {
   session_id?: string;
   device_id?: string;
   user_id?: string;
+  /** Present only for Bearer/API-token authentication. */
+  token_scopes?: string[];
+}
+
+/** Scope check shared by REST authentication and focused unit tests. */
+export function tokenAllowsScope(scopes: unknown, requiredScope: string): boolean {
+  if (!Array.isArray(scopes)) return false;
+  const normalized = scopes.filter(
+    (scope): scope is string => typeof scope === "string" && scope.length > 0,
+  );
+  return normalized.includes("*") || normalized.includes(requiredScope);
+}
+
+/** Realtime-only credentials must never become general REST Bearer tokens. */
+export function tokenAllowsRest(scopes: unknown): scopes is string[] {
+  if (!Array.isArray(scopes)) return false;
+  const normalized = scopes.filter(
+    (scope): scope is string => typeof scope === "string" && scope.length > 0,
+  );
+  return normalized.length > 0 && normalized.some((scope) => scope !== "realtime");
 }
 
 /** Ergebnis von `createSession` — Klartext-Token für das Set-Cookie. */
@@ -175,14 +195,22 @@ export async function verifySession(token: string): Promise<AuthContext | null> 
     main_account_id: string;
     user_id: string | null;
     device_id: string | null;
-    session_hash: string;
     expires_at: number;
     revoked_at: number | null;
+    resolved_device_id: string | null;
+    device_revoked: boolean | null;
+    device_deleted_at: number | null;
   }>(
-    `SELECT id, main_account_id, user_id, device_id, session_hash,
-            expires_at, revoked_at
-       FROM sessions
-      WHERE session_hash = $1
+    `SELECT s.id, s.main_account_id, s.user_id, s.device_id,
+            s.expires_at, s.revoked_at,
+            d.id AS resolved_device_id,
+            d.revoked AS device_revoked,
+            d.deleted_at AS device_deleted_at
+       FROM sessions s
+       LEFT JOIN devices d
+         ON d.id = s.device_id
+        AND d.main_account_id = s.main_account_id
+      WHERE s.session_hash = $1
       LIMIT 1`,
     [hashToken(token)],
   );
@@ -190,11 +218,27 @@ export async function verifySession(token: string): Promise<AuthContext | null> 
   if (!row) return null;
   if (row.revoked_at != null) return null;
   if (row.expires_at <= now) return null;
+  if (
+    row.device_id != null &&
+    (row.resolved_device_id == null ||
+      row.device_revoked === true ||
+      row.device_deleted_at != null)
+  ) {
+    return null;
+  }
 
-  await pool.query(`UPDATE sessions SET last_seen_at = $1 WHERE id = $2`, [
-    now,
-    row.id,
-  ]);
+  // Das bedingte UPDATE schließt ein Rennen mit Logout/Gerätewiderruf: Wurde
+  // die Session seit dem SELECT widerrufen, entsteht kein Auth-Kontext mehr.
+  const touched = await pool.query<{ id: string }>(
+    `UPDATE sessions
+        SET last_seen_at = $1
+      WHERE id = $2
+        AND revoked_at IS NULL
+        AND expires_at > $1
+      RETURNING id`,
+    [now, row.id],
+  );
+  if (touched.rows.length === 0) return null;
 
   return {
     main_account_id: row.main_account_id,
@@ -236,8 +280,10 @@ export async function verifyDeviceToken(
     main_account_id: string;
     device_id: string | null;
     device_revoked: boolean | null;
+    scopes: unknown;
   }>(
-    `SELECT t.id, t.main_account_id, t.device_id, d.revoked AS device_revoked
+    `SELECT t.id, t.main_account_id, t.device_id, t.scopes,
+            d.revoked AS device_revoked
        FROM api_tokens t
        LEFT JOIN devices d ON d.id = t.device_id
       WHERE t.token_hash = $1
@@ -249,6 +295,7 @@ export async function verifyDeviceToken(
   const row = res.rows[0];
   if (!row) return null;
   if (row.device_revoked === true) return null;
+  if (!tokenAllowsRest(row.scopes)) return null;
 
   await pool.query(`UPDATE api_tokens SET last_used_at = $1 WHERE id = $2`, [
     now,
@@ -258,5 +305,6 @@ export async function verifyDeviceToken(
   return {
     main_account_id: row.main_account_id,
     device_id: row.device_id ?? undefined,
+    token_scopes: row.scopes,
   };
 }

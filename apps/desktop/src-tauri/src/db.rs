@@ -22,7 +22,7 @@ const APP_IDENTIFIER: &str = "com.tarlog.desktop";
 /// Local DB filename — must match `db.ts` `DB_URL = "sqlite:ptl.db"`.
 const DB_FILE: &str = "ptl.db";
 /// Current local schema version (stored in `PRAGMA user_version`).
-pub const SCHEMA_VERSION: i64 = 1;
+pub const SCHEMA_VERSION: i64 = 2;
 
 // Fixed singletons for the local single-user profile (doc 02 §3.1 local-first).
 // Valid UUIDv7-shaped constants; FK enforcement is off so no external rows are
@@ -57,8 +57,7 @@ fn app_config_dir() -> Result<PathBuf, String> {
     }
     #[cfg(target_os = "windows")]
     {
-        let appdata =
-            std::env::var("APPDATA").map_err(|_| "APPDATA not set".to_string())?;
+        let appdata = std::env::var("APPDATA").map_err(|_| "APPDATA not set".to_string())?;
         Ok(PathBuf::from(appdata).join(APP_IDENTIFIER))
     }
     #[cfg(all(unix, not(target_os = "macos")))]
@@ -109,10 +108,21 @@ pub fn run_migrations(conn: &Connection) -> Result<i64, String> {
     let current: i64 = conn
         .query_row("PRAGMA user_version", [], |r| r.get(0))
         .map_err(|e| format!("read user_version: {e}"))?;
+    if current > SCHEMA_VERSION {
+        return Err(format!(
+            "database schema version {current} is newer than this app supports ({SCHEMA_VERSION})"
+        ));
+    }
     let mut applied = 0;
     if current < 1 {
-        conn.execute_batch(DDL_V1).map_err(|e| format!("ddl v1: {e}"))?;
+        conn.execute_batch(DDL_V1)
+            .map_err(|e| format!("ddl v1: {e}"))?;
         bootstrap(conn)?;
+        applied += 1;
+    }
+    if current < 2 {
+        conn.execute_batch(DDL_V2)
+            .map_err(|e| format!("ddl v2: {e}"))?;
         applied += 1;
     }
     conn.execute_batch(&format!("PRAGMA user_version={SCHEMA_VERSION};"))
@@ -198,7 +208,13 @@ fn host_platform() -> &'static str {
 // ---------------------------------------------------------------------------
 
 /// Append an audit-log row. Errors are swallowed so audit never blocks a write.
-pub fn audit(conn: &Connection, action: &str, entity_type: &str, entity_id: &str, reason: Option<&str>) {
+pub fn audit(
+    conn: &Connection,
+    action: &str,
+    entity_type: &str,
+    entity_id: &str,
+    reason: Option<&str>,
+) {
     let _ = conn.execute(
         "INSERT INTO audit_logs(id, actor_id, main_account_id, device_id, entity_type, entity_id, action, reason, timestamp, source, local_revision)\
          VALUES(?1, ?2, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 'ui', 0)",
@@ -253,17 +269,29 @@ pub fn set_setting(conn: &Connection, key: &str, value: &str) -> Result<(), Stri
 // ---------------------------------------------------------------------------
 
 pub fn col_str(row: &Row, i: usize) -> rusqlite::Result<Value> {
-    Ok(row.get::<_, Option<String>>(i)?.map(Value::from).unwrap_or(Value::Null))
+    Ok(row
+        .get::<_, Option<String>>(i)?
+        .map(Value::from)
+        .unwrap_or(Value::Null))
 }
 pub fn col_int(row: &Row, i: usize) -> rusqlite::Result<Value> {
-    Ok(row.get::<_, Option<i64>>(i)?.map(Value::from).unwrap_or(Value::Null))
+    Ok(row
+        .get::<_, Option<i64>>(i)?
+        .map(Value::from)
+        .unwrap_or(Value::Null))
 }
 pub fn col_real(row: &Row, i: usize) -> rusqlite::Result<Value> {
-    Ok(row.get::<_, Option<f64>>(i)?.map(Value::from).unwrap_or(Value::Null))
+    Ok(row
+        .get::<_, Option<f64>>(i)?
+        .map(Value::from)
+        .unwrap_or(Value::Null))
 }
 /// INTEGER stored boolean → JSON bool (NULL preserved).
 pub fn col_bool(row: &Row, i: usize) -> rusqlite::Result<Value> {
-    Ok(row.get::<_, Option<i64>>(i)?.map(|n| Value::Bool(n != 0)).unwrap_or(Value::Null))
+    Ok(row
+        .get::<_, Option<i64>>(i)?
+        .map(|n| Value::Bool(n != 0))
+        .unwrap_or(Value::Null))
 }
 /// TEXT stored JSON → parsed JSON value (NULL / invalid → Null).
 pub fn col_json(row: &Row, i: usize) -> rusqlite::Result<Value> {
@@ -309,7 +337,8 @@ pub fn read_timer_state(conn: &Connection) -> Result<Value, String> {
 }
 
 /// Explicit column list for `time_entries` reads (order matches `map_time_entry`).
-pub const TE_COLS: &str = "id, main_account_id, project_id, task_id, customer_id, status, timezone, \
+pub const TE_COLS: &str =
+    "id, main_account_id, project_id, task_id, customer_id, status, timezone, \
 actual_started_at, actual_ended_at, actual_duration_seconds, break_duration_seconds, \
 net_work_duration_seconds, billing_duration_seconds, rounding_rule_id, rounding_delta_seconds, \
 rounding_reason, calculation_version, rate_snapshot, billing_amount_snapshot, description, \
@@ -771,4 +800,72 @@ CREATE TABLE IF NOT EXISTS conflict_records (
   created_at INTEGER NOT NULL,
   resolved_at INTEGER
 );
+"#;
+
+// Repository read models added after the initial local-runtime schema. Keep
+// these columns aligned with `packages/db/src/schema/sqlite.ts`: the desktop
+// repositories deliberately use `SELECT *`, while their list views consume a
+// subset of the returned row.
+const DDL_V2: &str = r#"
+CREATE TABLE IF NOT EXISTS invoices (
+  id TEXT PRIMARY KEY,
+  main_account_id TEXT NOT NULL,
+  customer_id TEXT NOT NULL,
+  invoice_number TEXT,
+  number_range_id TEXT,
+  type TEXT NOT NULL,
+  status TEXT DEFAULT 'draft',
+  dunning_status TEXT DEFAULT 'none',
+  issue_date TEXT NOT NULL,
+  service_period_start TEXT,
+  service_period_end TEXT,
+  service_date TEXT,
+  payment_due_date TEXT,
+  currency TEXT NOT NULL,
+  net_amount_cents INTEGER NOT NULL,
+  tax_amount_cents INTEGER NOT NULL,
+  gross_amount_cents INTEGER NOT NULL,
+  tax_rate REAL NOT NULL,
+  small_business_note TEXT,
+  reverse_charge_note TEXT,
+  customer_snapshot TEXT NOT NULL,
+  project_snapshot TEXT,
+  rate_snapshot TEXT NOT NULL,
+  rounding_snapshot TEXT NOT NULL,
+  finalized_at INTEGER,
+  cancels_invoice_id TEXT,
+  notes TEXT,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  sync_version INTEGER NOT NULL DEFAULT 0,
+  server_revision INTEGER,
+  local_revision INTEGER NOT NULL DEFAULT 0,
+  hlc TEXT,
+  last_modified_by_device TEXT
+);
+CREATE INDEX IF NOT EXISTS ix_invoices_main_account ON invoices(main_account_id);
+CREATE INDEX IF NOT EXISTS ix_invoices_status ON invoices(status);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_invoices_number
+  ON invoices(main_account_id, invoice_number);
+
+CREATE TABLE IF NOT EXISTS compliance_results (
+  id TEXT PRIMARY KEY,
+  main_account_id TEXT NOT NULL,
+  compliance_profile_id TEXT NOT NULL,
+  scope TEXT NOT NULL,
+  scope_date TEXT,
+  time_entry_id TEXT,
+  rule_code TEXT NOT NULL,
+  severity TEXT NOT NULL,
+  message TEXT NOT NULL,
+  override_reason TEXT,
+  overridden_by_device TEXT,
+  calculation_version INTEGER NOT NULL,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ix_compliance_results_scope_date
+  ON compliance_results(scope_date);
+CREATE INDEX IF NOT EXISTS ix_compliance_results_severity
+  ON compliance_results(severity);
 "#;

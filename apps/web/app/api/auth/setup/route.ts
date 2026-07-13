@@ -9,12 +9,18 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { sql } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
+import { createOnboardingProgress } from "@tarlog/core";
 import { ApiError, json, parseJson } from "@/lib/api";
 import { db, schema } from "@/lib/db";
 import { createSession, hashPassword } from "@/lib/session";
 import { assertSameOrigin, getClientIp, hashIp, publicRoute } from "@/lib/auth/http";
-import { setSessionCookie, setSetupCookie } from "@/lib/auth/cookies";
+import {
+  setBrowserDeviceCookie,
+  setSessionCookie,
+  setSetupCookie,
+} from "@/lib/auth/cookies";
 import { writeAuditLog } from "@/lib/auth/audit";
+import { rateLimit } from "@/lib/auth/ratelimit";
 import { SetupSchema } from "@/lib/auth/schemas";
 import { APP_VERSION } from "@/lib/version";
 
@@ -26,6 +32,19 @@ const SETUP_LOCK_KEY = 918_273_645;
 
 export const POST = publicRoute(async (req: NextRequest) => {
   assertSameOrigin(req);
+  const ip = getClientIp(req);
+  if (!rateLimit(`setup:${ip}`, 5, 60 * 60 * 1000)) {
+    throw new ApiError("rate_limited", "Zu viele Setup-Versuche. Bitte später erneut.");
+  }
+  // Cheap fail-fast before JSON parsing and the deliberately expensive Argon2
+  // hash. The advisory-lock check below remains the race-safe authority.
+  const configured = await db
+    .select({ id: schema.mainAccounts.id })
+    .from(schema.mainAccounts)
+    .limit(1);
+  if (configured.length > 0) {
+    throw new ApiError("conflict", "Setup ist bereits abgeschlossen.");
+  }
   const body = await parseJson(req, SetupSchema);
 
   const password_hash = await hashPassword(body.password);
@@ -81,6 +100,17 @@ export const POST = publicRoute(async (req: NextRequest) => {
       updated_at: now,
     });
 
+    await tx.insert(schema.settings).values({
+      id: uuidv7(),
+      main_account_id: mainAccountId,
+      scope: "account",
+      device_id: null,
+      key: "onboarding_v1",
+      value_json: createOnboardingProgress() as unknown as Record<string, unknown>,
+      created_at: now,
+      updated_at: now,
+    });
+
     // Standard-Rundungsregel: je angefangenes 15-Minuten-Intervall aufrunden
     // (doc 07/14, AC18). Ohne diese globale Default-Regel bliebe die Abrechnung
     // Pass-Through (billing = net). Projekte/Kunden können sie überschreiben.
@@ -114,7 +144,7 @@ export const POST = publicRoute(async (req: NextRequest) => {
   const session = await createSession({
     main_account_id: mainAccountId,
     device_id: deviceId,
-    ip_hash: hashIp(getClientIp(req)),
+    ip_hash: hashIp(ip),
     user_agent: ua,
   });
 
@@ -123,6 +153,7 @@ export const POST = publicRoute(async (req: NextRequest) => {
     { status: 201 },
   ) as NextResponse;
   setSessionCookie(res, session.token, session.expires_at);
+  setBrowserDeviceCookie(res, deviceId);
   setSetupCookie(res);
   return res;
 });

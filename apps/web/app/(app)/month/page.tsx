@@ -80,13 +80,13 @@ export default async function MonthPage({
           <StatTile label="Pausen" value={secondsToHM(month.breakSeconds) + " h"} />
         </Grid>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6 }}>
+        <div className="month-grid">
           {WD.map((w) => (
-            <div key={w} style={{ fontSize: 11, fontWeight: 600, color: "var(--color-text-muted)", textAlign: "center", padding: "2px 0" }}>{w}</div>
+            <div key={w} className="month-weekday">{w}</div>
           ))}
           {cells.map((d, i) =>
             d === null ? (
-              <div key={`e-${i}`} />
+              <div key={`e-${i}`} className="month-spacer" aria-hidden />
             ) : (
               (() => {
                 const info = byDay.get(d);
@@ -96,20 +96,10 @@ export default async function MonthPage({
                   <a
                     key={d}
                     href={`/today?date=${d}`}
-                    style={{
-                      display: "block",
-                      textDecoration: "none",
-                      color: "inherit",
-                      border: "1px solid var(--color-border)",
-                      borderTop: isToday ? "2px solid var(--color-accent)" : "1px solid var(--color-border)",
-                      borderRadius: "var(--radius-sm)",
-                      background: info ? "var(--color-surface-raised)" : "var(--color-surface-sunken)",
-                      padding: 8,
-                      minHeight: 66,
-                    }}
+                    className={`month-day${info ? " has-entries" : ""}${isToday ? " is-today" : ""}`}
                   >
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span style={{ fontSize: 11, color: "var(--color-text-faint)" }}>{Number(d.slice(8))}</span>
+                    <div className="month-day-heading">
+                      <span>{Number(d.slice(8))}</span>
                       {w ? (
                         <span>
                           <span aria-hidden style={{ display: "block", width: 7, height: 7, borderRadius: "50%", background: dot(w) }} />
@@ -118,7 +108,7 @@ export default async function MonthPage({
                       ) : null}
                     </div>
                     {info ? (
-                      <div className="tabular" style={{ fontSize: 14, fontWeight: 600, marginTop: 6 }}>{secondsToHM(info.net)}</div>
+                      <div className="month-day-duration tabular">{secondsToHM(info.net)}</div>
                     ) : null}
                   </a>
                 );

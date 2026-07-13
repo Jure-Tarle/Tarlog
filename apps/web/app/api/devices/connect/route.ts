@@ -24,7 +24,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /** Default-Scopes eines gepairten Geräts (Sync + Timer + Zeiteinträge). */
-const DEVICE_TOKEN_SCOPES = ["sync", "timer", "time_entries"] as const;
+const DEVICE_TOKEN_SCOPES = ["sync", "timer", "time_entries", "devices_read"] as const;
 
 export const POST = publicRoute(async (req: NextRequest) => {
   const ip = getClientIp(req);

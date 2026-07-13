@@ -1,6 +1,6 @@
 /**
  * Einstellungen — Bereich 14 (doc 09, doc 11). Rundungsregeln, lokales Backup
- * und App-Sperre. Nur data-Schicht (rounding, backup, settings); keine eigenen
+ * und Sicherheitsstatus. Nur data-Schicht (rounding, backup); keine eigenen
  * DB-Zugriffe.
  */
 import { useState } from "react";
@@ -8,11 +8,9 @@ import { Page, Card, Button, AsyncBody, EmptyState, TableWrap, Tag } from "../co
 import { useAsync } from "../data/hooks";
 import { listRoundingRules } from "../data/rounding";
 import { runManualBackup } from "../data/backup";
-import { getSetting, setSetting } from "../data/settings";
 
 export default function Settings() {
   const rules = useAsync(() => listRoundingRules(), []);
-  const lock = useAsync(() => getSetting<boolean>("app_lock_enabled"), []);
   const [backupMsg, setBackupMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -25,12 +23,6 @@ export default function Settings() {
     } catch (e) {
       setBackupMsg(`Backup fehlgeschlagen: ${e instanceof Error ? e.message : String(e)}`);
     } finally { setBusy(false); }
-  }
-
-  async function toggleLock() {
-    const next = !(lock.data ?? false);
-    await setSetting("app_lock_enabled", next);
-    lock.reload();
   }
 
   return (
@@ -68,14 +60,15 @@ export default function Settings() {
           {backupMsg ? <p className="muted" style={{ marginTop: 8 }}>{backupMsg}</p> : null}
         </Card>
 
-        <Card title="App-Sperre" subtitle="App-Passwort (doc 09 §6.1)">
+        <Card title="App-Sperre" subtitle="Noch nicht verfügbar">
           <p className="muted">
-            Optionaler Sperrbildschirm beim Start. Touch ID ist auf macOS über Tauri nicht
-            verfügbar — daher App-Passwort.
+            Eine verlässliche Startsperre benötigt Passwort-Einrichtung, einen
+            Sperrbildschirm vor dem Datenzugriff und eine sichere
+            Wiederherstellung. Diese Strecke ist noch nicht freigegeben; die
+            lokale Datenbank sollte deshalb über FileVault beziehungsweise
+            BitLocker geschützt werden.
           </p>
-          <Button onClick={() => void toggleLock()}>
-            {(lock.data ?? false) ? "App-Sperre deaktivieren" : "App-Sperre aktivieren"}
-          </Button>
+          <Button disabled>In Vorbereitung</Button>
         </Card>
       </div>
     </Page>

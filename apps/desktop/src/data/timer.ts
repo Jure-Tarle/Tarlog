@@ -21,6 +21,7 @@ import {
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import {
   timerGetState,
+  nativeTimerCommandsUpdate,
   timerStart,
   timerPause,
   timerResume,
@@ -124,6 +125,26 @@ function useTimerController(pollMs = 4000): UseTimer {
   const [mutationError, setMutationError] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<TimerMutation | null>(null);
   const pendingRef = useRef(false);
+
+  // Native menu/tray mutations are disabled during boot and every in-flight
+  // mutation. Unknown/transitional statuses remain disabled in Rust.
+  useEffect(() => {
+    void nativeTimerCommandsUpdate({
+      status: state?.status ?? null,
+      pending: pendingAction !== null,
+      ready: !loading,
+    }).catch(() => {
+      // Plain Vite previews and web-only tests have no native command surface.
+    });
+  }, [loading, pendingAction, state?.status]);
+
+  // Never leave stale commands enabled when the provider unmounts (for
+  // example while returning to onboarding or during app shutdown).
+  useEffect(() => () => {
+    void nativeTimerCommandsUpdate({ status: null, pending: true, ready: false }).catch(() => {
+      // The Tauri runtime can already be gone during teardown.
+    });
+  }, []);
 
   const clearError = useCallback(() => {
     setRefreshError(null);

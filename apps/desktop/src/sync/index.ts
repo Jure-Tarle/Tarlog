@@ -31,8 +31,12 @@ export {
   toWireEvent,
 } from "./outbox";
 export { LiveChannel, type LiveChannelHandlers } from "./liveChannel";
+export { classifySyncRound, type SyncRound, type SyncUiPhase } from "./presentation";
 export {
   SyncEngine,
+  SyncMergeFailedError,
+  SyncMergeRequiredError,
+  nextPullCursor,
   type SyncEngineOptions,
   type SyncTransport,
 } from "./engine";
@@ -40,10 +44,14 @@ export {
   ServerClient,
   ServerConflictError,
   ServerHttpError,
+  ServerProtocolError,
   ServerUnreachableError,
+  normalizePairingCode,
+  normalizeServerBaseUrl,
   pairDevice,
   toWebSocketUrl,
 } from "../lib/serverClient";
+export { NativeHttpTransportError } from "../lib/nativeHttp";
 
 import { SyncEngine, type SyncEngineOptions } from "./engine";
 

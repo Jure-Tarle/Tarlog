@@ -56,6 +56,7 @@ mod macos {
         ("compliance", "checkmark.shield", "Compliance"),
         ("settings", "gearshape", "Einstellungen"),
         ("sync", "arrow.triangle.2.circlepath", "Synchronisieren"),
+        ("onboarding", "questionmark.circle", "Einführung"),
         ("sidebarToggle", "sidebar.left", "Seitenleiste"),
         ("timerPlay", "play.fill", "Starten"),
         ("timerPause", "pause.fill", "Pausieren"),

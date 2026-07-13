@@ -414,8 +414,7 @@ small_business_hint, preferred_export_detail, status";
 #[tauri::command]
 pub fn create_customer(input: Value) -> Result<Value, String> {
     let conn = db::open()?;
-    let name =
-        v_str(&input, "name").ok_or_else(|| "create_customer: name required".to_string())?;
+    let name = v_str(&input, "name").ok_or_else(|| "create_customer: name required".to_string())?;
     let id = v_str(&input, "id").unwrap_or_else(db::new_uuid);
     let now = db::now_ms();
     conn.execute(
@@ -513,8 +512,7 @@ backdating_reason_required, max_retroactive_edit_days";
 #[tauri::command]
 pub fn create_project(input: Value) -> Result<Value, String> {
     let conn = db::open()?;
-    let name =
-        v_str(&input, "name").ok_or_else(|| "create_project: name required".to_string())?;
+    let name = v_str(&input, "name").ok_or_else(|| "create_project: name required".to_string())?;
     let id = v_str(&input, "id").unwrap_or_else(db::new_uuid);
     let now = db::now_ms();
     conn.execute(
@@ -558,10 +556,7 @@ pub fn create_project(input: Value) -> Result<Value, String> {
 /// `list_projects` — list projects, optional `customer_id`/`status` filters.
 /// Returns `ProjectRow[]`.
 #[tauri::command]
-pub fn list_projects(
-    customer_id: Option<String>,
-    status: Option<String>,
-) -> Result<Value, String> {
+pub fn list_projects(customer_id: Option<String>, status: Option<String>) -> Result<Value, String> {
     let conn = db::open()?;
     let mut sql = format!("SELECT {PROJECT_COLS} FROM projects WHERE deleted_at IS NULL");
     let mut args: Vec<rusqlite::types::Value> = Vec::new();
@@ -646,10 +641,7 @@ pub fn run_backup(manual: Option<bool>, encrypt: Option<bool>) -> Result<Value, 
 /// NOTE: macOS Touch ID (LocalAuthentication) is not wired in this build, so
 /// `biometricAvailable` is always `false`; only password locks are verifiable.
 #[tauri::command]
-pub fn app_lock_check(
-    method: Option<String>,
-    password: Option<String>,
-) -> Result<Value, String> {
+pub fn app_lock_check(method: Option<String>, password: Option<String>) -> Result<Value, String> {
     let conn = db::open()?;
     let (enabled, lock_method): (Option<i64>, Option<String>) = conn
         .query_row(

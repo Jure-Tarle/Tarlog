@@ -20,5 +20,7 @@ export const POST = publicRoute(async (req: NextRequest) => {
 
   const res = json({ ok: true }) as NextResponse;
   clearSessionCookie(res);
+  // `ptl_web_device_id` bleibt absichtlich erhalten: Ein erneuter Login in
+  // diesem Browser soll wieder dasselbe, weiterhin aktive Gerät verwenden.
   return res;
 });

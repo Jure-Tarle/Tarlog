@@ -10,8 +10,13 @@ import { NextResponse, type NextRequest } from "next/server";
 import { ApiError, json, parseJson } from "@/lib/api";
 import { createSession, verifyPassword } from "@/lib/session";
 import { assertSameOrigin, getClientIp, hashIp, publicRoute } from "@/lib/auth/http";
-import { setSessionCookie, setSetupCookie } from "@/lib/auth/cookies";
-import { getPrimaryMainAccount } from "@/lib/auth/setup";
+import {
+  getBrowserDeviceId,
+  setBrowserDeviceCookie,
+  setSessionCookie,
+  setSetupCookie,
+} from "@/lib/auth/cookies";
+import { getOrCreateActiveWebDevice, getPrimaryMainAccount } from "@/lib/auth/setup";
 import { rateLimit } from "@/lib/auth/ratelimit";
 import { LoginSchema } from "@/lib/auth/schemas";
 
@@ -35,14 +40,20 @@ export const POST = publicRoute(async (req: NextRequest) => {
     throw new ApiError("unauthorized", "Anmeldung fehlgeschlagen.");
   }
 
+  const deviceId = await getOrCreateActiveWebDevice(
+    account.id,
+    getBrowserDeviceId(req),
+  );
   const session = await createSession({
     main_account_id: account.id,
+    device_id: deviceId,
     ip_hash: hashIp(ip),
     user_agent: req.headers.get("user-agent") ?? undefined,
   });
 
-  const res = json({ ok: true, main_account_id: account.id }) as NextResponse;
+  const res = json({ ok: true, main_account_id: account.id, device_id: deviceId }) as NextResponse;
   setSessionCookie(res, session.token, session.expires_at);
+  setBrowserDeviceCookie(res, deviceId);
   setSetupCookie(res);
   return res;
 });

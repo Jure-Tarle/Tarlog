@@ -195,17 +195,7 @@ export function NachtragForm({
         <Checkbox label="Kunde sichtbar" checked={clientVisible} onChange={(e) => setClientVisible(e.target.checked)} />
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: 10,
-          padding: 12,
-          borderRadius: "var(--radius)",
-          background: "var(--color-surface-sunken)",
-          border: "1px solid var(--color-border)",
-        }}
-      >
+      <div className="backdate-preview-grid">
         <Metric label="Nettozeit" value={preview ? secondsToHM(preview.net) + " h" : "—"} />
         <Metric label="Abrechenbar (gerundet)" value={preview ? secondsToHM(preview.rounded.billing_duration_seconds) + " h" : "—"} hint={preview?.rounded.rounding_reason} />
         <Metric label="Betrag" value={preview ? formatMoney(preview.amount, currency) : "—"} accent />

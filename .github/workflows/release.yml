@@ -23,15 +23,29 @@ jobs:
   verify:
     uses: ./.github/workflows/ci.yml
 
+  version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Tag und Manifest-Version abgleichen
+        env:
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+        run: node scripts/verify-version.mjs "$RELEASE_TAG"
+
   # 2) Server-Image für linux/amd64 + linux/arm64 nach GHCR.
   image:
-    needs: verify
+    needs: [verify, version]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Version aus dem Tag ableiten
         id: v
-        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+        env:
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+        run: echo "version=${RELEASE_TAG#v}" >> "$GITHUB_OUTPUT"
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
@@ -58,10 +72,11 @@ jobs:
   # 3) Desktop-Bundles: macOS (dmg/app) und Windows (nsis/msi). Ungesigniert;
   #    Signing-Secrets können später ergänzt werden (siehe tauri-action-Doku).
   #
-  #    BEWUSST NICHT an `verify` gekoppelt: die Desktop-App hängt nicht vom
-  #    Server-Smoke-Test ab. Ein flüchtiger Server-Test darf die Bundles nicht
-  #    blockieren. Der Desktop hat sein eigenes Gate (cargo test unten).
+  #    Desktop-Bundles werden erst nach Versions- und vollständigem CI-Gate
+  #    erzeugt. Der lokale Desktop-Modus wird zusätzlich vor dem Bundling
+  #    erneut gegen die native Rust-/SQLite-Schicht geprüft.
   desktop:
+    needs: [verify, version]
     strategy:
       fail-fast: false
       matrix:
@@ -92,17 +107,17 @@ jobs:
       # Desktop-eigenes Gate: der headless Integrationstest des lokalen Modus
       # (Migration, Timer, Single-Timer, Nachtrag, Backup). Fängt Startup- und
       # Persistenzfehler VOR dem Bundling.
-      - name: Desktop-Integrationstest
+      - name: Desktop-Rusttests
         working-directory: apps/desktop/src-tauri
-        run: cargo test --test local_mode
+        run: cargo test --all-targets
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: apps/desktop
           args: ${{ matrix.args }}
-          tagName: ${{ github.ref_name }}
-          releaseName: "Tarlog ${{ github.ref_name }}"
+          tagName: ${{ inputs.tag || github.ref_name }}
+          releaseName: "Tarlog ${{ inputs.tag || github.ref_name }}"
           releaseBody: "Automatisch erzeugte Bundles. Änderungen: siehe CHANGELOG.md. Desktop-Bundles sind unsigniert."
           releaseDraft: true
           prerelease: false

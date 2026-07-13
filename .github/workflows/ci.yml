@@ -30,9 +30,11 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Versionskonsistenz
+        run: pnpm version:check
       - name: Build (core, db, web, desktop-frontend)
         run: pnpm -r build
-      - name: Unit-Tests (core 98, web 59, desktop 10)
+      - name: Unit-Tests
         run: pnpm -r test
       - name: Typecheck iOS-App
         run: pnpm --filter @tarlog/mobile exec tsc --noEmit
@@ -51,9 +53,9 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: apps/desktop/src-tauri
-      - name: Integrationstests (Timer, Single-Timer-Invariante, Nachtrag, Backup)
+      - name: Rust-Unit- und Integrationstests
         working-directory: apps/desktop/src-tauri
-        run: cargo test --test local_mode
+        run: cargo test --all-targets
 
   # Server-Modus end-to-end: Migration → REST → WebSocket → Rechnung → Sync.
   smoke:

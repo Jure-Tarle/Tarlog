@@ -49,7 +49,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }): React.ReactElement {
   return (
-    <html lang="de" suppressHydrationWarning>
+    <html lang="de" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
       </head>

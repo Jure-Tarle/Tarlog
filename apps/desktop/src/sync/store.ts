@@ -18,6 +18,8 @@ export interface SyncState {
   lastPushedRevision: number;
   lastPulledRevision: number;
   lastHlc: string | null;
+  /** Set only after a complete, non-buffered push + pull round succeeds. */
+  lastSuccessfulSyncAt: number | null;
 }
 
 export const EMPTY_SYNC_STATE: SyncState = {
@@ -25,6 +27,7 @@ export const EMPTY_SYNC_STATE: SyncState = {
   lastPushedRevision: 0,
   lastPulledRevision: 0,
   lastHlc: null,
+  lastSuccessfulSyncAt: null,
 };
 
 /** Persistence port for {@link SyncState}. Implementations must not throw. */

@@ -41,6 +41,12 @@ const port = Number.parseInt(process.env.PORT ?? "3000", 10);
 const WS_PATH = "/api/ws";
 const PTL_EVENTS_CHANNEL = "ptl_events";
 const NEXT_STATIC_PREFIX = "/_next/static/";
+const trustProxy = process.env.TARLOG_TRUST_PROXY === "1";
+
+// Route-Handler und Custom Server teilen denselben Prozess. Nur hier ist der
+// Upgrade-Handler für /api/ws tatsächlich aktiv; `next dev` lässt den Browser
+// deshalb bewusst auf Long-Polling zurückfallen.
+process.env.TARLOG_REALTIME_WS_ENABLED = "1";
 
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
@@ -187,7 +193,15 @@ function broadcast(envelope) {
   const set = registry.get(envelope.main_account_id);
   if (!set || set.size === 0) return;
   const payload = JSON.stringify({ kind: "event", ...envelope });
+  const revokedDeviceId = envelope.type === "device.revoked"
+    ? envelope.data?.device_id ?? envelope.entity_id
+    : null;
   for (const ws of set) {
+    if (revokedDeviceId && ws.__ptlDeviceId === revokedDeviceId) {
+      unregisterSocket(envelope.main_account_id, ws);
+      ws.close(4003, "Device revoked");
+      continue;
+    }
     // meta.deviceId am Socket → Echo-Vermeidung beim Urheber-Gerät.
     if (ws.__ptlDeviceId && ws.__ptlDeviceId === envelope.device_id) continue;
     if (ws.readyState === ws.OPEN) ws.send(payload);
@@ -203,7 +217,8 @@ async function verifyDeviceTokenSql(pool, token) {
   if (!token) return null;
   const now = Date.now();
   const res = await pool.query(
-    `SELECT t.main_account_id, t.device_id, d.revoked AS device_revoked
+    `SELECT t.id, t.main_account_id, t.device_id, t.scopes, t.expires_at,
+            d.revoked AS device_revoked
        FROM api_tokens t
        LEFT JOIN devices d ON d.id = t.device_id
       WHERE t.token_hash = $1
@@ -215,9 +230,29 @@ async function verifyDeviceTokenSql(pool, token) {
   const row = res.rows[0];
   if (!row) return null;
   if (row.device_revoked === true) return null;
+  const scopes = Array.isArray(row.scopes) ? row.scopes : [];
+  if (!scopes.some((scope) => scope === "*" || scope === "realtime" || scope === "sync")) {
+    return null;
+  }
+  const ephemeral = scopes.includes("realtime") && !scopes.includes("*") && !scopes.includes("sync");
+  if (ephemeral) {
+    const consumed = await pool.query(
+      `DELETE FROM api_tokens
+        WHERE id = $1 AND revoked_at IS NULL
+          AND (expires_at IS NULL OR expires_at > $2)
+      RETURNING id`,
+      [row.id, now],
+    );
+    if (consumed.rows.length === 0) return null;
+  } else {
+    await pool.query("UPDATE api_tokens SET last_used_at = $1 WHERE id = $2", [now, row.id]);
+  }
   return {
+    token_id: row.id,
     main_account_id: row.main_account_id,
     device_id: row.device_id ?? null,
+    expires_at: row.expires_at == null ? null : Number(row.expires_at),
+    ephemeral,
   };
 }
 
@@ -226,9 +261,34 @@ async function main() {
 
   const pool = new Pool({ connectionString: DATABASE_URL, max: 5 });
 
-  // Dedizierte LISTEN-Verbindung (Auto-Reconnect bei Verbindungsabbruch).
+  let listenerReconnectTimer = null;
+  let listenerReady = false;
+
+  function disconnectLiveClients() {
+    for (const [mainAccountId, set] of registry) {
+      for (const ws of set) {
+        unregisterSocket(mainAccountId, ws);
+        ws.close(1012, "Live listener reconnecting");
+      }
+    }
+  }
+
+  function scheduleListenerReconnect(error) {
+    console.error("[server] LISTEN client error, reconnecting:", error);
+    listenerReady = false;
+    disconnectLiveClients();
+    if (listenerReconnectTimer) return;
+    listenerReconnectTimer = setTimeout(() => {
+      listenerReconnectTimer = null;
+      void startListener().catch(scheduleListenerReconnect);
+    }, 1000);
+  }
+
+  // Dedizierte LISTEN-Verbindung. Bei einer Lücke werden offene Sockets
+  // absichtlich geschlossen, damit Clients per Poll/Catch-up nichts verpassen.
   async function startListener() {
     const client = await pool.connect();
+    let failed = false;
     client.on("notification", (msg) => {
       if (msg.channel !== PTL_EVENTS_CHANNEL || !msg.payload) return;
       try {
@@ -238,18 +298,30 @@ async function main() {
       }
     });
     client.on("error", (err) => {
-      console.error("[server] LISTEN client error, reconnecting:", err);
+      if (failed) return;
+      failed = true;
       try {
-        client.release();
+        client.release(true);
       } catch {}
-      setTimeout(startListener, 1000);
+      scheduleListenerReconnect(err);
     });
-    await client.query(`LISTEN ${PTL_EVENTS_CHANNEL}`);
-    console.log(`[server] LISTEN ${PTL_EVENTS_CHANNEL} aktiv`);
+    try {
+      await client.query(`LISTEN ${PTL_EVENTS_CHANNEL}`);
+      listenerReady = true;
+      console.log(`[server] LISTEN ${PTL_EVENTS_CHANNEL} aktiv`);
+    } catch (error) {
+      client.release(true);
+      throw error;
+    }
   }
-  await startListener();
+  await startListener().catch(scheduleListenerReconnect);
 
   const httpServer = createServer(async (req, res) => {
+    const forwarded = trustProxy ? req.headers["x-forwarded-for"] : null;
+    const forwardedIp = typeof forwarded === "string" ? forwarded.split(",")[0]?.trim() : null;
+    // Overwrite any client-supplied value. XFF is honored only behind an
+    // explicitly trusted proxy; otherwise the TCP peer is authoritative.
+    req.headers["x-tarlog-client-ip"] = forwardedIp || req.socket.remoteAddress || "local";
     let pathname;
     try {
       pathname = new URL(req.url ?? "/", "http://localhost").pathname;
@@ -277,6 +349,11 @@ async function main() {
       socket.destroy();
       return;
     }
+    if (!listenerReady) {
+      socket.write("HTTP/1.1 503 Service Unavailable\r\nRetry-After: 1\r\n\r\n");
+      socket.destroy();
+      return;
+    }
     const token = requestUrl.searchParams.get("token") ?? "";
     let auth = null;
     try {
@@ -293,10 +370,25 @@ async function main() {
       ws.__ptlMainAccountId = auth.main_account_id;
       ws.__ptlDeviceId = auth.device_id;
       registerSocket(auth.main_account_id, ws);
+      let expiryTimer = null;
+      if (auth.expires_at != null) {
+        const armExpiry = () => {
+          const remaining = auth.expires_at - Date.now();
+          if (remaining <= 0) {
+            ws.close(4001, "Token expired");
+            return;
+          }
+          expiryTimer = setTimeout(armExpiry, Math.min(remaining, 2_147_000_000));
+        };
+        armExpiry();
+      }
       ws.send(
         JSON.stringify({ kind: "ready", main_account_id: auth.main_account_id }),
       );
-      ws.on("close", () => unregisterSocket(auth.main_account_id, ws));
+      ws.on("close", () => {
+        if (expiryTimer) clearTimeout(expiryTimer);
+        unregisterSocket(auth.main_account_id, ws);
+      });
       ws.on("error", () => unregisterSocket(auth.main_account_id, ws));
       // Client→Server-Nachrichten (Ping/Heartbeat). Mutationen laufen über REST.
       ws.on("message", (raw) => {
@@ -320,6 +412,8 @@ async function main() {
 
   const shutdown = () => {
     console.log("[server] shutdown…");
+    listenerReady = false;
+    if (listenerReconnectTimer) clearTimeout(listenerReconnectTimer);
     for (const set of registry.values()) for (const ws of set) ws.close();
     httpServer.close();
     pool.end().finally(() => process.exit(0));

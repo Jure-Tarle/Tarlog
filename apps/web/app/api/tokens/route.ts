@@ -10,7 +10,7 @@
 import { and, desc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { uuidv7 } from "uuidv7";
-import { ApiError, json, parseJson, requireAuth } from "@/lib/api";
+import { ApiError, json, parseJson, requireSessionAuth } from "@/lib/api";
 import { db, schema } from "@/lib/db";
 import { generateRawToken, hashToken } from "@/lib/session";
 import { assertSameOrigin } from "@/lib/auth/http";
@@ -19,7 +19,7 @@ import { TokenCreateSchema } from "@/lib/auth/schemas";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export const GET = requireAuth(async (_req, _ctx, auth) => {
+export const GET = requireSessionAuth(async (_req, _ctx, auth) => {
   const tokens = await db
     .select({
       id: schema.apiTokens.id,
@@ -39,7 +39,7 @@ export const GET = requireAuth(async (_req, _ctx, auth) => {
   return json({ tokens });
 });
 
-export const POST = requireAuth(async (req, _ctx, auth) => {
+export const POST = requireSessionAuth(async (req, _ctx, auth) => {
   assertSameOrigin(req);
   const body = await parseJson(req, TokenCreateSchema);
 

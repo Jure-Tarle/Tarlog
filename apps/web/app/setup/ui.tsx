@@ -1,24 +1,56 @@
 "use client";
 
-import type { InputHTMLAttributes, ReactNode } from "react";
+import type { AriaAttributes, InputHTMLAttributes, ReactNode } from "react";
+import { Children, cloneElement, isValidElement, useId } from "react";
 import { cx } from "@/lib/ui/format";
 
 export function Field({
   label,
   hint,
+  error,
+  required,
   children,
 }: {
   label: string;
   hint?: string;
+  error?: string | null;
+  required?: boolean;
   children: ReactNode;
 }): React.ReactElement {
+  const generatedId = useId();
+  const candidate = Children.toArray(children)[0];
+  const hintId = hint ? `${generatedId}-hint` : undefined;
+  const errorId = error ? `${generatedId}-error` : undefined;
+  const describedBy = [hintId, errorId].filter(Boolean).join(" ") || undefined;
+  const control = isValidElement<AuthControlProps>(candidate)
+    ? cloneElement(candidate, {
+        id: candidate.props.id ?? `${generatedId}-control`,
+        required: required || candidate.props.required || undefined,
+        "aria-invalid": error ? true : candidate.props["aria-invalid"],
+        "aria-describedby": describedBy,
+        "aria-errormessage": errorId,
+      })
+    : children;
+  const controlId = isValidElement<AuthControlProps>(control) ? control.props.id : undefined;
+
   return (
-    <label className="auth-field field">
-      <span className="field-label">{label}</span>
-      {children}
-      {hint ? <span className="field-message">{hint}</span> : null}
-    </label>
+    <div className="auth-field field">
+      <label className="field-label" htmlFor={controlId}>
+        {label}{required ? <span className="field-required"> *</span> : null}
+      </label>
+      {control}
+      {hint ? <span id={hintId} className="field-message">{hint}</span> : null}
+      {error ? <span id={errorId} className="field-message is-error">{error}</span> : null}
+    </div>
   );
+}
+
+interface AuthControlProps {
+  id?: string;
+  required?: boolean;
+  "aria-invalid"?: AriaAttributes["aria-invalid"];
+  "aria-describedby"?: string;
+  "aria-errormessage"?: string;
 }
 
 export function TextInput({ className, ...props }: InputHTMLAttributes<HTMLInputElement>): React.ReactElement {

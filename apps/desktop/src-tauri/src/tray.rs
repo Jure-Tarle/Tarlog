@@ -4,11 +4,18 @@
 //! Nachtrag / Beenden). Menu actions are emitted to the single frontend timer
 //! controller, which owns command serialization and the mandatory stop dialog.
 
+use crate::native_timer::TimerCommandItems;
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem},
     tray::TrayIconBuilder,
     AppHandle, Emitter, Runtime,
 };
+
+pub(crate) const TIMER_START_EVENT: &str = "tray://timer/start";
+pub(crate) const TIMER_PAUSE_EVENT: &str = "tray://timer/pause";
+pub(crate) const TIMER_RESUME_EVENT: &str = "tray://timer/resume";
+pub(crate) const TIMER_STOP_EVENT: &str = "tray://timer/stop";
+pub(crate) const BACKDATE_EVENT: &str = "tray://entry/backdate";
 
 #[cfg(target_os = "macos")]
 fn macos_template_icon() -> tauri::Result<tauri::image::Image<'static>> {
@@ -40,11 +47,19 @@ fn macos_template_icon() -> tauri::Result<tauri::image::Image<'static>> {
 }
 
 /// Build the tray icon and its control menu. Called once from setup.
-pub fn build_tray<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
-    let start = MenuItem::with_id(app, "tray_timer_start", "Timer starten", true, None::<&str>)?;
-    let pause = MenuItem::with_id(app, "tray_timer_pause", "Pause", true, None::<&str>)?;
-    let resume = MenuItem::with_id(app, "tray_timer_resume", "Fortsetzen", true, None::<&str>)?;
-    let stop = MenuItem::with_id(app, "tray_timer_stop", "Stoppen", true, None::<&str>)?;
+pub fn build_tray<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<TimerCommandItems<R>> {
+    // Timer mutations stay disabled until the frontend has loaded the durable
+    // timer state and explicitly synchronizes the native command controller.
+    let start = MenuItem::with_id(
+        app,
+        "tray_timer_start",
+        "Timer starten",
+        false,
+        None::<&str>,
+    )?;
+    let pause = MenuItem::with_id(app, "tray_timer_pause", "Pause", false, None::<&str>)?;
+    let resume = MenuItem::with_id(app, "tray_timer_resume", "Fortsetzen", false, None::<&str>)?;
+    let stop = MenuItem::with_id(app, "tray_timer_stop", "Stoppen", false, None::<&str>)?;
     let backdate = MenuItem::with_id(app, "tray_entry_backdate", "Nachtrag", true, None::<&str>)?;
     let sep = PredefinedMenuItem::separator(app)?;
     let quit = PredefinedMenuItem::quit(app, Some("Beenden"))?;
@@ -59,11 +74,11 @@ pub fn build_tray<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
         .tooltip("Tarlog")
         .on_menu_event(|app, event| {
             let event_name = match event.id.as_ref() {
-                "tray_timer_start" => Some("tray://timer/start"),
-                "tray_timer_pause" => Some("tray://timer/pause"),
-                "tray_timer_resume" => Some("tray://timer/resume"),
-                "tray_timer_stop" => Some("tray://timer/stop"),
-                "tray_entry_backdate" => Some("tray://entry/backdate"),
+                "tray_timer_start" => Some(TIMER_START_EVENT),
+                "tray_timer_pause" => Some(TIMER_PAUSE_EVENT),
+                "tray_timer_resume" => Some(TIMER_RESUME_EVENT),
+                "tray_timer_stop" => Some(TIMER_STOP_EVENT),
+                "tray_entry_backdate" => Some(BACKDATE_EVENT),
                 _ => None,
             };
 
@@ -91,5 +106,5 @@ pub fn build_tray<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     }
 
     builder.build(app)?;
-    Ok(())
+    Ok(TimerCommandItems::from_items(start, pause, resume, stop))
 }

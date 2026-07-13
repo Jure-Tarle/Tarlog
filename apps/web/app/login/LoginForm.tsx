@@ -50,7 +50,7 @@ export function LoginForm(): React.ReactElement {
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate>
+    <form onSubmit={onSubmit}>
       <FormError message={error} />
 
       <Field label="E-Mail" hint="Optional, falls nur ein Konto existiert.">
@@ -64,7 +64,7 @@ export function LoginForm(): React.ReactElement {
         />
       </Field>
 
-      <Field label="Passwort">
+      <Field label="Passwort" required>
         <TextInput
           type="password"
           value={password}

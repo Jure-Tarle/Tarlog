@@ -8,3 +8,4 @@ export * from "./rounding/index.js";
 export * from "./compliance/index.js";
 export * from "./billing/index.js";
 export * from "./schemas/index.js";
+export * from "./onboarding.js";

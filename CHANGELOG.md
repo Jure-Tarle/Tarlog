@@ -4,6 +4,49 @@ Alle nennenswerten Änderungen an Tarlog. Format nach
 [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionierung nach
 [SemVer](https://semver.org/lang/de/).
 
+## [0.0.3] — 2026-07-13
+
+Vollständiger Produktdurchgang des Apple-orientierten Redesigns mit geführtem
+Erststart, belastbareren Zuständen und korrigierten Desktop-Datengrenzen.
+
+### Design, macOS und Web
+
+- macOS-Oberfläche an die aktuellen Apple-Material-, Sidebar-, Menü-,
+  Dark-Mode- und Accessibility-Grundsätze angeglichen; System/Hell/Dunkel,
+  reduzierte Transparenz, erhöhter Kontrast und reduzierte Bewegung besitzen
+  jeweils explizite Fallbacks.
+- Native AppKit-Menüs, SF-Symbol-Laufzeitdarstellung und Menüleistensteuerung
+  enger mit dem tatsächlichen Timerzustand verbunden; Windows und Web erhalten
+  dieselbe Informationsarchitektur mit plattformgerechten Fallback-Icons.
+- Web-App um Fokusführung bei Routenwechseln, globale Offline-Rückmeldung,
+  Route-Loading/Error-Recovery, Forced-Colors-Unterstützung sowie adaptive
+  Wochen-, Monats- und Nachtragsansichten ergänzt.
+- Material und Unschärfe bleiben auf Navigation, Werkzeugleisten, Dialoge und
+  funktionale Statuslagen begrenzt; Inhaltsflächen bleiben ruhig und lesbar.
+
+### Onboarding und Sync
+
+- Versioniertes, beim ersten Start verpflichtendes und fortsetzbares
+  Sechs-Schritt-Onboarding für Desktop und Web: Arbeitsbereich, erster echter
+  Kunde/Projekt, Live-Timer, Nachtrag, Sync-Grenzen und Abschluss.
+- Self-Hosting-Anleitung für PostgreSQL, HTTPS/Reverse-Proxy,
+  Long-Poll/WebSocket, Backup/Restore und Browser-Sync vollständig überarbeitet.
+- Desktop-Pairing und Push/Pull-Verträge an die Server-Endpunkte angeglichen;
+  Oberfläche und Dokumentation kennzeichnen native Replikation weiterhin
+  ehrlich als technische Vorschau und unterscheiden Offline-, Puffer-, Fehler-
+  und Konfliktzustände.
+
+### Daten, Sicherheit und Release
+
+- Desktop-SQLite-Schema auf Version 2 migriert: fehlende Rechnungs- und
+  Compliance-Tabellen samt Indizes ergänzt, inklusive Fresh-/Upgrade-/No-op-
+  Integrationstests gegen die realen Repository-Abfragen.
+- Browser-Setup, Session-/Gerätebindung und kurzlebige Realtime-Tokens gehärtet
+  und mit zusätzlichen Tests abgedeckt.
+- Einheitliche Version `0.0.3` über Workspace, Tauri, Cargo und Expo; CI und
+  Release prüfen Manifest/Tag-Konsistenz, bevor macOS-/Windows-Bundles oder das
+  Server-Image erzeugt werden.
+
 ## [0.0.2] — 2026-07-13
 
 Apple-orientiertes Redesign der Desktop- und Browser-App mit einem neuen,
@@ -88,5 +131,6 @@ Synchronisierung zwischen Desktop, Browser und iOS.
 - XLSX-/ZIP-Export, Import-Assistent und Webhooks sind vorgesehen, aber in 0.0.1
   noch nicht enthalten.
 
-[0.0.2]: https://github.com/Jure-Tarle/Tarlog/compare/v0.0.1...v0.0.2
+[0.0.3]: https://github.com/Jure-Tarle/Tarlog/compare/v0.0.1...v0.0.3
+[0.0.2]: https://github.com/Jure-Tarle/Tarlog/compare/v0.0.1...c7cac13
 [0.0.1]: https://github.com/Jure-Tarle/Tarlog/releases/tag/v0.0.1

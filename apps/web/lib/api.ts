@@ -23,6 +23,7 @@ import {
   SESSION_COOKIE,
   verifySession,
   verifyDeviceToken,
+  tokenAllowsScope,
   type AuthContext,
 } from "./session.js";
 
@@ -133,6 +134,33 @@ export function parseQuery<T>(req: NextRequest, schema: ZodType<T>): T {
   return result.data;
 }
 
+/**
+ * Verify that a browser mutation originated from this host. Native and other
+ * Bearer clients are checked separately and do not need to send an Origin.
+ */
+export function assertSameOrigin(
+  req: NextRequest,
+  options: { requireOrigin?: boolean } = {},
+): void {
+  const origin = req.headers.get("origin");
+  if (!origin) {
+    if (options.requireOrigin) {
+      throw new ApiError("forbidden", "Origin für Browser-Anfrage erforderlich.");
+    }
+    return;
+  }
+  let originHost: string;
+  try {
+    originHost = new URL(origin).host;
+  } catch {
+    throw new ApiError("forbidden", "Ungültiger Origin.");
+  }
+  const host = req.headers.get("host") ?? req.nextUrl.host;
+  if (originHost !== host) {
+    throw new ApiError("forbidden", "Origin nicht erlaubt (CSRF-Schutz).");
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Auth-Wrapper
 // ---------------------------------------------------------------------------
@@ -167,6 +195,17 @@ export type AuthedHandler<Ctx = unknown> = (
 ) => Promise<Response> | Response;
 
 /**
+ * REST scope names follow the first API path segment. Hyphenated route names
+ * use the persisted underscore spelling (`time-entries` → `time_entries`).
+ */
+export function requiredBearerScope(pathname: string, method = "GET"): string | null {
+  if (method === "GET" && pathname === "/api/devices") return "devices_read";
+  const match = pathname.match(/^\/api\/([^/]+)/);
+  if (!match) return null;
+  return match[1]!.replaceAll("-", "_");
+}
+
+/**
  * Wrappt einen Route-Handler: erzwingt gültige Auth (401 sonst), fängt
  * `ApiError`/Fehler und formatiert sie einheitlich. Der Handler bekommt den
  * `AuthContext` als drittes Argument.
@@ -182,9 +221,36 @@ export function requireAuth<Ctx = unknown>(
       if (!auth) {
         return apiError("unauthorized", "Authentifizierung erforderlich.");
       }
+      if (auth.token_scopes) {
+        const requiredScope = requiredBearerScope(req.nextUrl.pathname, req.method);
+        if (!requiredScope || !tokenAllowsScope(auth.token_scopes, requiredScope)) {
+          return apiError("forbidden", "Das API-Token besitzt nicht den erforderlichen Scope.");
+        }
+      }
+      if (
+        auth.session_id &&
+        !["GET", "HEAD", "OPTIONS"].includes(req.method.toUpperCase())
+      ) {
+        assertSameOrigin(req, { requireOrigin: true });
+      }
       return await handler(req, ctx, auth);
     } catch (err) {
       return toErrorResponse(err);
     }
   };
+}
+
+/** Sensitive credential-management routes accept browser sessions only. */
+export function requireSessionAuth<Ctx = unknown>(
+  handler: AuthedHandler<Ctx>,
+): (req: NextRequest, ctx: Ctx) => Promise<Response> {
+  return requireAuth(async (req, ctx, auth) => {
+    if (!auth.session_id) {
+      throw new ApiError(
+        "forbidden",
+        "Diese Aktion ist nur mit einer Browser-Sitzung erlaubt.",
+      );
+    }
+    return handler(req, ctx, auth);
+  });
 }

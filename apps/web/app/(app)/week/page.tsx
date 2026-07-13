@@ -70,7 +70,7 @@ export default async function WeekPage({
           <StatTile label="Umsatz (Woche)" value={formatMoney(week.billableAmountCents, account.currency)} />
         </Grid>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 8 }}>
+        <div className="week-grid">
           {days.map((d, i) => {
             const de = byDay.get(d) ?? [];
             const s = sumEntries(de);
@@ -79,25 +79,15 @@ export default async function WeekPage({
               <a
                 key={d}
                 href={`/today?date=${d}`}
-                style={{
-                  display: "block",
-                  textDecoration: "none",
-                  color: "inherit",
-                  border: "1px solid var(--color-border)",
-                  borderTop: isToday ? "2px solid var(--color-accent)" : "1px solid var(--color-border)",
-                  borderRadius: "var(--radius)",
-                  background: "var(--color-surface-raised)",
-                  padding: 10,
-                  minHeight: 120,
-                }}
+                className={`week-day-card${isToday ? " is-today" : ""}`}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                  <span style={{ fontSize: 12, fontWeight: 600 }}>{WD[i]}</span>
-                  <span style={{ fontSize: 11, color: "var(--color-text-faint)" }}>{d.slice(8)}.{d.slice(5, 7)}.</span>
+                <div className="week-day-heading">
+                  <span>{WD[i]}</span>
+                  <span>{d.slice(8)}.{d.slice(5, 7)}.</span>
                 </div>
-                <div className="tabular" style={{ fontSize: 18, fontWeight: 600, marginTop: 8 }}>{secondsToHM(s.netSeconds)}</div>
-                <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>{de.length} Einträge</div>
-                <div style={{ marginTop: 8 }}>
+                <div className="week-day-duration tabular">{secondsToHM(s.netSeconds)}</div>
+                <div className="week-day-count">{de.length} Einträge</div>
+                <div className="week-day-compliance">
                   {de.length > 0 ? <ComplianceBadge status={complianceByDay(d)} /> : null}
                 </div>
               </a>

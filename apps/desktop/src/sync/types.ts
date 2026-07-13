@@ -34,6 +34,8 @@ export interface DeviceInfo {
   device_name: string;
   platform: "macos" | "windows" | "web" | "ios";
   app_version: string;
+  /** Local SQLite schema version sent to the server for compatibility checks. */
+  local_db_version?: number;
 }
 
 /** Pairing input: the short code the user enters + how to reach the server. */
@@ -44,12 +46,12 @@ export interface PairingInput {
   device: DeviceInfo;
 }
 
-/** Server response to `POST /api/devices` (pairing). */
+/** Normalized server response to `POST /api/devices/connect` (pairing). */
 export interface PairingResponse {
   device_id: Uuid;
   device_token: string;
   main_account_id: Uuid;
-  /** Server's current high-water revision at pairing time. */
+  /** Initial pull cursor; `0` when the connect route does not expose a high-water mark. */
   server_revision: number;
 }
 
@@ -105,6 +107,14 @@ export interface PushResponse {
   accepted_event_ids: Uuid[];
   /** Conflicts the server auto-detected while accepting the batch. */
   conflicts?: ConflictPayload[];
+  /** Events rejected for validation/business reasons and kept in the outbox. */
+  rejected: PushRejection[];
+}
+
+/** One server-side rejection which must remain visible and retryable locally. */
+export interface PushRejection {
+  event_id: Uuid;
+  error: string;
 }
 
 /** `GET /api/sync/changes?since=` / `poll` body (doc 04 §1 step 7-8). */
@@ -219,6 +229,8 @@ export interface SyncOutcome {
   serverRevision: number;
   /** Conflicts detected this round (doc 04 §6). */
   conflicts: number;
+  /** Events the server rejected; they remain buffered in the local outbox. */
+  rejected: number;
   /** True when the client was offline / not configured ⇒ buffered, no-op. */
   buffered: boolean;
 }

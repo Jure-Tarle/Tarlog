@@ -87,6 +87,9 @@ export const api = {
  * jeweiligen Modul-Autoren unter app/api/**.
  */
 export const API = {
+  // Einführung / First Run
+  onboarding: "/api/onboarding",
+
   // Timer (doc 03 §2)
   timerState: "/api/timer",
   timerStart: "/api/timer/start",
@@ -131,6 +134,7 @@ export const API = {
   numberRange: "/api/settings/number-range",
 
   // Sync / Geräte (doc 04)
+  syncChanges: "/api/sync/changes",
   syncPoll: "/api/sync/poll",
   syncStatus: "/api/sync/status",
   realtimeToken: "/api/realtime/token",

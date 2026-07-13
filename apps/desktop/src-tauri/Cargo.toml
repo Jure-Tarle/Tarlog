@@ -1,6 +1,6 @@
 [package]
 name = "ptl-desktop"
-version = "0.0.2"
+version = "0.0.3"
 description = "Tarlog — Desktop (macOS/Windows)"
 authors = ["Tarlog"]
 edition = "2021"
@@ -22,6 +22,9 @@ tauri = { version = "2", features = ["tray-icon"] }
 tauri-plugin-sql = { version = "2", features = ["sqlite"] }
 # Native local notifications / reminders (doc 11 §5 nr. 4, §6 nr. 3).
 tauri-plugin-notification = "2"
+# Native HTTP transport for user-approved self-hosted sync servers. URL access
+# is granted at runtime per normalized base URL; no broad static host allowlist.
+tauri-plugin-http = "2.5.9"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 # Direkte, synchrone SQLite-Persistenz im lokalen Desktop-Modus (doc 02 §3.1

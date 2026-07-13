@@ -24,7 +24,7 @@
   --mac-control: rgba(255, 255, 255, 0.72);
   --mac-control-hover: rgba(255, 255, 255, 0.94);
   --mac-input: rgba(255, 255, 255, 0.9);
-  --mac-selection: color-mix(in srgb, AccentColor 16%, transparent);
+  --mac-selection: rgba(0, 122, 255, 0.16);
   --mac-glass-edge: rgba(0, 0, 0, 0.07);
   --mac-scroll-edge: rgba(0, 0, 0, 0.09);
 
@@ -38,13 +38,13 @@
   --text: #1d1d1f;
   --text-muted: #626267;
   --text-faint: #76767c;
-  --accent: AccentColor;
-  --accent-hover: color-mix(in srgb, AccentColor 88%, #000 12%);
-  --accent-pressed: color-mix(in srgb, AccentColor 78%, #000 22%);
-  --accent-fg: AccentColorText;
-  --accent-soft: color-mix(in srgb, AccentColor 12%, transparent);
-  --accent-soft-strong: color-mix(in srgb, AccentColor 19%, transparent);
-  --focus: color-mix(in srgb, AccentColor 56%, transparent);
+  --accent: #007aff;
+  --accent-hover: #006ee6;
+  --accent-pressed: #0062cc;
+  --accent-fg: #ffffff;
+  --accent-soft: rgba(0, 122, 255, 0.12);
+  --accent-soft-strong: rgba(0, 122, 255, 0.19);
+  --focus: rgba(0, 122, 255, 0.56);
   --border: rgba(0, 0, 0, 0.095);
   --border-strong: rgba(0, 0, 0, 0.17);
   --separator: rgba(0, 0, 0, 0.085);
@@ -63,7 +63,7 @@
   --mac-control: rgba(69, 69, 74, 0.66);
   --mac-control-hover: rgba(82, 82, 88, 0.82);
   --mac-input: rgba(45, 45, 48, 0.92);
-  --mac-selection: color-mix(in srgb, AccentColor 25%, transparent);
+  --mac-selection: rgba(10, 132, 255, 0.25);
   --mac-glass-edge: rgba(255, 255, 255, 0.095);
   --mac-scroll-edge: rgba(0, 0, 0, 0.3);
 
@@ -77,18 +77,50 @@
   --text: #f5f5f7;
   --text-muted: #b8b8bd;
   --text-faint: #98989f;
-  --accent: AccentColor;
-  --accent-hover: color-mix(in srgb, AccentColor 88%, #fff 12%);
-  --accent-pressed: color-mix(in srgb, AccentColor 82%, #000 18%);
-  --accent-fg: AccentColorText;
-  --accent-soft: color-mix(in srgb, AccentColor 18%, transparent);
-  --accent-soft-strong: color-mix(in srgb, AccentColor 27%, transparent);
-  --focus: color-mix(in srgb, AccentColor 62%, transparent);
+  --accent: #0a84ff;
+  --accent-hover: #278fff;
+  --accent-pressed: #086dcc;
+  --accent-fg: #ffffff;
+  --accent-soft: rgba(10, 132, 255, 0.18);
+  --accent-soft-strong: rgba(10, 132, 255, 0.27);
+  --focus: rgba(10, 132, 255, 0.62);
   --border: rgba(255, 255, 255, 0.095);
   --border-strong: rgba(255, 255, 255, 0.18);
   --separator: rgba(255, 255, 255, 0.085);
   --shadow-control: 0 0.0625rem 0.125rem rgba(0, 0, 0, 0.28);
   --highlight: rgba(255, 255, 255, 0.095);
+}
+
+@supports (color: AccentColor) {
+  :root[data-platform="macos"] {
+    --accent: AccentColor;
+  }
+}
+
+@supports (color: AccentColorText) {
+  :root[data-platform="macos"] {
+    --accent-fg: AccentColorText;
+  }
+}
+
+@supports (color: color-mix(in srgb, red, blue)) {
+  :root[data-platform="macos"] {
+    --mac-selection: color-mix(in srgb, var(--accent) 16%, transparent);
+    --accent-hover: color-mix(in srgb, var(--accent) 88%, #000 12%);
+    --accent-pressed: color-mix(in srgb, var(--accent) 78%, #000 22%);
+    --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
+    --accent-soft-strong: color-mix(in srgb, var(--accent) 19%, transparent);
+    --focus: color-mix(in srgb, var(--accent) 56%, transparent);
+  }
+
+  :root[data-platform="macos"][data-theme="dark"] {
+    --mac-selection: color-mix(in srgb, var(--accent) 25%, transparent);
+    --accent-hover: color-mix(in srgb, var(--accent) 88%, #fff 12%);
+    --accent-pressed: color-mix(in srgb, var(--accent) 82%, #000 18%);
+    --accent-soft: color-mix(in srgb, var(--accent) 18%, transparent);
+    --accent-soft-strong: color-mix(in srgb, var(--accent) 27%, transparent);
+    --focus: color-mix(in srgb, var(--accent) 62%, transparent);
+  }
 }
 
 :root[data-platform="macos"] body {
@@ -229,10 +261,12 @@
 
 :root[data-platform="macos"] .nav-item:hover {
   color: var(--text);
+  background: var(--separator);
   background: color-mix(in srgb, CanvasText 7%, transparent);
 }
 
 :root[data-platform="macos"][data-theme="dark"] .nav-item:hover {
+  background: var(--border);
   background: color-mix(in srgb, CanvasText 10%, transparent);
 }
 
@@ -244,6 +278,7 @@
 :root[data-platform="macos"] .nav-item__active {
   border: 0;
   background: var(--mac-selection);
+  box-shadow: inset 0 0 0 1px var(--accent-soft);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, AccentColor 5%, transparent);
 }
 
@@ -286,6 +321,7 @@
   position: absolute;
   inset: 0 0.1875rem;
   border-radius: 999px;
+  background: var(--focus);
   background: color-mix(in srgb, AccentColor 42%, transparent);
   content: "";
 }
@@ -369,6 +405,7 @@
 
 :root[data-platform="macos"] .toolbar-icon-button:hover {
   color: var(--text);
+  background: var(--separator);
   background: color-mix(in srgb, CanvasText 9%, transparent);
 }
 
@@ -381,7 +418,9 @@
   padding: 0.125rem;
   border: 0;
   border-radius: 999px;
+  background: var(--separator);
   background: color-mix(in srgb, CanvasText 8%, transparent);
+  box-shadow: inset 0 0 0 1px var(--border);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, CanvasText 3%, transparent);
 }
 
@@ -392,6 +431,7 @@
 }
 
 :root[data-platform="macos"] .top-timer__summary:hover {
+  background: var(--separator);
   background: color-mix(in srgb, CanvasText 7%, transparent);
 }
 
@@ -430,6 +470,7 @@
 }
 
 :root[data-platform="macos"] .top-timer .icon-btn:hover {
+  background: var(--accent-soft);
   background: color-mix(in srgb, AccentColor 14%, transparent);
 }
 
@@ -586,6 +627,7 @@
 }
 
 :root[data-platform="macos"] .btn:active:not(:disabled) {
+  background: var(--border-strong);
   background: color-mix(in srgb, CanvasText 12%, transparent);
   transform: scale(0.985);
 }
@@ -593,8 +635,10 @@
 :root[data-platform="macos"] .btn--primary,
 :root[data-platform="macos"] .btn--primary:hover:not(:disabled) {
   color: var(--accent-fg);
+  border-color: var(--accent-hover);
   border-color: color-mix(in srgb, AccentColor 84%, CanvasText 16%);
   background: var(--accent);
+  box-shadow: 0 0.0625rem 0.125rem var(--focus);
   box-shadow: 0 0.0625rem 0.125rem color-mix(in srgb, AccentColor 28%, transparent);
 }
 
@@ -609,6 +653,7 @@
 }
 
 :root[data-platform="macos"] .btn--ghost:hover:not(:disabled) {
+  background: var(--separator);
   background: color-mix(in srgb, CanvasText 8%, transparent);
 }
 
@@ -625,7 +670,9 @@
   gap: 0;
   border: 0;
   border-radius: 0.5625rem;
+  background: var(--border-strong);
   background: color-mix(in srgb, CanvasText 12%, transparent);
+  box-shadow: inset 0 0 0 1px var(--border);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, CanvasText 4%, transparent);
 }
 
@@ -654,7 +701,7 @@
 :root[data-platform="macos"][data-window-active="false"] .sidebar,
 :root[data-platform="macos"][data-window-active="false"] .topbar {
   --accent: #8e8e93;
-  --mac-selection: color-mix(in srgb, CanvasText 9%, transparent);
+  --mac-selection: var(--separator);
   filter: saturate(65%);
 }
 
@@ -697,9 +744,15 @@
 
 @media (prefers-contrast: more) {
   :root[data-platform="macos"] {
-    --border: color-mix(in srgb, CanvasText 48%, transparent);
-    --border-strong: color-mix(in srgb, CanvasText 62%, transparent);
-    --separator: color-mix(in srgb, CanvasText 34%, transparent);
+    --border: rgba(0, 0, 0, 0.48);
+    --border-strong: rgba(0, 0, 0, 0.62);
+    --separator: rgba(0, 0, 0, 0.34);
+  }
+
+  :root[data-platform="macos"][data-theme="dark"] {
+    --border: rgba(255, 255, 255, 0.48);
+    --border-strong: rgba(255, 255, 255, 0.62);
+    --separator: rgba(255, 255, 255, 0.34);
   }
 
   :root[data-platform="macos"] .sidebar,
@@ -731,5 +784,169 @@
   :root[data-platform="macos"] .btn:active:not(:disabled),
   :root[data-platform="macos"] .sidebar__mark {
     transform: none !important;
+  }
+}
+
+/* Native-window Setup Assistant: glass is reserved for chrome and step rail. */
+
+:root[data-platform="macos"] .sidebar__introduction {
+  min-height: 2rem;
+  height: 2rem;
+  justify-content: flex-start;
+  gap: 0.5625rem;
+  margin: 0 0.5625rem 0.625rem;
+  padding: 0 0.5625rem;
+  border-radius: 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 450;
+}
+
+:root[data-platform="macos"] .sidebar__introduction span {
+  display: inline;
+}
+
+:root[data-platform="macos"] .sidebar__introduction:hover {
+  color: var(--text);
+  background: var(--separator);
+  background: color-mix(in srgb, CanvasText 7%, transparent);
+}
+
+:root[data-platform="macos"] .onboarding {
+  background: var(--mac-content);
+}
+
+:root[data-platform="macos"] .onboarding__toolbar {
+  min-height: var(--topbar-h);
+  padding: 0 0.75rem 0 5.25rem;
+  border: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 58%),
+    var(--mac-toolbar);
+  box-shadow: 0 1px var(--mac-scroll-edge);
+  -webkit-backdrop-filter: blur(2.75rem) saturate(180%);
+  backdrop-filter: blur(2.75rem) saturate(180%);
+}
+
+:root[data-platform="macos"] .onboarding__brandmark {
+  width: 1.625rem;
+  height: 1.625rem;
+}
+
+:root[data-platform="macos"] .onboarding__brand strong {
+  font-size: 0.8125rem;
+  font-weight: 620;
+}
+
+:root[data-platform="macos"] .onboarding__rail {
+  padding: 1rem 0.5625rem 0.75rem;
+  border: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.09), transparent 32%),
+    var(--mac-sidebar);
+  box-shadow: inset -1px 0 var(--mac-glass-edge);
+  -webkit-backdrop-filter: blur(2.75rem) saturate(180%);
+  backdrop-filter: blur(2.75rem) saturate(180%);
+}
+
+:root[data-platform="macos"] .onboarding-step {
+  min-height: 2rem;
+  padding-inline: 0.5625rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 450;
+}
+
+:root[data-platform="macos"] .onboarding-step.is-active {
+  color: var(--text);
+  background: var(--mac-selection);
+  font-weight: 600;
+}
+
+:root[data-platform="macos"] .onboarding-step__icon {
+  width: 1.375rem;
+  height: 1.375rem;
+  background: transparent;
+}
+
+:root[data-platform="macos"] .onboarding-step.is-active .onboarding-step__icon {
+  color: var(--accent);
+  background: transparent;
+}
+
+:root[data-platform="macos"] .onboarding__content,
+:root[data-platform="macos"] .onboarding__footer {
+  background: var(--mac-content);
+}
+
+:root[data-platform="macos"] .onboarding__hero-icon {
+  border-radius: 0.875rem;
+  box-shadow: none;
+}
+
+:root[data-platform="macos"] .onboarding-feature,
+:root[data-platform="macos"] .onboarding-process,
+:root[data-platform="macos"] .onboarding-sync-card,
+:root[data-platform="macos"] .onboarding-form,
+:root[data-platform="macos"] .onboarding-callout,
+:root[data-platform="macos"] .onboarding-ready,
+:root[data-platform="macos"] .onboarding-detail-list,
+:root[data-platform="macos"] .onboarding-timeline {
+  border-color: var(--separator);
+  background: var(--surface-solid);
+  box-shadow: none;
+}
+
+:root[data-platform="macos"] .onboarding-choice {
+  min-height: 2rem;
+  background: var(--border-strong);
+  background: color-mix(in srgb, CanvasText 12%, transparent);
+}
+
+:root[data-platform="macos"] .onboarding-choice button {
+  min-height: 1.625rem;
+  border-radius: 0.4375rem;
+}
+
+:root[data-platform="macos"] .onboarding-choice button.is-active {
+  background: var(--mac-control-hover);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root[data-platform="macos"] .onboarding__toolbar,
+  :root[data-platform="macos"] .onboarding__rail {
+    background: var(--surface-solid);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root[data-platform="macos"] .onboarding__toolbar,
+  :root[data-platform="macos"] .onboarding__rail {
+    background: var(--surface-solid);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  :root[data-platform="macos"] .onboarding__toolbar {
+    box-shadow: inset 0 -1px var(--border-contrast);
+  }
+
+  :root[data-platform="macos"] .onboarding__rail {
+    box-shadow: inset -1px 0 var(--border-contrast);
+  }
+
+  :root[data-platform="macos"] .onboarding-feature,
+  :root[data-platform="macos"] .onboarding-process,
+  :root[data-platform="macos"] .onboarding-sync-card,
+  :root[data-platform="macos"] .onboarding-form,
+  :root[data-platform="macos"] .onboarding-callout,
+  :root[data-platform="macos"] .onboarding-ready,
+  :root[data-platform="macos"] .onboarding-detail-list,
+  :root[data-platform="macos"] .onboarding-timeline,
+  :root[data-platform="macos"] .onboarding__footer {
+    border-color: var(--border-contrast);
+    box-shadow: none;
   }
 }

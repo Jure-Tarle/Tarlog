@@ -5,14 +5,14 @@
  * Main-Account-Scoping erzwungen.
  */
 import { and, eq, isNull } from "drizzle-orm";
-import { ApiError, json, requireAuth } from "@/lib/api";
+import { ApiError, json, requireSessionAuth } from "@/lib/api";
 import { db, schema } from "@/lib/db";
 import { assertSameOrigin } from "@/lib/auth/http";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export const DELETE = requireAuth<{ params: Promise<{ id: string }> }>(
+export const DELETE = requireSessionAuth<{ params: Promise<{ id: string }> }>(
   async (req, ctx, auth) => {
     assertSameOrigin(req);
     const { id } = await ctx.params;

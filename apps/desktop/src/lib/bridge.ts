@@ -158,6 +158,7 @@ export type NativeSystemSymbolKey =
   | "compliance"
   | "settings"
   | "sync"
+  | "onboarding"
   | "sidebarToggle"
   | "timerPlay"
   | "timerPause"
@@ -171,6 +172,13 @@ export interface NativeSystemSymbolSet {
   supported: boolean;
   symbols: Partial<Record<NativeSystemSymbolKey, string>>;
   missing: NativeSystemSymbolKey[];
+}
+
+/** Snapshot used to gate native application-menu and tray timer mutations. */
+export interface NativeTimerCommandState {
+  status: TimerState["status"] | null;
+  pending: boolean;
+  ready: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -305,6 +313,13 @@ export function nativeSystemSymbols(): Promise<NativeSystemSymbolSet> {
   return invoke<NativeSystemSymbolSet>("native_system_symbols");
 }
 
+/** Keep native timer commands aligned with the durable frontend state. */
+export function nativeTimerCommandsUpdate(
+  state: NativeTimerCommandState,
+): Promise<void> {
+  return invoke<void>("native_timer_commands_update", { ...state });
+}
+
 /** Every command wrapper, grouped — convenient for tests/mocks. */
 export const bridge = {
   dbInit,
@@ -326,4 +341,5 @@ export const bridge = {
   syncPush,
   syncPull,
   nativeSystemSymbols,
+  nativeTimerCommandsUpdate,
 } as const;

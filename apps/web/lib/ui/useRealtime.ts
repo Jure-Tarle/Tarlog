@@ -38,6 +38,25 @@ export interface UseRealtimeOptions {
 
 const MAX_BACKOFF = 15_000;
 
+interface PollPage {
+  events?: Array<RealtimeEvent & { server_revision?: number }>;
+  server_revision?: number;
+  has_more?: boolean;
+}
+
+/** Advance page-wise so an account high-water mark can never skip a backlog. */
+export function nextRealtimePollCursor(current: number, page: PollPage): number {
+  if (!page.has_more) return Math.max(current, page.server_revision ?? current);
+  const pageCursor = (page.events ?? []).reduce(
+    (maximum, event) => Math.max(maximum, event.server_revision ?? current),
+    current,
+  );
+  if (pageCursor <= current) {
+    throw new Error("Long-Poll meldet weitere Seiten ohne fortschreitenden Cursor.");
+  }
+  return pageCursor;
+}
+
 /**
  * Poll-Events (sync_events) tragen `entity_type`/`operation`, aber KEINEN
  * semantischen `type` wie der WS-Umschlag ("timer.started"). Für konsistentes
@@ -90,93 +109,150 @@ export function useRealtime(opts: UseRealtimeOptions = {}): {
     if (!enabled) return;
     let disposed = false;
     let ws: WebSocket | null = null;
+    let connectingWs = false;
     let backoff = 1000;
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
     let pingTimer: ReturnType<typeof setInterval> | null = null;
-    let pollTimer: ReturnType<typeof setInterval> | null = null;
-    let pollCursor: string | null = null;
+    let polling = false;
+    let pollAbort: AbortController | null = null;
+    let pollCursor = 0;
+    let cachedToken: { value: string; expiresAt: number } | null = null;
 
     const clearTimers = () => {
       if (pingTimer) clearInterval(pingTimer);
-      if (pollTimer) clearInterval(pollTimer);
       if (reconnectTimer) clearTimeout(reconnectTimer);
-      pingTimer = pollTimer = null;
+      pingTimer = null;
       reconnectTimer = null;
     };
 
-    async function startPolling(): Promise<void> {
-      if (disposed) return;
-      if (!disposed) setStatus("polling");
-      const tick = async () => {
+    const stopPolling = () => {
+      polling = false;
+      pollAbort?.abort();
+      pollAbort = null;
+    };
+
+    async function pollLoop(): Promise<void> {
+      while (!disposed && polling) {
         try {
-          const url = pollCursor
-            ? `${API.syncPoll}?since=${encodeURIComponent(pollCursor)}`
-            : API.syncPoll;
-          const res = await fetch(url, { credentials: "same-origin" });
+          pollAbort = new AbortController();
+          const url = `${API.syncPoll}?since=${pollCursor}&timeout=25000&limit=200`;
+          const res = await fetch(url, {
+            credentials: "same-origin",
+            signal: pollAbort.signal,
+          });
           if (!res.ok) throw new Error(String(res.status));
-          // /api/sync/poll → { events: ChangeEvent[], server_revision, has_more }
-          const body = (await res.json()) as {
-            events?: RealtimeEvent[];
-            server_revision?: number;
-            cursor?: string;
-          };
-          if (disposed) return;
-          const next =
-            body.server_revision != null ? String(body.server_revision) : body.cursor ?? pollCursor;
-          const prime = pollCursor == null; // erster Aufruf setzt nur die Basislinie
-          if (next != null) pollCursor = next;
-          if (!prime) {
-            for (const ev of body.events ?? []) emit(normalizeEvent(ev));
-          }
+          const body = (await res.json()) as PollPage;
+          if (disposed || !polling) return;
+          const nextCursor = nextRealtimePollCursor(pollCursor, body);
+          for (const ev of body.events ?? []) emit(normalizeEvent(ev));
+          pollCursor = nextCursor;
           setStatus("polling");
         } catch {
-          if (!disposed) setStatus("offline");
+          if (disposed || !polling) return;
+          setStatus("offline");
+          await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
         }
-      };
-      pollTimer = setInterval(tick, pollIntervalMs);
-      void tick();
+      }
+    }
+
+    function startPolling(): void {
+      if (disposed || polling) return;
+      polling = true;
+      setStatus("polling");
+      void pollLoop();
+    }
+
+    async function getRealtimeToken(): Promise<string | null> {
+      if (cachedToken && cachedToken.expiresAt > Date.now() + 10_000) {
+        return cachedToken.value;
+      }
+      try {
+        const res = await fetch(API.realtimeToken, { credentials: "same-origin" });
+        if (!res.ok) return null;
+        const body = (await res.json()) as { token?: string; expires_at?: number };
+        if (!body.token) return null;
+        cachedToken = {
+          value: body.token,
+          expiresAt: body.expires_at ?? Date.now() + 60_000,
+        };
+        return body.token;
+      } catch {
+        return null;
+      }
+    }
+
+    function scheduleReconnect(): void {
+      if (disposed || reconnectTimer) return;
+      reconnectTimer = setTimeout(() => {
+        reconnectTimer = null;
+        void connect();
+      }, backoff);
+      backoff = Math.min(MAX_BACKOFF, backoff * 2);
+    }
+
+    async function catchUpAfterOpen(socket: WebSocket): Promise<void> {
+      try {
+        for (let guard = 0; guard < 1000; guard += 1) {
+          const res = await fetch(
+            `${API.syncChanges}?since=${pollCursor}&limit=200`,
+            { credentials: "same-origin" },
+          );
+          if (!res.ok) throw new Error(String(res.status));
+          const body = (await res.json()) as PollPage;
+          if (disposed || ws !== socket) return;
+          for (const event of body.events ?? []) emit(normalizeEvent(event));
+          pollCursor = nextRealtimePollCursor(pollCursor, body);
+          if (!body.has_more) break;
+          if (guard === 999) throw new Error("Realtime-Catch-up überschreitet das Seitenlimit.");
+        }
+      } catch {
+        if (!disposed && ws === socket) socket.close();
+        return;
+      }
+      if (disposed || ws !== socket) return;
+      backoff = 1000;
+      stopPolling();
+      setStatus("open");
+      pingTimer = setInterval(() => {
+        try {
+          socket.send(JSON.stringify({ kind: "ping" }));
+        } catch {
+          /* ignore */
+        }
+      }, 25_000);
     }
 
     async function connect(): Promise<void> {
-      if (disposed) return;
-      setStatus("connecting");
-      let token: string | null = null;
-      try {
-        const res = await fetch(API.realtimeToken, { credentials: "same-origin" });
-        if (res.ok) {
-          const body = (await res.json()) as { token?: string };
-          token = body.token ?? null;
-        }
-      } catch {
-        token = null;
-      }
+      if (disposed || connectingWs || ws) return;
+      connectingWs = true;
+      if (!polling) setStatus("connecting");
+      const token = await getRealtimeToken();
+      connectingWs = false;
       if (disposed) return;
       if (!token) {
-        // Kein WS-Token verfügbar → Polling-Fallback.
-        void startPolling();
+        startPolling();
         return;
       }
+      let socket: WebSocket;
+      let socketOpened = false;
       try {
         const proto = location.protocol === "https:" ? "wss:" : "ws:";
-        ws = new WebSocket(`${proto}//${location.host}/api/ws?token=${encodeURIComponent(token)}`);
+        socket = new WebSocket(
+          `${proto}//${location.host}/api/ws?token=${encodeURIComponent(token)}`,
+        );
+        ws = socket;
       } catch {
-        void startPolling();
+        startPolling();
+        scheduleReconnect();
         return;
       }
 
-      ws.onopen = () => {
-        if (disposed) return;
-        backoff = 1000;
-        setStatus("open");
-        pingTimer = setInterval(() => {
-          try {
-            ws?.send(JSON.stringify({ kind: "ping" }));
-          } catch {
-            /* ignore */
-          }
-        }, 25_000);
+      socket.onopen = () => {
+        if (disposed || ws !== socket) return;
+        socketOpened = true;
+        void catchUpAfterOpen(socket);
       };
-      ws.onmessage = (msg) => {
+      socket.onmessage = (msg) => {
         try {
           const data = JSON.parse(typeof msg.data === "string" ? msg.data : "");
           if (data?.kind === "event") emit(data as RealtimeEvent);
@@ -184,29 +260,33 @@ export function useRealtime(opts: UseRealtimeOptions = {}): {
           /* nicht-JSON ignorieren */
         }
       };
-      ws.onerror = () => {
+      socket.onerror = () => {
         try {
-          ws?.close();
+          socket.close();
         } catch {
           /* ignore */
         }
       };
-      ws.onclose = () => {
+      socket.onclose = () => {
         if (disposed) return;
+        if (socketOpened) cachedToken = null;
+        if (ws === socket) ws = null;
         if (pingTimer) clearInterval(pingTimer);
         pingTimer = null;
-        setStatus("offline");
-        // Backoff-Reconnect; fällt bei erneutem Fehlschlag auf Polling zurück.
-        reconnectTimer = setTimeout(() => void connect(), backoff);
-        backoff = Math.min(MAX_BACKOFF, backoff * 2);
+        startPolling();
+        scheduleReconnect();
       };
     }
 
+    // Start at revision zero. The socket is already registered when the
+    // on-open catch-up runs, so events between SSR and WS registration are
+    // either drained here or arrive live — never silently skipped.
     void connect();
 
     return () => {
       disposed = true;
       clearTimers();
+      stopPolling();
       try {
         ws?.close();
       } catch {

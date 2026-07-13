@@ -4,21 +4,28 @@
 //! actions. Other desktop platforms keep Tauri's platform-appropriate default
 //! menu so this integration does not introduce macOS-only runtime failures.
 
+use crate::native_timer::TimerCommandItems;
+#[cfg(target_os = "macos")]
+use crate::tray::{
+    BACKDATE_EVENT, TIMER_PAUSE_EVENT, TIMER_RESUME_EVENT, TIMER_START_EVENT, TIMER_STOP_EVENT,
+};
 use tauri::{menu::Menu, AppHandle, Runtime};
 
 #[cfg(target_os = "macos")]
 const SETTINGS_EVENT: &str = "menu://navigate/settings";
 #[cfg(target_os = "macos")]
-const TIMER_START_EVENT: &str = "tray://timer/start";
-#[cfg(target_os = "macos")]
-const BACKDATE_EVENT: &str = "tray://entry/backdate";
-#[cfg(target_os = "macos")]
 const SIDEBAR_TOGGLE_EVENT: &str = "menu://toggle-sidebar";
 
 /// Install the application-wide native menu.
-pub fn install<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
+pub fn install<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<TimerCommandItems<R>> {
+    let mut commands = TimerCommandItems::empty();
+
     #[cfg(target_os = "macos")]
-    let menu = macos_menu(app)?;
+    let menu = {
+        let (menu, macos_commands) = macos_menu(app)?;
+        commands.extend(macos_commands);
+        menu
+    };
 
     #[cfg(not(target_os = "macos"))]
     let menu = Menu::default(app)?;
@@ -28,7 +35,7 @@ pub fn install<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     #[cfg(target_os = "macos")]
     register_macos_actions(app);
 
-    Ok(())
+    Ok(commands)
 }
 
 #[cfg(target_os = "macos")]
@@ -39,6 +46,9 @@ fn register_macos_actions<R: Runtime>(app: &AppHandle<R>) {
         let event_name = match event.id().as_ref() {
             "app_settings" => Some(SETTINGS_EVENT),
             "app_timer_start" => Some(TIMER_START_EVENT),
+            "app_timer_pause" => Some(TIMER_PAUSE_EVENT),
+            "app_timer_resume" => Some(TIMER_RESUME_EVENT),
+            "app_timer_stop" => Some(TIMER_STOP_EVENT),
             "app_entry_backdate" => Some(BACKDATE_EVENT),
             "app_toggle_sidebar" => Some(SIDEBAR_TOGGLE_EVENT),
             _ => None,
@@ -53,7 +63,7 @@ fn register_macos_actions<R: Runtime>(app: &AppHandle<R>) {
 }
 
 #[cfg(target_os = "macos")]
-fn macos_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
+fn macos_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<(Menu<R>, TimerCommandItems<R>)> {
     use tauri::menu::{
         AboutMetadata, MenuItem, PredefinedMenuItem, Submenu, HELP_SUBMENU_ID, WINDOW_SUBMENU_ID,
     };
@@ -97,9 +107,25 @@ fn macos_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
         app,
         "app_timer_start",
         "Timer starten",
-        true,
+        false,
         Some("CmdOrCtrl+T"),
     )?;
+    let timer_pause = MenuItem::with_id(
+        app,
+        "app_timer_pause",
+        "Timer pausieren",
+        false,
+        None::<&str>,
+    )?;
+    let timer_resume = MenuItem::with_id(
+        app,
+        "app_timer_resume",
+        "Timer fortsetzen",
+        false,
+        None::<&str>,
+    )?;
+    let timer_stop =
+        MenuItem::with_id(app, "app_timer_stop", "Timer stoppen", false, None::<&str>)?;
     let backdate = MenuItem::with_id(
         app,
         "app_entry_backdate",
@@ -114,6 +140,10 @@ fn macos_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
         true,
         &[
             &timer_start,
+            &timer_pause,
+            &timer_resume,
+            &timer_stop,
+            &PredefinedMenuItem::separator(app)?,
             &backdate,
             &PredefinedMenuItem::separator(app)?,
             &PredefinedMenuItem::close_window(app, Some("Fenster schließen"))?,
@@ -169,5 +199,9 @@ fn macos_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
 
     let help = Submenu::with_id(app, HELP_SUBMENU_ID, "Hilfe", true)?;
 
-    Menu::with_items(app, &[&application, &file, &edit, &view, &window, &help])
+    let menu = Menu::with_items(app, &[&application, &file, &edit, &view, &window, &help])?;
+    let commands =
+        TimerCommandItems::from_items(timer_start, timer_pause, timer_resume, timer_stop);
+
+    Ok((menu, commands))
 }

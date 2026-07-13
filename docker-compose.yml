@@ -50,13 +50,14 @@ services:
       PORT: ${PORT:-3000}
       HOST: 0.0.0.0
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
-      NEXT_PUBLIC_APP_VERSION: ${NEXT_PUBLIC_APP_VERSION:-0.0.2}
+      NEXT_PUBLIC_APP_VERSION: ${NEXT_PUBLIC_APP_VERSION:-0.0.3}
+      TARLOG_TRUST_PROXY: ${TARLOG_TRUST_PROXY:-0}
       # Optionaler Redis-Job-Kanal (siehe redis-Dienst unten):
       # REDIS_URL: ${REDIS_URL:-redis://redis:6379}
     ports:
       # Host-Port == Container-Port (server.mjs lauscht auf PORT). Beim Ändern
       # von PORT bleiben beide Seiten konsistent.
-      - "${PORT:-3000}:${PORT:-3000}"
+      - "127.0.0.1:${PORT:-3000}:${PORT:-3000}"
     # Healthcheck ist im Dockerfile definiert (GET /api/health).
 
   # ---------------------------------------------------------------------------
