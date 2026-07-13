@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Tarlog Flow Menu Bar Template</title>
+  <desc id="desc">A monochrome open time dial with a forward-facing clock hand.</desc>
+  <path d="M50.8 45.2A23 23 0 1 1 50.8 18.8" fill="none" stroke="#000000" stroke-width="7" stroke-linecap="round"/>
+  <path d="M25 19.8L32 32l14-6.5" fill="none" stroke="#000000" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

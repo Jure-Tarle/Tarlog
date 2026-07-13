@@ -3,14 +3,14 @@
     "name": "Tarlog",
     "slug": "ptl-mobile",
     "scheme": "ptl",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "bundleIdentifier": "com.tarlog.mobile",
       "supportsTablet": true,
-      "buildNumber": "1"
+      "buildNumber": "2"
     },
     "plugins": [
       "expo-router",

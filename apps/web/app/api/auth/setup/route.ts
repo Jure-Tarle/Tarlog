@@ -16,6 +16,7 @@ import { assertSameOrigin, getClientIp, hashIp, publicRoute } from "@/lib/auth/h
 import { setSessionCookie, setSetupCookie } from "@/lib/auth/cookies";
 import { writeAuditLog } from "@/lib/auth/audit";
 import { SetupSchema } from "@/lib/auth/schemas";
+import { APP_VERSION } from "@/lib/version";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -61,7 +62,7 @@ export const POST = publicRoute(async (req: NextRequest) => {
       main_account_id: mainAccountId,
       device_name: body.device_name ?? "Setup-Browser",
       platform: "web",
-      app_version: process.env.NEXT_PUBLIC_APP_VERSION ?? "0.0.0",
+      app_version: APP_VERSION,
       local_db_version: 1,
       sync_status: "synced",
       server_connected: true,

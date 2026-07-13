@@ -5,12 +5,19 @@
  * (@tarlog/core roundingPreview + resolveRoundingRuleForEntry) and allows a
  * start/end correction. All state flows through the finished useTimer hook.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
   Page, Card, Button, Field, FormRow, Select, TextArea, TextInput, ErrorNote, Tag,
 } from "../components/ui";
 import { useAsync, useTick } from "../data/hooks";
-import { useTimer, elapsedSeconds, NAV_EVENT } from "../data/timer";
+import {
+  consumePendingTimerStop,
+  elapsedSeconds,
+  isNavigationRequest,
+  NAV_EVENT,
+  TIMER_STATUS_LABELS,
+  useTimer,
+} from "../data/timer";
 import { projects as projectRepo } from "../data/repositories";
 import { listTasks } from "../data/tasks";
 import { getProject } from "../data/projects";
@@ -38,26 +45,38 @@ export default function Timer() {
 
   const tasks = useAsync(() => listTasks(projectId || null), [projectId]);
   const [stopOpen, setStopOpen] = useState(false);
+  const startable = !timer.state || timer.state.status === "idle" || timer.state.status === "stopped";
 
-  // Tray "Stop" opens the mandatory dialog (doc 11 §5 nr. 12).
+  // Tray "Stop" may arrive before this route mounts or before timer state loads.
   useEffect(() => {
+    const openPendingStop = () => {
+      if (timer.loading) return;
+      const requested = consumePendingTimerStop();
+      if (requested && timer.active) setStopOpen(true);
+    };
+
+    openPendingStop();
     const onNav = (e: Event) => {
-      const detail = (e as CustomEvent).detail as { route?: string; action?: string } | undefined;
-      if (detail?.route === "timer" && detail.action === "stop" && timer.active) setStopOpen(true);
+      const request = (e as CustomEvent<unknown>).detail;
+      if (!isNavigationRequest(request) || request.route !== "timer" || request.action !== "stop") return;
+      openPendingStop();
     };
     window.addEventListener(NAV_EVENT, onNav);
     return () => window.removeEventListener(NAV_EVENT, onNav);
-  }, [timer.active]);
+  }, [timer.active, timer.loading]);
 
   async function onStart() {
     const startedAt = correctStart && startAt ? fromDateTimeInputs(startAt.slice(0, 10), startAt.slice(11), tz) : null;
-    await timer.start({ projectId: projectId || null, taskId: taskId || null, description: desc || null, startedAt });
-    setDesc("");
+    const started = await timer.start({ projectId: projectId || null, taskId: taskId || null, description: desc || null, startedAt });
+    if (started) setDesc("");
   }
 
   return (
-    <Page title="Timer" hint={timer.active ? "läuft" : "bereit"}>
-      {timer.error && !timer.active ? <ErrorNote error={timer.error} /> : null}
+    <Page
+      title="Timer"
+      hint={timer.loading ? "lädt" : timer.state ? TIMER_STATUS_LABELS[timer.state.status] : "Bereit"}
+    >
+      {timer.error ? <ErrorNote error={timer.error} /> : null}
 
       <Card title={timer.active ? "Laufender Timer" : "Neuer Timer"}>
         <div className="timerface">
@@ -65,7 +84,7 @@ export default function Timer() {
             {fmtHMS(elapsed)}
           </span>
           <span className="timerface__meta">
-            {timer.active ? (timer.state?.status === "paused" ? "pausiert" : "läuft seit Start") : "noch nicht gestartet"}
+            {timer.state ? TIMER_STATUS_LABELS[timer.state.status] : "Bereit"}
             {timer.state?.accumulated_pause_seconds ? ` · Pausen ${fmtDurationShort(timer.state.accumulated_pause_seconds)}` : ""}
           </span>
 
@@ -105,17 +124,17 @@ export default function Timer() {
                 </div>
               </Field>
               <div className="cluster">
-                <Button variant="primary" onClick={() => void onStart()}>Timer starten</Button>
+                <Button variant="primary" disabled={timer.pending || !startable} onClick={() => void onStart()}>Timer starten</Button>
               </div>
             </div>
           ) : (
             <div className="cluster">
               {timer.state?.status === "paused" ? (
-                <Button variant="primary" onClick={() => void timer.resume()}>Fortsetzen</Button>
+                <Button variant="primary" disabled={timer.pending} onClick={() => void timer.resume()}>Fortsetzen</Button>
               ) : (
-                <Button onClick={() => void timer.pause()}>Pause</Button>
+                <Button disabled={timer.pending} onClick={() => void timer.pause()}>Pause</Button>
               )}
-              <Button variant="danger" onClick={() => setStopOpen(true)}>Stoppen…</Button>
+              <Button variant="danger" disabled={timer.pending} onClick={() => setStopOpen(true)}>Stoppen…</Button>
             </div>
           )}
         </div>
@@ -129,8 +148,8 @@ export default function Timer() {
           tz={tz}
           onCancel={() => setStopOpen(false)}
           onConfirm={async (description, at) => {
-            await timer.stop({ description, at });
-            setStopOpen(false);
+            const result = await timer.stop({ description, at });
+            if (result) setStopOpen(false);
           }}
         />
       ) : null}
@@ -154,6 +173,54 @@ function StopDialog({
   const [endAt, setEndAt] = useState(nowLocalInput(tz));
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState<RoundingResult | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const onCancelRef = useRef(onCancel);
+  const titleId = useId();
+  onCancelRef.current = onCancel;
+
+  useEffect(() => {
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const frame = window.requestAnimationFrame(() => {
+      const first = dialogRef.current?.querySelector<HTMLElement>(
+        "[autofocus], textarea, input, select, button:not([disabled])",
+      );
+      (first ?? dialogRef.current)?.focus();
+    });
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onCancelRef.current();
+        return;
+      }
+      if (event.key !== "Tab" || !dialogRef.current) return;
+      const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ));
+      const first = focusable[0];
+      const last = focusable.at(-1);
+      if (!first || !last) {
+        event.preventDefault();
+        dialogRef.current.focus();
+      } else if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
+      previousFocus?.focus();
+    };
+  }, []);
 
   // Description requirement comes from the project (doc 03 Stop-Dialog).
   const required = useAsync(async () => {
@@ -177,9 +244,21 @@ function StopDialog({
   const descMissing = (required.data ?? false) && description.trim() === "";
 
   return (
-    <div className="dialog-backdrop" role="dialog" aria-modal="true" aria-label="Timer stoppen">
-      <div className="dialog">
-        <div className="dialog__head">Timer stoppen</div>
+    <div
+      className="dialog-backdrop"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onCancelRef.current();
+      }}
+    >
+      <div
+        className="dialog"
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+      >
+        <div className="dialog__head" id={titleId}>Timer stoppen</div>
         <div className="dialog__body">
           <Field
             label="Beschreibung"

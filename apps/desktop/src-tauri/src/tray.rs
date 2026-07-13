@@ -1,44 +1,93 @@
 //! tray.rs — menu-bar / system-tray timer (doc 11 §5 nr. 1, §6 nr. 1).
 //!
-//! STUB: builds the tray icon + a control menu (Start / Pause / Stop / Nachtrag
-//! / Beenden). The menu-event handler is empty on purpose — the Rust author
-//! wires each item to the corresponding timer command and updates the tray
-//! title/icon to reflect running state + sync status (doc 11 §5 nr. 8).
+//! Builds the tray icon + a control menu (Start / Pause / Resume / Stop /
+//! Nachtrag / Beenden). Menu actions are emitted to the single frontend timer
+//! controller, which owns command serialization and the mandatory stop dialog.
 
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem},
     tray::TrayIconBuilder,
-    AppHandle, Runtime,
+    AppHandle, Emitter, Runtime,
 };
+
+#[cfg(target_os = "macos")]
+fn macos_template_icon() -> tauri::Result<tauri::image::Image<'static>> {
+    use std::io::{Cursor, Error, ErrorKind};
+
+    let decoder = png::Decoder::new(Cursor::new(include_bytes!("../icons/tray-icon.png")));
+    let mut reader = decoder
+        .read_info()
+        .map_err(|error| Error::new(ErrorKind::InvalidData, error))?;
+    let mut rgba = vec![0; reader.output_buffer_size()];
+    let info = reader
+        .next_frame(&mut rgba)
+        .map_err(|error| Error::new(ErrorKind::InvalidData, error))?;
+
+    if info.color_type != png::ColorType::Rgba || info.bit_depth != png::BitDepth::Eight {
+        return Err(Error::new(
+            ErrorKind::InvalidData,
+            "macOS tray template must be an 8-bit RGBA PNG",
+        )
+        .into());
+    }
+
+    rgba.truncate(info.buffer_size());
+    Ok(tauri::image::Image::new_owned(
+        rgba,
+        info.width,
+        info.height,
+    ))
+}
 
 /// Build the tray icon and its control menu. Called once from setup.
 pub fn build_tray<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     let start = MenuItem::with_id(app, "tray_timer_start", "Timer starten", true, None::<&str>)?;
     let pause = MenuItem::with_id(app, "tray_timer_pause", "Pause", true, None::<&str>)?;
+    let resume = MenuItem::with_id(app, "tray_timer_resume", "Fortsetzen", true, None::<&str>)?;
     let stop = MenuItem::with_id(app, "tray_timer_stop", "Stoppen", true, None::<&str>)?;
     let backdate = MenuItem::with_id(app, "tray_entry_backdate", "Nachtrag", true, None::<&str>)?;
     let sep = PredefinedMenuItem::separator(app)?;
     let quit = PredefinedMenuItem::quit(app, Some("Beenden"))?;
 
-    let menu = Menu::with_items(app, &[&start, &pause, &stop, &backdate, &sep, &quit])?;
+    let menu = Menu::with_items(
+        app,
+        &[&start, &pause, &resume, &stop, &backdate, &sep, &quit],
+    )?;
 
     let mut builder = TrayIconBuilder::with_id("main")
         .menu(&menu)
         .tooltip("Tarlog")
-        .on_menu_event(|_app, event| {
-            // STUB: route tray actions to the timer commands here.
-            match event.id.as_ref() {
-                "tray_timer_start"
-                | "tray_timer_pause"
-                | "tray_timer_stop"
-                | "tray_entry_backdate" => { /* TODO: call the matching command */ }
-                _ => {}
+        .on_menu_event(|app, event| {
+            let event_name = match event.id.as_ref() {
+                "tray_timer_start" => Some("tray://timer/start"),
+                "tray_timer_pause" => Some("tray://timer/pause"),
+                "tray_timer_resume" => Some("tray://timer/resume"),
+                "tray_timer_stop" => Some("tray://timer/stop"),
+                "tray_entry_backdate" => Some("tray://entry/backdate"),
+                _ => None,
+            };
+
+            if let Some(event_name) = event_name {
+                // The webview may still be booting; a missed transient menu
+                // event must not crash the native application shell.
+                let _ = app.emit(event_name, ());
             }
         });
 
-    // Reuse the app's default icon so the tray renders even before custom art.
-    if let Some(icon) = app.default_window_icon().cloned() {
-        builder = builder.icon(icon);
+    // The dedicated monochrome alpha mask is separate from the colorful app
+    // icon. macOS tints template images for light/dark menu bars automatically.
+    #[cfg(target_os = "macos")]
+    {
+        builder = builder.icon(macos_template_icon()?).icon_as_template(true);
+    }
+
+    // Other platforms use the standard application icon and retain their
+    // native system-tray behavior.
+    #[cfg(not(target_os = "macos"))]
+    {
+        if let Some(icon) = app.default_window_icon().cloned() {
+            builder = builder.icon(icon);
+        }
     }
 
     builder.build(app)?;

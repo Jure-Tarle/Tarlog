@@ -18,7 +18,7 @@ import {
   type Traffic,
 } from "@/lib/ui/ui";
 import { RealtimeRefresher } from "@/lib/ui/RealtimeRefresher";
-import { Button } from "@/lib/ui/controls";
+import { ButtonLink } from "@/lib/ui/controls";
 import { formatTime, secondsToHM, secondsToHMS } from "@/lib/ui/format";
 import {
   requireAccount,
@@ -93,16 +93,16 @@ export default async function TodayPage({
         </Grid>
 
         <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
-          <a href={`/nachtrag?date=${iso}`}><Button variant="primary">Arbeitszeit nachtragen</Button></a>
-          <a href={`/nachtrag?date=${iso}&kind=gap`}><Button>Lücke als Arbeit erfassen</Button></a>
-          <a href={`/nachtrag?date=${iso}&kind=break`}><Button>Pause einfügen</Button></a>
+          <ButtonLink href={`/nachtrag?date=${iso}`} variant="primary">Arbeitszeit nachtragen</ButtonLink>
+          <ButtonLink href={`/nachtrag?date=${iso}&kind=gap`}>Lücke als Arbeit erfassen</ButtonLink>
+          <ButtonLink href={`/nachtrag?date=${iso}&kind=break`}>Pause einfügen</ButtonLink>
         </div>
 
         {entries.length === 0 ? (
           <EmptyState
             title="Keine Einträge an diesem Tag"
             hint="Trage vergessene Arbeitszeit nach oder starte den Timer."
-            action={<a href={`/nachtrag?date=${iso}`}><Button variant="primary">Arbeitszeit nachtragen</Button></a>}
+            action={<ButtonLink href={`/nachtrag?date=${iso}`} variant="primary">Arbeitszeit nachtragen</ButtonLink>}
           />
         ) : (
           <Table
@@ -126,9 +126,7 @@ export default async function TodayPage({
                     </Td>
                     <Td /><Td />
                     <Td align="center">
-                      <a href={`/nachtrag?date=${iso}&start=${r.start}&end=${r.end}`}>
-                        <Button size="sm">Nachtragen</Button>
-                      </a>
+                      <ButtonLink href={`/nachtrag?date=${iso}&start=${r.start}&end=${r.end}`} size="sm">Nachtragen</ButtonLink>
                     </Td>
                   </tr>
                 );
@@ -180,9 +178,9 @@ export default async function TodayPage({
         actions={
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <RealtimeRefresher types={["time_entry.", "timer.stopped"]} />
-            <a href={`/today?date=${shiftIso(iso, -1)}`}><Button size="sm">‹ Vortag</Button></a>
-            <a href="/today"><Button size="sm">Heute</Button></a>
-            <a href={`/today?date=${shiftIso(iso, 1)}`}><Button size="sm">Folgetag ›</Button></a>
+            <ButtonLink href={`/today?date=${shiftIso(iso, -1)}`} size="sm">‹ Vortag</ButtonLink>
+            <ButtonLink href="/today" size="sm">Heute</ButtonLink>
+            <ButtonLink href={`/today?date=${shiftIso(iso, 1)}`} size="sm">Folgetag ›</ButtonLink>
           </div>
         }
       />

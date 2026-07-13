@@ -4,6 +4,32 @@ Alle nennenswerten Änderungen an Tarlog. Format nach
 [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionierung nach
 [SemVer](https://semver.org/lang/de/).
 
+## [0.0.2] — 2026-07-13
+
+Apple-orientiertes Redesign der Desktop- und Browser-App mit einem neuen,
+plattformübergreifenden Tarlog-Flow-Markenauftritt.
+
+### Desktop und macOS
+- Vollständig neu gestaltete Arbeitsoberfläche mit adaptiver Sidebar, kompakten
+  Werkzeugleisten, Apple-nahen Abständen, Typografie und Kontrollzuständen.
+- Native macOS-Overlay-Titelleiste mit Traffic Lights, deutsches AppKit-Menü,
+  systemweite Tastenkürzel und monochromes Template-Icon für die Menüleiste.
+- Synchronisierter Light-/Dark-Mode sowie physische Spring-Animationen mit
+  Unterstützung für reduzierte Bewegung und reduzierte Transparenz.
+
+### Browser-App
+- Neue responsive App-Shell, Navigation, Dashboards, Timer-Steuerung, Tabellen,
+  Formulare und Dialoge im gemeinsamen Tarlog-Flow-Designsystem.
+- Verbesserte Echtzeit-Timerdarstellung und konsistente Status-, Fokus- und
+  Ladezustände in allen zentralen Arbeitsabläufen.
+
+### Marke und Qualität
+- Neues Flow-Dial-Logo und vollständige Icon-Familie für macOS, Windows, Web,
+  iOS und Android.
+- Zusätzliche Tests für Desktop-Plattformerkennung, Timerlogik, Web-Controls und
+  Versionsauflösung; insgesamt 164 bestandene TypeScript-/React-Tests plus
+  Rust-Integrationstest.
+
 ## [0.0.1] — 2026-07-10
 
 Erste Release-Version. Lokale-zuerst, revisionsfähige, DSGVO-freundliche
@@ -52,4 +78,5 @@ Synchronisierung zwischen Desktop, Browser und iOS.
 - XLSX-/ZIP-Export, Import-Assistent und Webhooks sind vorgesehen, aber in 0.0.1
   noch nicht enthalten.
 
+[0.0.2]: https://github.com/Jure-Tarle/Tarlog/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/Jure-Tarle/Tarlog/releases/tag/v0.0.1

@@ -3,7 +3,7 @@
  * Tagessummen und Compliance-Markern. Jede Zelle verlinkt in die Tagesansicht.
  */
 import { PageHeader, LoadError, Grid, StatTile, type Traffic } from "@/lib/ui/ui";
-import { Button } from "@/lib/ui/controls";
+import { ButtonLink } from "@/lib/ui/controls";
 import { formatMoney, secondsToHM, toLocalDate } from "@/lib/ui/format";
 import {
   requireAccount,
@@ -19,6 +19,11 @@ export const dynamic = "force-dynamic";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 const WD = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+const STATUS_LABEL: Record<Traffic, string> = {
+  green: "Konform",
+  yellow: "Risiko",
+  red: "Verstoß",
+};
 
 export default async function MonthPage({
   searchParams,
@@ -105,7 +110,12 @@ export default async function MonthPage({
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <span style={{ fontSize: 11, color: "var(--color-text-faint)" }}>{Number(d.slice(8))}</span>
-                      {w ? <span aria-hidden style={{ width: 7, height: 7, borderRadius: "50%", background: dot(w) }} /> : null}
+                      {w ? (
+                        <span>
+                          <span aria-hidden style={{ display: "block", width: 7, height: 7, borderRadius: "50%", background: dot(w) }} />
+                          <span className="sr-only">Compliance: {STATUS_LABEL[w]}</span>
+                        </span>
+                      ) : null}
                     </div>
                     {info ? (
                       <div className="tabular" style={{ fontSize: 14, fontWeight: 600, marginTop: 6 }}>{secondsToHM(info.net)}</div>
@@ -129,9 +139,9 @@ export default async function MonthPage({
         subtitle={firstIso.slice(0, 7)}
         actions={
           <div style={{ display: "flex", gap: 8 }}>
-            <a href={`/month?date=${prevIso}`}><Button size="sm">‹ Vormonat</Button></a>
-            <a href="/month"><Button size="sm">Aktuell</Button></a>
-            <a href={`/month?date=${nextIso}`}><Button size="sm">Folgemonat ›</Button></a>
+            <ButtonLink href={`/month?date=${prevIso}`} size="sm">‹ Vormonat</ButtonLink>
+            <ButtonLink href="/month" size="sm">Aktuell</ButtonLink>
+            <ButtonLink href={`/month?date=${nextIso}`} size="sm">Folgemonat ›</ButtonLink>
           </div>
         }
       />

@@ -1,0 +1,162 @@
+//! Native application menu.
+//!
+//! macOS receives the standard Apple menu hierarchy and native predefined
+//! actions. Other desktop platforms keep Tauri's platform-appropriate default
+//! menu so this integration does not introduce macOS-only runtime failures.
+
+use tauri::{menu::Menu, AppHandle, Runtime};
+
+#[cfg(target_os = "macos")]
+const SETTINGS_EVENT: &str = "menu://navigate/settings";
+#[cfg(target_os = "macos")]
+const TIMER_START_EVENT: &str = "tray://timer/start";
+#[cfg(target_os = "macos")]
+const BACKDATE_EVENT: &str = "tray://entry/backdate";
+
+/// Install the application-wide native menu.
+pub fn install<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
+    #[cfg(target_os = "macos")]
+    let menu = macos_menu(app)?;
+
+    #[cfg(not(target_os = "macos"))]
+    let menu = Menu::default(app)?;
+
+    app.set_menu(menu)?;
+
+    #[cfg(target_os = "macos")]
+    register_macos_actions(app);
+
+    Ok(())
+}
+
+#[cfg(target_os = "macos")]
+fn register_macos_actions<R: Runtime>(app: &AppHandle<R>) {
+    use tauri::Emitter;
+
+    app.on_menu_event(|app, event| {
+        let event_name = match event.id().as_ref() {
+            "app_settings" => Some(SETTINGS_EVENT),
+            "app_timer_start" => Some(TIMER_START_EVENT),
+            "app_entry_backdate" => Some(BACKDATE_EVENT),
+            _ => None,
+        };
+
+        if let Some(event_name) = event_name {
+            // Menu clicks can happen while the webview is still booting. The
+            // native shell must remain usable even if no listener exists yet.
+            let _ = app.emit(event_name, ());
+        }
+    });
+}
+
+#[cfg(target_os = "macos")]
+fn macos_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
+    use tauri::menu::{
+        AboutMetadata, MenuItem, PredefinedMenuItem, Submenu, HELP_SUBMENU_ID, WINDOW_SUBMENU_ID,
+    };
+
+    let package = app.package_info();
+    let about = AboutMetadata {
+        name: Some("Tarlog".into()),
+        version: Some(package.version.to_string()),
+        copyright: app.config().bundle.copyright.clone(),
+        authors: Some(vec!["Tarlog".into()]),
+        icon: app.default_window_icon().cloned(),
+        ..Default::default()
+    };
+    let settings = MenuItem::with_id(
+        app,
+        "app_settings",
+        "Einstellungen…",
+        true,
+        Some("CmdOrCtrl+,"),
+    )?;
+
+    let application = Submenu::with_items(
+        app,
+        "Tarlog",
+        true,
+        &[
+            &PredefinedMenuItem::about(app, Some("Über Tarlog"), Some(about))?,
+            &settings,
+            &PredefinedMenuItem::separator(app)?,
+            &PredefinedMenuItem::services(app, Some("Dienste"))?,
+            &PredefinedMenuItem::separator(app)?,
+            &PredefinedMenuItem::hide(app, Some("Tarlog ausblenden"))?,
+            &PredefinedMenuItem::hide_others(app, Some("Andere ausblenden"))?,
+            &PredefinedMenuItem::show_all(app, Some("Alle einblenden"))?,
+            &PredefinedMenuItem::separator(app)?,
+            &PredefinedMenuItem::quit(app, Some("Tarlog beenden"))?,
+        ],
+    )?;
+
+    let timer_start = MenuItem::with_id(
+        app,
+        "app_timer_start",
+        "Timer starten",
+        true,
+        Some("CmdOrCtrl+T"),
+    )?;
+    let backdate = MenuItem::with_id(
+        app,
+        "app_entry_backdate",
+        "Nachtrag…",
+        true,
+        Some("CmdOrCtrl+Shift+N"),
+    )?;
+
+    let file = Submenu::with_items(
+        app,
+        "Ablage",
+        true,
+        &[
+            &timer_start,
+            &backdate,
+            &PredefinedMenuItem::separator(app)?,
+            &PredefinedMenuItem::close_window(app, Some("Fenster schließen"))?,
+        ],
+    )?;
+
+    let edit = Submenu::with_items(
+        app,
+        "Bearbeiten",
+        true,
+        &[
+            &PredefinedMenuItem::undo(app, Some("Widerrufen"))?,
+            &PredefinedMenuItem::redo(app, Some("Wiederholen"))?,
+            &PredefinedMenuItem::separator(app)?,
+            &PredefinedMenuItem::cut(app, Some("Ausschneiden"))?,
+            &PredefinedMenuItem::copy(app, Some("Kopieren"))?,
+            &PredefinedMenuItem::paste(app, Some("Einsetzen"))?,
+            &PredefinedMenuItem::select_all(app, Some("Alles auswählen"))?,
+        ],
+    )?;
+
+    let view = Submenu::with_items(
+        app,
+        "Darstellung",
+        true,
+        &[&PredefinedMenuItem::fullscreen(
+            app,
+            Some("Vollbild ein-/ausschalten"),
+        )?],
+    )?;
+
+    // These IDs let macOS recognize and enrich the native Window/Help menus.
+    let window = Submenu::with_id_and_items(
+        app,
+        WINDOW_SUBMENU_ID,
+        "Fenster",
+        true,
+        &[
+            &PredefinedMenuItem::minimize(app, Some("Im Dock ablegen"))?,
+            &PredefinedMenuItem::maximize(app, Some("Zoomen"))?,
+            &PredefinedMenuItem::separator(app)?,
+            &PredefinedMenuItem::bring_all_to_front(app, Some("Alle nach vorne bringen"))?,
+        ],
+    )?;
+
+    let help = Submenu::with_id(app, HELP_SUBMENU_ID, "Hilfe", true)?;
+
+    Menu::with_items(app, &[&application, &file, &edit, &view, &window, &help])
+}

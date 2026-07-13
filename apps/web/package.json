@@ -1,6 +1,6 @@
 {
   "name": "@tarlog/web",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "type": "module",
   "scripts": {
@@ -18,7 +18,9 @@
     "@tarlog/db": "workspace:*",
     "cookie": "^1.0.2",
     "drizzle-orm": "^0.38.3",
+    "lucide-react": "^1.24.0",
     "luxon": "^3.5.0",
+    "motion": "^12.42.2",
     "next": "^15.1.4",
     "pdfmake": "^0.2.15",
     "pg": "^8.13.1",

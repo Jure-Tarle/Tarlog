@@ -1,90 +1,64 @@
 "use client";
-/**
- * lib/ui/controls.tsx — interaktive Formular-Primitive (Client).
- *
- * Konsistente Eingabe-Elemente in Ledger-Optik: neutrale Flächen, EINE
- * Akzentfarbe für Primäraktionen, sichtbarer Fokus (globals.css), keine
- * Default-Shadows. Alle themed Farben über CSS-Variablen.
- */
+
+import type { Route } from "next";
+import Link from "next/link";
+import * as React from "react";
 import type {
+  AnchorHTMLAttributes,
+  AriaAttributes,
   ButtonHTMLAttributes,
-  CSSProperties,
   InputHTMLAttributes,
   ReactNode,
   SelectHTMLAttributes,
   TextareaHTMLAttributes,
 } from "react";
-
-const inputBase: CSSProperties = {
-  width: "100%",
-  padding: "7px 10px",
-  fontSize: 14,
-  fontFamily: "var(--font-sans)",
-  color: "var(--color-text)",
-  background: "var(--color-surface)",
-  border: "1px solid var(--color-border-strong)",
-  borderRadius: "var(--radius-sm)",
-  outline: "none",
-};
+import { Children, cloneElement, isValidElement, useId } from "react";
+import { cx } from "./format.js";
 
 type Variant = "primary" | "default" | "ghost" | "danger";
 
-const BTN: Record<Variant, CSSProperties> = {
-  primary: {
-    background: "var(--color-accent)",
-    color: "var(--color-accent-contrast)",
-    border: "1px solid var(--color-accent)",
-  },
-  default: {
-    background: "var(--color-surface)",
-    color: "var(--color-text)",
-    border: "1px solid var(--color-border-strong)",
-  },
-  ghost: {
-    background: "transparent",
-    color: "var(--color-text)",
-    border: "1px solid transparent",
-  },
-  danger: {
-    background: "var(--color-danger-soft)",
-    color: "var(--color-danger)",
-    border: "1px solid var(--color-danger)",
-  },
-};
+function buttonClass(variant: Variant, size: "sm" | "md", className?: string): string {
+  return cx("ui-button", `variant-${variant}`, `size-${size}`, className);
+}
 
 export function Button({
   variant = "default",
   size = "md",
   children,
-  style,
+  className,
+  type,
   ...rest
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: Variant;
   size?: "sm" | "md";
 }): React.ReactElement {
-  const pad = size === "sm" ? "5px 10px" : "7px 14px";
   return (
     <button
       {...rest}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 6,
-        padding: pad,
-        fontSize: size === "sm" ? 13 : 14,
-        fontWeight: 500,
-        fontFamily: "var(--font-sans)",
-        borderRadius: "var(--radius-sm)",
-        cursor: rest.disabled ? "not-allowed" : "pointer",
-        opacity: rest.disabled ? 0.55 : 1,
-        transition: "background var(--duration-state) var(--ease-quiet)",
-        ...BTN[variant],
-        ...style,
-      }}
+      type={type ?? "button"}
+      className={buttonClass(variant, size, className)}
     >
       {children}
     </button>
+  );
+}
+
+export function ButtonLink({
+  href,
+  variant = "default",
+  size = "md",
+  className,
+  children,
+  ...rest
+}: Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & {
+  href: string;
+  variant?: Variant;
+  size?: "sm" | "md";
+}): React.ReactElement {
+  return (
+    <Link {...rest} href={href as Route} className={buttonClass(variant, size, className)}>
+      {children}
+    </Link>
   );
 }
 
@@ -103,48 +77,91 @@ export function Field({
   children: ReactNode;
   htmlFor?: string;
 }): React.ReactElement {
-  return (
-    <label htmlFor={htmlFor} style={{ display: "block" }}>
-      <span
-        style={{
-          display: "block",
-          fontSize: 12.5,
-          fontWeight: 500,
-          marginBottom: 4,
-          color: "var(--color-text-muted)",
-        }}
+  const generatedId = useId();
+  const childItems = Children.toArray(children);
+  const hintId = hint ? `${generatedId}-hint` : undefined;
+  const errorId = error ? `${generatedId}-error` : undefined;
+  const messageIds = [hintId, errorId].filter(Boolean).join(" ") || undefined;
+
+  const messages = (
+    <>
+      {hint ? <span id={hintId} className="field-message">{hint}</span> : null}
+      {error ? <span id={errorId} className="field-message is-error">{error}</span> : null}
+    </>
+  );
+
+  const candidate = childItems[0];
+  const isSingleControl = childItems.length === 1
+    && isValidElement<FieldControlProps>(candidate)
+    && candidate.type !== React.Fragment;
+
+  if (!isSingleControl || !isValidElement<FieldControlProps>(candidate)) {
+    return (
+      <fieldset
+        className="field field-group"
+        aria-describedby={messageIds}
+        aria-invalid={error ? true : undefined}
       >
-        {label}
-        {required ? <span style={{ color: "var(--color-danger)" }}> *</span> : null}
-      </span>
-      {children}
-      {error ? (
-        <span style={{ display: "block", marginTop: 4, fontSize: 12, color: "var(--color-danger)" }}>
-          {error}
-        </span>
-      ) : hint ? (
-        <span style={{ display: "block", marginTop: 4, fontSize: 12, color: "var(--color-text-faint)" }}>
-          {hint}
-        </span>
-      ) : null}
-    </label>
+        <legend className="field-label">
+          {label}{required ? <span className="field-required"> *</span> : null}
+        </legend>
+        {children}
+        {messages}
+      </fieldset>
+    );
+  }
+
+  const child = candidate;
+  const controlId = htmlFor ?? child.props.id ?? `${generatedId}-control`;
+  const effectiveRequired = Boolean(required || child.props.required);
+  const describedBy = mergeIds(child.props["aria-describedby"], messageIds);
+  const control = cloneElement(child, {
+    id: controlId,
+    required: effectiveRequired || undefined,
+    "aria-invalid": error ? true : child.props["aria-invalid"],
+    "aria-describedby": describedBy,
+    "aria-errormessage": errorId ?? child.props["aria-errormessage"],
+  });
+
+  return (
+    <div className="field">
+      <label htmlFor={controlId} className="field-label">
+        {label}{effectiveRequired ? <span className="field-required"> *</span> : null}
+      </label>
+      {control}
+      {messages}
+    </div>
   );
 }
 
-export function TextInput(props: InputHTMLAttributes<HTMLInputElement>): React.ReactElement {
-  return <input {...props} style={{ ...inputBase, ...props.style }} />;
+interface FieldControlProps {
+  id?: string;
+  required?: boolean;
+  "aria-invalid"?: AriaAttributes["aria-invalid"];
+  "aria-describedby"?: string;
+  "aria-errormessage"?: string;
 }
 
-export function TextArea(props: TextareaHTMLAttributes<HTMLTextAreaElement>): React.ReactElement {
-  return <textarea {...props} style={{ ...inputBase, resize: "vertical", minHeight: 72, ...props.style }} />;
+function mergeIds(...values: Array<string | undefined>): string | undefined {
+  const ids = values.flatMap((value) => value?.split(/\s+/).filter(Boolean) ?? []);
+  return ids.length > 0 ? [...new Set(ids)].join(" ") : undefined;
+}
+
+export function TextInput({ className, ...props }: InputHTMLAttributes<HTMLInputElement>): React.ReactElement {
+  return <input {...props} className={cx("ui-input", className)} />;
+}
+
+export function TextArea({ className, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>): React.ReactElement {
+  return <textarea {...props} className={cx("ui-textarea", className)} />;
 }
 
 export function Select({
   children,
+  className,
   ...props
 }: SelectHTMLAttributes<HTMLSelectElement>): React.ReactElement {
   return (
-    <select {...props} style={{ ...inputBase, ...props.style }}>
+    <select {...props} className={cx("ui-select", className)}>
       {children}
     </select>
   );
@@ -152,36 +169,21 @@ export function Select({
 
 export function Checkbox({
   label,
+  className,
   ...props
 }: InputHTMLAttributes<HTMLInputElement> & { label: string }): React.ReactElement {
   return (
-    <label style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14, cursor: "pointer" }}>
-      <input
-        type="checkbox"
-        {...props}
-        style={{ width: 16, height: 16, accentColor: "var(--color-accent)", ...props.style }}
-      />
+    <label className="ui-checkbox">
+      <input type="checkbox" {...props} className={className} />
       <span>{label}</span>
     </label>
   );
 }
 
-/** Zweispaltiges Formular-Raster (auf schmalen Screens einspaltig). */
 export function FormRow({ children }: { children: ReactNode }): React.ReactElement {
-  return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-        gap: 12,
-      }}
-    >
-      {children}
-    </div>
-  );
+  return <div className="form-row">{children}</div>;
 }
 
-/** Inline-Statuszeile für Formular-Ergebnisse (Erfolg/Fehler). */
 export function StatusLine({
   kind,
   children,
@@ -189,23 +191,8 @@ export function StatusLine({
   kind: "error" | "success" | "info";
   children: ReactNode;
 }): React.ReactElement {
-  const map = {
-    error: { fg: "var(--color-danger)", bg: "var(--color-danger-soft)" },
-    success: { fg: "var(--color-ok)", bg: "var(--color-ok-soft)" },
-    info: { fg: "var(--color-text)", bg: "var(--color-surface-sunken)" },
-  } as const;
-  const c = map[kind];
   return (
-    <div
-      role={kind === "error" ? "alert" : "status"}
-      style={{
-        padding: "8px 12px",
-        borderRadius: "var(--radius-sm)",
-        background: c.bg,
-        color: c.fg,
-        fontSize: 13,
-      }}
-    >
+    <div role={kind === "error" ? "alert" : "status"} className={`status-line kind-${kind}`}>
       {children}
     </div>
   );

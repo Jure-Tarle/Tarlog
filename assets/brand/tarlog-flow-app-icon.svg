@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">Tarlog Flow App Icon</title>
+  <desc id="desc">A blue rounded-square app icon with a white open time dial and forward-facing clock hand.</desc>
+  <defs>
+    <linearGradient id="tile" x1="138" y1="92" x2="878" y2="932" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#72BBFF"/>
+      <stop offset="0.43" stop-color="#1777F2"/>
+      <stop offset="1" stop-color="#173DB8"/>
+    </linearGradient>
+    <radialGradient id="light" cx="0" cy="0" r="1" gradientTransform="translate(270 174) rotate(47) scale(704 652)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.33"/>
+      <stop offset="0.42" stop-color="#FFFFFF" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="shade" x1="512" y1="540" x2="512" y2="976" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#071D62" stop-opacity="0"/>
+      <stop offset="1" stop-color="#071D62" stop-opacity="0.22"/>
+    </linearGradient>
+    <filter id="symbol-shadow" x="174" y="172" width="676" height="698" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#072875" flood-opacity="0.24"/>
+    </filter>
+    <clipPath id="tile-clip">
+      <rect x="40" y="40" width="944" height="944" rx="224"/>
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#tile-clip)">
+    <rect x="40" y="40" width="944" height="944" rx="224" fill="url(#tile)"/>
+    <rect x="40" y="40" width="944" height="944" rx="224" fill="url(#light)"/>
+    <rect x="40" y="40" width="944" height="944" rx="224" fill="url(#shade)"/>
+    <path d="M118 214C212 102 332 76 510 76h214c100 0 182 28 238 88" fill="none" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="5" stroke-linecap="round"/>
+  </g>
+
+  <rect x="42" y="42" width="940" height="940" rx="222" fill="none" stroke="#FFFFFF" stroke-opacity="0.20" stroke-width="4"/>
+
+  <g filter="url(#symbol-shadow)" fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M717 655A250 250 0 1 1 717 369" stroke-width="88"/>
+    <path d="M443 386L512 512L665 443" stroke-width="82"/>
+  </g>
+</svg>

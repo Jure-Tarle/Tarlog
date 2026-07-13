@@ -9,7 +9,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { API, ApiClientError, api } from "@/lib/ui/api";
 import { deviceTimezone } from "@/lib/ui/format";
-import { Button, Select, StatusLine } from "@/lib/ui/controls";
+import { Button, ButtonLink, Select, StatusLine } from "@/lib/ui/controls";
 import { TimerTicker } from "@/lib/ui/TimerTicker";
 import type { TimerRow } from "@/lib/ui/queries";
 
@@ -66,6 +66,7 @@ export function DashboardLive({
 
   return (
     <div
+      className="feature-panel timer-feature-panel"
       style={{
         border: "1px solid var(--color-border)",
         borderLeft: active ? "2px solid var(--color-accent)" : "1px solid var(--color-border)",
@@ -96,9 +97,14 @@ export function DashboardLive({
             ) : (
               <Button variant="primary" onClick={resume} disabled={busy}>Fortsetzen</Button>
             )}
-            <a href="/timer">
-              <Button variant="primary" disabled={busy}>Stoppen…</Button>
-            </a>
+            <ButtonLink
+              href="/timer"
+              variant="primary"
+              aria-disabled={busy}
+              onClick={(event) => { if (busy) event.preventDefault(); }}
+            >
+              Stoppen…
+            </ButtonLink>
           </>
         ) : (
           <>

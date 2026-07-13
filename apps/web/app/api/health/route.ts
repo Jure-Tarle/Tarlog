@@ -7,12 +7,11 @@
  */
 import { NextResponse } from "next/server";
 import { pingDatabase } from "@/lib/db";
+import { APP_VERSION } from "@/lib/version";
 
 // Node-Runtime erzwingen (pg ist nicht Edge-kompatibel).
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "0.0.0";
 
 export async function GET(): Promise<NextResponse> {
   const timestamp = Date.now();
@@ -27,7 +26,7 @@ export async function GET(): Promise<NextResponse> {
     {
       status: dbOk ? "ok" : "degraded",
       db: dbOk ? "up" : "down",
-      version: VERSION,
+      version: APP_VERSION,
       timestamp,
     },
     { status: dbOk ? 200 : 503 },

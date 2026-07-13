@@ -10,6 +10,7 @@
 // doc 02 §4.1).
 pub mod commands;
 pub mod db;
+mod menu;
 mod tray;
 
 /// Build and run the desktop app. `main.rs` calls this; the mobile entry point
@@ -22,6 +23,9 @@ pub fn run() {
         // Native local notifications / reminders (doc 11 §5 nr. 4).
         .plugin(tauri_plugin_notification::init())
         .setup(|app| {
+            // Native application menu. On macOS this follows Apple's standard
+            // Tarlog/Ablage/Bearbeiten/Darstellung/Fenster/Hilfe hierarchy.
+            menu::install(app.handle())?;
             // Menu-bar / system-tray timer (doc 11 §5 nr. 1, §6 nr. 1).
             tray::build_tray(app.handle())?;
             Ok(())

@@ -6,6 +6,7 @@
  * Pause zählt nicht zur Nettozeit. Puls-Punkt signalisiert NUR echten
  * `running`-Zustand (doc 11 §1, respektiert prefers-reduced-motion via globals).
  */
+import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
 import { secondsToHMS } from "./format.js";
 
@@ -49,24 +50,17 @@ export function TimerTicker({
   const active = timer && (timer.status === "running" || timer.status === "paused");
 
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+    <span
+      className={`timer-ticker${active ? " is-active" : ""}`}
+      style={{ "--ticker-size": `${size}px` } as CSSProperties}
+    >
       {showDot ? (
         <span
           aria-hidden
-          className={running ? "timer-pulse" : undefined}
-          style={{
-            width: 9,
-            height: 9,
-            borderRadius: "50%",
-            flexShrink: 0,
-            background: active ? "var(--color-accent)" : "var(--color-text-faint)",
-          }}
+          className={`timer-ticker-dot${running ? " timer-pulse" : ""}`}
         />
       ) : null}
-      <span
-        className="tabular"
-        style={{ fontSize: size, fontWeight: 600, color: active ? "var(--color-text)" : "var(--color-text-muted)" }}
-      >
+      <span className="timer-ticker-value tabular">
         {secondsToHMS(secs)}
       </span>
     </span>

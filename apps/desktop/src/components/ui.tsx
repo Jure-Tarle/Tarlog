@@ -1,20 +1,19 @@
-/**
- * ui.tsx — the ledger design system primitives.
- *
- * Consumes the tokens in styles.css (one accent, tabular numerals, no default
- * shadows, deliberate radii — doc 11 §1). Pages compose these; they never
- * hard-code colors or sizes.
- */
-import type {
-  ReactNode,
-  InputHTMLAttributes,
-  TextareaHTMLAttributes,
-  SelectHTMLAttributes,
-  ButtonHTMLAttributes,
+import {
+  cloneElement,
+  isValidElement,
+  useId,
+  type ButtonHTMLAttributes,
+  type InputHTMLAttributes,
+  type ReactElement,
+  type ReactNode,
+  type SelectHTMLAttributes,
+  type TextareaHTMLAttributes,
 } from "react";
+import { CircleAlert, Inbox } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import type { ComplianceStatus } from "@tarlog/core";
 
-// --- Page scaffold ---------------------------------------------------------
+const SPRING = { type: "spring", bounce: 0, duration: 0.38 } as const;
 
 export function Page({
   title,
@@ -27,25 +26,24 @@ export function Page({
   actions?: ReactNode;
   children: ReactNode;
 }) {
+  const titleId = useId();
   return (
-    <section className="page" aria-label={title}>
+    <section className="page" aria-labelledby={titleId}>
       <header className="page__head">
         <div className="page__headmain">
-          <h1 className="page__title">{title}</h1>
+          <h1 className="page__title" id={titleId}>{title}</h1>
           {hint ? <span className="page__hint">{hint}</span> : null}
         </div>
         {actions ? <div className="page__actions">{actions}</div> : null}
       </header>
-      {children}
+      <div className="page__body">{children}</div>
     </section>
   );
 }
 
-export function Toolbar({ children }: { children: ReactNode }) {
-  return <div className="toolbar">{children}</div>;
+export function Toolbar({ children, label = "Aktionen" }: { children: ReactNode; label?: string }) {
+  return <div className="toolbar" role="toolbar" aria-label={label}>{children}</div>;
 }
-
-// --- Surfaces --------------------------------------------------------------
 
 export function Card({
   title,
@@ -60,20 +58,26 @@ export function Card({
   children: ReactNode;
   footer?: ReactNode;
 }) {
+  const reduceMotion = useReducedMotion();
   return (
-    <section className="card">
-      {(title || actions) && (
+    <motion.section
+      className="card"
+      initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 9, scale: 0.995 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={reduceMotion ? { duration: 0.14 } : SPRING}
+    >
+      {(title || actions) ? (
         <header className="card__head">
-          <div>
+          <div className="card__heading">
             {title ? <h2 className="card__title">{title}</h2> : null}
             {subtitle ? <p className="card__subtitle">{subtitle}</p> : null}
           </div>
           {actions ? <div className="card__actions">{actions}</div> : null}
         </header>
-      )}
+      ) : null}
       <div className="card__body">{children}</div>
       {footer ? <footer className="card__foot">{footer}</footer> : null}
-    </section>
+    </motion.section>
   );
 }
 
@@ -96,10 +100,13 @@ export function StatTile({
   accent?: boolean;
   onClick?: () => void;
 }) {
-  const cls = ["stat", accent ? "stat--accent" : "", tone ? `stat--${tone}` : "", onClick ? "stat--clickable" : ""]
-    .filter(Boolean)
-    .join(" ");
-  const inner = (
+  const classes = [
+    "stat",
+    accent ? "stat--accent" : "",
+    tone ? `stat--${tone}` : "",
+    onClick ? "stat--clickable" : "",
+  ].filter(Boolean).join(" ");
+  const content = (
     <>
       <span className="stat__label">{label}</span>
       <span className="stat__value num">{value}</span>
@@ -107,15 +114,13 @@ export function StatTile({
     </>
   );
   return onClick ? (
-    <button type="button" className={cls} onClick={onClick}>
-      {inner}
-    </button>
+    <motion.button type="button" className={classes} onClick={onClick} whileTap={{ scale: 0.985 }} transition={SPRING}>
+      {content}
+    </motion.button>
   ) : (
-    <div className={cls}>{inner}</div>
+    <div className={classes}>{content}</div>
   );
 }
-
-// --- Status ----------------------------------------------------------------
 
 const STATUS_LABEL: Record<ComplianceStatus, string> = {
   green: "Konform",
@@ -130,14 +135,18 @@ const STATUS_TONE: Record<ComplianceStatus, "ok" | "warn" | "danger"> = {
 };
 
 export function StatusDot({ status }: { status: ComplianceStatus }) {
-  return <span className={`cdot cdot--${STATUS_TONE[status]}`} aria-hidden />;
+  return (
+    <span className={`cdot cdot--${STATUS_TONE[status]}`}>
+      <span className="sr-only">{STATUS_LABEL[status]}</span>
+    </span>
+  );
 }
 
 export function ComplianceBadge({ status, children }: { status: ComplianceStatus; children?: ReactNode }) {
   const tone = STATUS_TONE[status];
   return (
     <span className={`badge badge--${tone}`}>
-      <StatusDot status={status} />
+      <span aria-hidden><StatusDot status={status} /></span>
       {children ?? STATUS_LABEL[status]}
     </span>
   );
@@ -147,11 +156,10 @@ export function Tag({ children, tone }: { children: ReactNode; tone?: "accent" |
   return <span className={`tag ${tone ? `tag--${tone}` : ""}`}>{children}</span>;
 }
 
-// --- States ----------------------------------------------------------------
-
 export function EmptyState({ title, children }: { title: string; children?: ReactNode }) {
   return (
     <div className="empty">
+      <span className="empty__icon" aria-hidden><Inbox size={20} /></span>
       <p className="empty__title">{title}</p>
       {children ? <div className="empty__body">{children}</div> : null}
     </div>
@@ -161,7 +169,8 @@ export function EmptyState({ title, children }: { title: string; children?: Reac
 export function ErrorNote({ error }: { error: string }) {
   return (
     <div className="notice notice--error" role="alert">
-      <strong>Nicht verfügbar.</strong> {error}
+      <CircleAlert size={16} aria-hidden />
+      <span><strong>Nicht verfügbar.</strong> {error}</span>
     </div>
   );
 }
@@ -170,15 +179,11 @@ export function Loading({ label = "Lädt…" }: { label?: string }) {
   return (
     <div className="loading" aria-live="polite">
       <span className="loading__spinner" aria-hidden />
-      {label}
+      <span>{label}</span>
     </div>
   );
 }
 
-/**
- * Standard async body: renders loading / error / empty / content in one place
- * so every page treats the not-yet-migrated backend gracefully.
- */
 export function AsyncBody<T>({
   state,
   empty,
@@ -196,13 +201,9 @@ export function AsyncBody<T>({
   return <>{children(state.data)}</>;
 }
 
-// --- Table -----------------------------------------------------------------
-
 export function TableWrap({ children }: { children: ReactNode }) {
   return <div className="tablewrap">{children}</div>;
 }
-
-// --- Form controls ---------------------------------------------------------
 
 export function Field({
   label,
@@ -217,16 +218,77 @@ export function Field({
   error?: ReactNode;
   children: ReactNode;
 }) {
+  const generatedId = useId();
+  const messageId = error || hint ? `${generatedId}-message` : undefined;
+  const control = isFieldControl(children) ? children : null;
+  const controlId = control ? control.props.id ?? `${generatedId}-control` : undefined;
+  const describedBy = control
+    ? [control.props["aria-describedby"], messageId].filter(Boolean).join(" ") || undefined
+    : undefined;
+  const content = control
+    ? cloneElement(control, {
+        id: controlId,
+        required: control.props.required ?? required,
+        "aria-describedby": describedBy,
+        "aria-invalid": error ? true : control.props["aria-invalid"],
+      })
+    : children;
+
+  if (!control) {
+    return (
+      <fieldset
+        className={`field field--group ${error ? "field--error" : ""}`}
+        aria-describedby={messageId}
+        aria-invalid={error ? true : undefined}
+      >
+        <legend className="field__label">
+          {label}
+          {required ? <span className="field__req" aria-hidden>*</span> : null}
+        </legend>
+        <div className="field__group-content">{content}</div>
+        {error ? (
+          <span className="field__error" id={messageId}>{error}</span>
+        ) : hint ? (
+          <span className="field__hint" id={messageId}>{hint}</span>
+        ) : null}
+      </fieldset>
+    );
+  }
+
   return (
-    <label className="field">
-      <span className="field__label">
-        {label}
-        {required ? <span className="field__req" aria-hidden>*</span> : null}
-      </span>
-      {children}
-      {error ? <span className="field__error">{error}</span> : hint ? <span className="field__hint">{hint}</span> : null}
-    </label>
+    <div className={`field ${error ? "field--error" : ""}`}>
+      {controlId ? (
+        <label className="field__label" htmlFor={controlId}>
+          {label}
+          {required ? <span className="field__req" aria-hidden>*</span> : null}
+        </label>
+      ) : (
+        <span className="field__label">
+          {label}
+          {required ? <span className="field__req" aria-hidden>*</span> : null}
+        </span>
+      )}
+      {content}
+      {error ? (
+        <span className="field__error" id={messageId}>{error}</span>
+      ) : hint ? (
+        <span className="field__hint" id={messageId}>{hint}</span>
+      ) : null}
+    </div>
   );
+}
+
+type FieldControlProps = {
+  id?: string;
+  required?: boolean;
+  "aria-describedby"?: string;
+  "aria-invalid"?: boolean | "true" | "false";
+};
+
+function isFieldControl(node: ReactNode): node is ReactElement<FieldControlProps> {
+  if (!isValidElement<FieldControlProps>(node)) return false;
+  if (typeof node.type === "string") return ["input", "select", "textarea"].includes(node.type);
+  return node.type === TextInput || node.type === TextArea || node.type === Select || node.type === Checkbox;
 }
 
 export function FormRow({ children }: { children: ReactNode }) {
@@ -262,9 +324,9 @@ export function Button({
   children,
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "default" | "primary" | "ghost" | "danger" }) {
-  const cls = variant === "default" ? "btn" : `btn btn--${variant}`;
+  const classes = variant === "default" ? "btn" : `btn btn--${variant}`;
   return (
-    <button type="button" {...props} className={`${cls} ${props.className ?? ""}`}>
+    <button type="button" {...props} className={`${classes} ${props.className ?? ""}`}>
       {children}
     </button>
   );
@@ -278,23 +340,47 @@ export function SegmentedControl<T extends string>({
 }: {
   value: T;
   options: { value: T; label: ReactNode }[];
-  onChange: (v: T) => void;
+  onChange: (value: T) => void;
   ariaLabel?: string;
 }) {
   return (
-    <div className="segmented" role="tablist" aria-label={ariaLabel}>
-      {options.map((o) => (
-        <button
-          key={o.value}
-          type="button"
-          role="tab"
-          aria-selected={o.value === value}
-          className={`segmented__btn ${o.value === value ? "is-active" : ""}`}
-          onClick={() => onChange(o.value)}
-        >
-          {o.label}
-        </button>
-      ))}
+    <div className="segmented" role="group" aria-label={ariaLabel}>
+      {options.map((option, index) => {
+        const active = option.value === value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            aria-pressed={active}
+            tabIndex={active ? 0 : -1}
+            className={`segmented__btn ${active ? "is-active" : ""}`}
+            onClick={() => onChange(option.value)}
+            onKeyDown={(event) => {
+              const lastIndex = options.length - 1;
+              let targetIndex: number | null = null;
+              if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+                targetIndex = index === 0 ? lastIndex : index - 1;
+              } else if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+                targetIndex = index === lastIndex ? 0 : index + 1;
+              } else if (event.key === "Home") {
+                targetIndex = 0;
+              } else if (event.key === "End") {
+                targetIndex = lastIndex;
+              }
+
+              if (targetIndex == null) return;
+              const targetOption = options[targetIndex];
+              if (!targetOption) return;
+              event.preventDefault();
+              onChange(targetOption.value);
+              const buttons = event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>(".segmented__btn");
+              buttons?.[targetIndex]?.focus();
+            }}
+          >
+            <span>{option.label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }

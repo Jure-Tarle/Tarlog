@@ -13,7 +13,7 @@ import {
   type Traffic,
 } from "@/lib/ui/ui";
 import { RealtimeRefresher } from "@/lib/ui/RealtimeRefresher";
-import { Button } from "@/lib/ui/controls";
+import { ButtonLink } from "@/lib/ui/controls";
 import { formatMoney, formatRelative, secondsToHM } from "@/lib/ui/format";
 import {
   requireAccount,
@@ -101,8 +101,8 @@ export default async function DashboardPage(): Promise<React.ReactElement> {
         </Grid>
 
         <div style={{ marginTop: 24, display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <a href="/nachtrag"><Button variant="primary">Schnellnachtrag (vergessener Start/Stopp)</Button></a>
-          <a href="/today"><Button>Tagesübersicht öffnen</Button></a>
+          <ButtonLink href="/nachtrag" variant="primary">Schnellnachtrag (vergessener Start/Stopp)</ButtonLink>
+          <ButtonLink href="/today">Tagesübersicht öffnen</ButtonLink>
         </div>
       </>
     );

@@ -6,7 +6,7 @@
  */
 import { PageHeader, LoadError, Grid, StatTile, ComplianceBadge, type Traffic } from "@/lib/ui/ui";
 import { RealtimeRefresher } from "@/lib/ui/RealtimeRefresher";
-import { Button } from "@/lib/ui/controls";
+import { ButtonLink } from "@/lib/ui/controls";
 import { formatMoney, secondsToHM, toLocalDate } from "@/lib/ui/format";
 import {
   requireAccount,
@@ -118,9 +118,9 @@ export default async function WeekPage({
         actions={
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <RealtimeRefresher types={["time_entry."]} />
-            <a href={`/week?date=${shiftIso(mondayIso, -7)}`}><Button size="sm">‹ Vorwoche</Button></a>
-            <a href="/week"><Button size="sm">Diese Woche</Button></a>
-            <a href={`/week?date=${shiftIso(mondayIso, 7)}`}><Button size="sm">Folgewoche ›</Button></a>
+            <ButtonLink href={`/week?date=${shiftIso(mondayIso, -7)}`} size="sm">‹ Vorwoche</ButtonLink>
+            <ButtonLink href="/week" size="sm">Diese Woche</ButtonLink>
+            <ButtonLink href={`/week?date=${shiftIso(mondayIso, 7)}`} size="sm">Folgewoche ›</ButtonLink>
           </div>
         }
       />

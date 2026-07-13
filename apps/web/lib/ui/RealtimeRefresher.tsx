@@ -43,24 +43,10 @@ export function RealtimeRefresher({
   if (!showIndicator) return null;
   const live = status === "open" || status === "polling";
   return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 6,
-        fontSize: 12,
-        color: live ? "var(--color-text-muted)" : "var(--color-warn)",
-      }}
-    >
+    <span className={`realtime-indicator${live ? " is-live" : " is-offline"}`}>
       <span
         aria-hidden
-        className={status === "open" ? "timer-pulse" : undefined}
-        style={{
-          width: 7,
-          height: 7,
-          borderRadius: "50%",
-          background: live ? "var(--color-accent)" : "var(--color-warn)",
-        }}
+        className={`realtime-dot${status === "open" ? " timer-pulse" : ""}`}
       />
       {LABEL[status]}
     </span>

@@ -10,6 +10,7 @@
  */
 import { redirect } from "next/navigation";
 import { and, desc, eq, gte, isNull, lt, sql } from "drizzle-orm";
+import type { TimerStatus } from "@tarlog/core";
 import { db, schema } from "@/lib/db";
 import { getAuth } from "@/lib/api";
 
@@ -177,7 +178,7 @@ export function monthRange(tz: string, isoDate?: string): Range {
 
 export interface TimerRow {
   timer_id: string;
-  status: string;
+  status: TimerStatus;
   project_id: string | null;
   task_id: string | null;
   current_time_entry_id: string | null;

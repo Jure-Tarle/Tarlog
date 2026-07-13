@@ -23,8 +23,9 @@ cd src-tauri && cargo check                    # Rust host
 
 ## Parallel work — 4 module authors, no collisions
 
-`package.json` is **FINAL** — do not add deps. The skeleton is split so each
-author owns disjoint files:
+The application contracts are stable. UI dependencies may be added deliberately
+for the shared design system; data and Rust contracts must continue to change
+only in lockstep. The original implementation was split as follows:
 
 | Author | Owns (edit freely) | Do NOT touch |
 |---|---|---|
@@ -51,9 +52,20 @@ state machine, rounding, snapshots, sync events) → `bridge.ts` commands only.
 
 ## Design direction (BINDING — doc 11 §1)
 
-Calm, dense **ledger** aesthetic: neutral grays + exactly **one** accent
-(steel blue); compliance traffic light (green/amber/red) is the only extra,
-semantic color; **tabular/monospaced** figures for all times + money; **no**
-default shadows; **no** uniform radii; first-class Dark **and** Light; restrained
-motion (`prefers-reduced-motion` honored). Tokens live in `src/styles.css` —
-pages consume tokens, never hard-code colors/sizes.
+**Tarlog Flow** is an Apple-inspired, spatial workspace: bright white canvas in
+Light Mode, deep graphite in Dark Mode, system blue for focus and primary
+actions, platform system type, tabular figures for time and money, and layered
+materials for navigation, cards, and dialogs. Motion is immediate,
+spring-driven, interruptible, and always honors reduced-motion, reduced-
+transparency, and increased-contrast preferences. Tokens live in
+`src/styles.css`; pages consume semantic roles rather than hard-coded theme
+colors.
+
+On macOS the same system becomes platform-native where Tauri exposes public
+APIs: an overlay titlebar keeps the real Traffic Lights, the application uses a
+native AppKit menu hierarchy and template menu-bar icon, WebKit renders native
+select/checkbox/date controls, and the chosen theme is forwarded to the native
+window. Private transparency/vibrancy APIs are intentionally excluded so the
+bundle remains compatible with signing, notarization, and Mac App Store rules.
+Brand masters live in `../../assets/brand/`; generated bundle and tray assets
+live in `src-tauri/icons/`.

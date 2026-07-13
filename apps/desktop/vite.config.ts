@@ -21,5 +21,21 @@ export default defineConfig({
     target: "es2022",
     sourcemap: true,
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        // Keep the interaction libraries cacheable and the app chunk below
+        // Vite's warning threshold without changing the eager route contract.
+        manualChunks(id) {
+          if (id.includes("node_modules/.pnpm/framer-motion") || id.includes("node_modules/.pnpm/motion")) {
+            return "motion";
+          }
+          if (id.includes("node_modules/.pnpm/lucide-react")) return "icons";
+          if (id.includes("node_modules/.pnpm/react@") || id.includes("node_modules/.pnpm/react-dom")) {
+            return "react";
+          }
+          return undefined;
+        },
+      },
+    },
   },
 });

@@ -7,7 +7,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { API, ApiClientError, api } from "@/lib/ui/api";
-import { Button, StatusLine } from "@/lib/ui/controls";
+import { Button, ButtonLink, StatusLine } from "@/lib/ui/controls";
 
 export function InvoiceRowActions({ id, status }: { id: string; status: string }): React.ReactElement {
   const router = useRouter();
@@ -48,9 +48,7 @@ export function InvoiceRowActions({ id, status }: { id: string; status: string }
           Storno
         </Button>
       ) : null}
-      <a href={API.invoicePdf(id)} target="_blank" rel="noopener noreferrer">
-        <Button size="sm">PDF</Button>
-      </a>
+      <ButtonLink href={API.invoicePdf(id)} target="_blank" rel="noopener noreferrer" size="sm">PDF</ButtonLink>
       {err ? <div style={{ flexBasis: "100%" }}><StatusLine kind="error">{err}</StatusLine></div> : null}
     </div>
   );

@@ -1,12 +1,13 @@
 "use client";
-/**
- * lib/ui/Modal.tsx — leichtgewichtiger Dialog (Stopp-Dialog, Formulare).
- * Fokus-Falle bewusst schlank; Escape schließt, Backdrop-Klick schließt.
- * Motion zurückhaltend (kein Bounce), respektiert prefers-reduced-motion via
- * globals.css.
- */
-import { useEffect } from "react";
-import type { ReactNode } from "react";
+
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import type { CSSProperties, ReactNode } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { X } from "lucide-react";
+
+const FOCUSABLE =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 export function Modal({
   open,
@@ -23,86 +24,104 @@ export function Modal({
   footer?: ReactNode;
   width?: number;
 }): React.ReactElement | null {
+  const [mounted, setMounted] = useState(false);
+  const surfaceRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+  const titleId = useId();
+  const reduceMotion = useReducedMotion();
+  onCloseRef.current = onClose;
+
+  useEffect(() => setMounted(true), []);
+
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
+    const previousPaddingRight = document.body.style.paddingRight;
+    const scrollbar = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.overflow = "hidden";
+    if (scrollbar > 0) document.body.style.paddingRight = `${scrollbar}px`;
 
-  if (!open) return null;
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label={title}
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 50,
-        background: "color-mix(in srgb, var(--color-ink-950) 55%, transparent)",
-        display: "flex",
-        alignItems: "flex-start",
-        justifyContent: "center",
-        padding: "6vh 16px",
-        overflowY: "auto",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: width,
-          background: "var(--color-surface-raised)",
-          border: "1px solid var(--color-border-strong)",
-          borderRadius: "var(--radius-lg)",
-        }}
-      >
-        <header
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "14px 18px",
-            borderBottom: "1px solid var(--color-border)",
-          }}
-        >
-          <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>{title}</h2>
-          <button
+    const focusFrame = window.requestAnimationFrame(() => {
+      const target = surfaceRef.current?.querySelector<HTMLElement>("[autofocus], input, select, textarea, button");
+      (target ?? surfaceRef.current)?.focus();
+    });
+
+    function onKeyDown(event: KeyboardEvent): void {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onCloseRef.current();
+        return;
+      }
+      if (event.key !== "Tab" || !surfaceRef.current) return;
+      const focusable = Array.from(surfaceRef.current.querySelectorAll<HTMLElement>(FOCUSABLE));
+      const first = focusable[0];
+      const last = focusable.at(-1);
+      if (!first || !last) {
+        event.preventDefault();
+        surfaceRef.current.focus();
+      } else if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
+      document.body.style.paddingRight = previousPaddingRight;
+      previousFocus?.focus();
+    };
+  }, [open]);
+
+  if (!mounted) return null;
+
+  const modal = (
+    <AnimatePresence>
+      {open ? (
+        <motion.div className="modal-layer" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <motion.button
             type="button"
-            onClick={onClose}
-            aria-label="Schließen"
-            style={{
-              border: "none",
-              background: "transparent",
-              cursor: "pointer",
-              fontSize: 20,
-              lineHeight: 1,
-              color: "var(--color-text-muted)",
-            }}
+            className="modal-scrim"
+            tabIndex={-1}
+            aria-label="Dialog schließen"
+            onClick={() => onCloseRef.current()}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: reduceMotion ? 0.12 : 0.2 }}
+          />
+          <motion.div
+            ref={surfaceRef}
+            className="modal-surface"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            tabIndex={-1}
+            style={{ "--modal-width": `${width}px` } as CSSProperties}
+            initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 16, scale: 0.965, filter: "blur(8px)" }}
+            animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 10, scale: 0.975, filter: "blur(6px)" }}
+            transition={reduceMotion ? { duration: 0.14 } : { type: "spring", bounce: 0, duration: 0.34 }}
           >
-            ×
-          </button>
-        </header>
-        <div style={{ padding: 18, display: "flex", flexDirection: "column", gap: 14 }}>{children}</div>
-        {footer ? (
-          <footer
-            style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              gap: 8,
-              padding: "12px 18px",
-              borderTop: "1px solid var(--color-border)",
-            }}
-          >
-            {footer}
-          </footer>
-        ) : null}
-      </div>
-    </div>
+            <header className="modal-header">
+              <h2 id={titleId}>{title}</h2>
+              <button type="button" className="icon-button" onClick={() => onCloseRef.current()} aria-label="Schließen">
+                <X size={19} />
+              </button>
+            </header>
+            <div className="modal-body">{children}</div>
+            {footer ? <footer className="modal-footer">{footer}</footer> : null}
+          </motion.div>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
   );
+
+  return createPortal(modal, document.body);
 }

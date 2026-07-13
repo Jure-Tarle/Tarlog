@@ -108,6 +108,7 @@ export function TimerConsole({ initialTimer, projects, tasks, rules, currency }:
 
       {isActive || needsDescription ? (
         <div
+          className="feature-panel timer-feature-panel"
           style={{
             border: "1px solid var(--color-border)",
             borderLeft: "2px solid var(--color-accent)",
@@ -145,6 +146,7 @@ export function TimerConsole({ initialTimer, projects, tasks, rules, currency }:
         </div>
       ) : (
         <div
+          className="feature-panel"
           style={{
             border: "1px solid var(--color-border)",
             borderRadius: "var(--radius)",

@@ -137,10 +137,22 @@ fn bootstrap(conn: &Connection) -> Result<(), String> {
     .map_err(|e| format!("seed account: {e}"))?;
     conn.execute(
         "INSERT OR IGNORE INTO devices(id, main_account_id, device_name, platform, app_version, local_db_version, connected_at, created_at, updated_at)\
-         VALUES(?1, ?2, 'Dieses Gerät', ?3, '0.0.0', ?4, ?5, ?5, ?5)",
-        rusqlite::params![DEVICE_ID, MAIN_ACCOUNT_ID, host_platform(), SCHEMA_VERSION, now],
+         VALUES(?1, ?2, 'Dieses Gerät', ?3, ?4, ?5, ?6, ?6, ?6)",
+        rusqlite::params![
+            DEVICE_ID,
+            MAIN_ACCOUNT_ID,
+            host_platform(),
+            env!("CARGO_PKG_VERSION"),
+            SCHEMA_VERSION,
+            now
+        ],
     )
     .map_err(|e| format!("seed device: {e}"))?;
+    conn.execute(
+        "UPDATE devices SET app_version=?2, updated_at=?3 WHERE id=?1",
+        rusqlite::params![DEVICE_ID, env!("CARGO_PKG_VERSION"), now],
+    )
+    .map_err(|e| format!("refresh device version: {e}"))?;
     conn.execute(
         "INSERT OR IGNORE INTO local_profiles(id, main_account_id, device_id, created_at, updated_at)\
          VALUES(?1, ?2, ?3, ?4, ?4)",

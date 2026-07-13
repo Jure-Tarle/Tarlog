@@ -3036,10 +3036,11 @@ dependencies = [
 
 [[package]]
 name = "ptl-desktop"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "argon2",
  "dirs 5.0.1",
+ "png 0.17.16",
  "rusqlite",
  "serde",
  "serde_json",

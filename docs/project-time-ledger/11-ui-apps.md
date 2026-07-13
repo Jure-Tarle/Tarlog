@@ -4,23 +4,31 @@
 
 Dieses Kapitel beschreibt die Benutzeroberfläche von Tarlog (SPEC §26), die Kalender-/Timesheet-Ansichten (SPEC §21), die Desktop-App für macOS und Windows (SPEC §27) sowie die iOS-App (SPEC §28). Die Oberfläche muss schnell, klar und professionell sein — sie ist der tägliche Arbeitsplatz einer Einzelperson, die minutengenau erfasst, nachträgt und abrechnet. Die Timer-Logik steht in [Zeiterfassung](03-zeiterfassung.md), die geräteübergreifende Zustandssynchronisierung in [Synchronisierung](04-sync.md), die technische Plattformstrategie in [Architektur](05-architektur.md), das Datenmodell in [Datenmodell](06-datenmodell.md), Rundung/Berechnung in [Zeitberechnung und Rundung](07-zeitberechnung-rundung.md), die Prüfregeln in [Compliance](08-compliance.md), Sicherheit/App-Sperre in [Datenschutz und Sicherheit](09-datenschutz-sicherheit.md) sowie Rechnungen/Exporte in [Abrechnung und Export](10-abrechnung-export.md).
 
-## 1. Design-Direktion (verbindlich, vorab festgelegt)
+## 1. Design-Direktion (verbindlich)
 
-Bevor eine einzige UI-Komponente entsteht, wird die Design-Direktion festgelegt. Kein generisches Dashboard-Template, kein Default-Look. Ziel ist eine ruhige, dichte „Ledger"-Ästhetik — die Anmutung eines präzisen Kontobuchs, nicht einer verspielten Timer-App.
+Desktop und Web folgen der Designsprache **Tarlog Flow**: ein ruhiger,
+räumlicher Arbeitsbereich, der Präzision mit der direkten, physischen
+Bedienbarkeit hochwertiger Apple-Oberflächen verbindet. Die Anwendung wirkt
+hell und offen statt tabellenlastig, bleibt im Dark Mode aber ebenso klar und
+kontrastreich. Dekoration ist nie Selbstzweck; Material, Tiefe und Bewegung
+erklären Hierarchie und Zustand.
 
 | Aspekt | Entscheidung | Begründung |
 |---|---|---|
-| Grundhaltung | Ruhige, dichte Ledger-Ästhetik; Inhalt vor Chrome | Zeiterfassung ist ein Werkzeug für Wiederholarbeit; visuelle Ruhe reduziert Erfassungsfehler. |
-| Farbsystem | Neutrale Basis (abgestufte Graustufen), genau **eine Akzentfarbe** | Ein einziger Akzent für aktive Zustände (laufender Timer, Primäraktion); Compliance-Ampel grün/gelb/rot ist die einzige zusätzliche Farbcodierung und semantisch, nicht dekorativ. |
-| Ziffern | **Tabulare Ziffern** (`font-variant-numeric: tabular-nums`), Monospace-Schnitt für Zeiten und Beträge | Zeiten (`HH:MM:SS`) und Geldbeträge müssen spaltenweise ausrichten; proportionale Ziffern springen und erschweren das Scannen. |
-| Typografie | Neutrale Grotesk für Text, tabulare/monospace Ziffern für Daten | Klare Lesbarkeit dichter Tabellen; keine dekorativen Displayschriften. |
-| Dichte | Klare Dichte-Stufen (kompakt / normal / komfortabel), umschaltbar | Poweruser wollen viele Einträge pro Bildschirm; Gelegenheitsnutzung mehr Luft. |
-| Motion | Zurückhaltende Motion: dezenter Timer-Puls (laufend), weiche Zustandswechsel `running`↔`paused`↔`stopped`, keine dekorativen Effekte | Bewegung signalisiert nur echten Zustand (Timer läuft, Sync aktiv, Konflikt), nie Show. Respektiert `prefers-reduced-motion`. |
-| Flächen | **Keine Default-Shadows, keine uniformen Border-Radii** | Hierarchie über Kontrast und Abstand, nicht über Schlagschatten; Radien bewusst und sparsam. |
-| Themes | **Dark und Light**, beide erstklassig, systemgesteuert + manueller Override | Erfassung passiert früh und spät; beide Modi müssen ohne Kompromiss lesbar sein, inkl. Ampelfarben mit ausreichendem Kontrast. |
-| Barrierefreiheit | Kontrast AA+, Tastaturvollbedienung, sichtbarer Fokus, Farbe nie alleiniger Bedeutungsträger | Compliance-Status trägt immer Symbol + Text zusätzlich zur Farbe. |
+| Grundhaltung | Ruhig, räumlich und fokussiert; die häufigste Aktion ist immer am schnellsten erreichbar | Zeiterfassung ist ein tägliches Werkzeug. Übersicht, direkte Rückmeldung und kurze Wege reduzieren Fehler. |
+| Farbsystem | Weißer Canvas im Light Mode, tiefes Graphit im Dark Mode, Systemblau als Fokusfarbe | Blau kennzeichnet Auswahl, laufenden Timer und Primäraktionen. Compliance-Farben bleiben ausschließlich semantisch und werden immer durch Symbol und Text ergänzt. |
+| Typografie | Plattformnahe Systemschrift mit optischer Größenanpassung; enge Display-, ruhige Text- und kleine UI-Schnitte | Die Hierarchie entsteht gemeinsam aus Größe, Gewicht, Tracking und Zeilenhöhe. Es werden keine externen Webfonts benötigt. |
+| Ziffern | **Tabulare Ziffern** (`font-variant-numeric: tabular-nums`) für Zeiten und Beträge | Live-Timer und Geldwerte bleiben beim Aktualisieren stabil und spaltenweise scanbar. |
+| Navigation | Gruppierte, materialisierte Seitenleiste mit semantischen Icons; der Timer bleibt global erreichbar | Bereiche sind schneller erfassbar, der aktive Ort ist eindeutig und Desktop/Web behalten dasselbe mentale Modell. |
+| Motion | Unterbrechbare Spring-Bewegung, unmittelbares Press-Feedback und symmetrische Ein-/Ausgänge | Bewegung beginnt aus dem sichtbaren Zustand, signalisiert Ursache und bleibt jederzeit umlenkbar. `prefers-reduced-motion` ersetzt räumliche Bewegung durch kurze Crossfades. |
+| Flächen | Transluzenz und kontrollierte Schatten staffeln Navigation, Karten und Dialoge | Materialstärke zeigt Hierarchie. Große Flächen wirken substanzieller; reduzierte Transparenz erhält solide, kontrastreiche Fallbacks. |
+| Themes | **Light und Dark** sind gleichwertig, folgen initial dem System und lassen sich persistent manuell umschalten | Beide Modi verwenden eigene semantische Tokens statt einer pauschalen Farbinvertierung. Der Wechsel erfolgt ohne abrupten Helligkeitssprung. |
+| Barrierefreiheit | Kontrast AA+, Tastaturvollbedienung, sichtbarer Fokus, ausreichend große Ziele, reduzierte Bewegung/Transparenz | Farbe trägt nie allein Bedeutung. Dialoge halten Fokus, Escape schließt und der Fokus kehrt zum Auslöser zurück. |
 
-Diese Direktion gilt plattformübergreifend (Web, Desktop, iOS), mit plattformnativen Anpassungen (siehe Abschnitte 5–7). Konkreter UI-Code gehört nicht in dieses Dokument.
+Desktop und Web setzen Tarlog Flow gemeinsam um. iOS übernimmt dieselben
+semantischen Rollen und Informationsgruppen, verwendet dafür jedoch native
+iOS-Navigation und -Materialien (siehe Abschnitte 5–7). Konkreter UI-Code
+gehört nicht in dieses Dokument.
 
 ## 2. Hauptbereiche (SPEC §26 — alle 15 Bereiche)
 
@@ -105,11 +113,22 @@ Der Kalender-/Timesheet-Bereich ist das visuelle Werkzeug zum Erfassen, Nachtrag
 | 11 | Rundungsvorschau anzeigen | Live-Vorschau der `billing_duration_seconds` gemäß Rundungsregel; siehe [Zeitberechnung und Rundung](07-zeitberechnung-rundung.md) |
 | 12 | Warnungen anzeigen | Inline-Compliance-Warnungen (z. B. `6 Stunden` ohne Pause) am betroffenen Block |
 
-Beim Aufziehen/Ändern eines Blocks öffnet sich ein leichtgewichtiges Inline-Formular (Projekt, Aufgabe, Beschreibung, Pause, Rundungsvorschau, Compliance-Ergebnis, Speichern) — konsistent mit dem Nachtragen aus der Kalenderansicht in [Zeiterfassung](03-zeiterfassung.md). Motion bleibt zurückhaltend: Blöcke rasten weich ein, kein Bounce.
+Beim Aufziehen/Ändern eines Blocks öffnet sich ein leichtgewichtiges Inline-Formular (Projekt, Aufgabe, Beschreibung, Pause, Rundungsvorschau, Compliance-Ergebnis, Speichern) — konsistent mit dem Nachtragen aus der Kalenderansicht in [Zeiterfassung](03-zeiterfassung.md). Blöcke folgen dem Zeiger direkt, übernehmen beim Loslassen dessen Geschwindigkeit und rasten mit einer gedämpften, unterbrechbaren Spring-Bewegung ein. Ein leichter Overshoot ist ausschließlich nach einer momentumgetragenen Geste erlaubt.
 
 ## 5. Desktop-App macOS (SPEC §27 — alle 17 Funktionen, priorisiert)
 
 macOS hat Priorität. Die Desktop-App ist eine **Tauri 2.x**-App (siehe [Architektur](05-architektur.md)); der Menüleisten-Timer wird über das Tauri **`tray-icon`** realisiert. Die lokale Datenbank ist SQLite (Drizzle via `tauri-plugin-sql`).
+
+Die macOS-Oberfläche verwendet die öffentliche Tauri-Integration für eine
+native Overlay-Titlebar mit echten Traffic Lights, ein natives
+Tarlog-/Ablage-/Bearbeiten-/Darstellung-/Fenster-/Hilfe-Menü und ein
+monochromes Template-Icon in der Menüleiste. Der WebView-Inhalt folgt
+AppKit-Metriken und verwendet die nativen WebKit-Ausprägungen für Auswahlfelder,
+Checkboxen sowie Datum-/Zeit-Picker. Das manuelle Light-/Dark-Theme wird an das
+native Fenster weitergereicht, damit Titlebar und Traffic Lights synchron
+bleiben. Private macOS-APIs und volltransparente Fenster werden bewusst nicht
+verwendet, damit Signierung, Notarisierung und eine spätere Mac-App-Store-
+Verteilung möglich bleiben.
 
 | # | macOS-Funktion | Umsetzung / Hinweis |
 |---|---|---|
@@ -184,4 +203,4 @@ Die Erinnerungen (Timer starten/stoppen, Pause, Beschreibung ergänzen, Woche ab
 
 ## 9. Plattformübergreifende UI-Konsistenz
 
-Die drei Clients teilen dasselbe Informationsmodell und dieselbe Navigation (15 Hauptbereiche), passen sich aber nativ an: Desktop nutzt Seitennavigation + Menüleisten-/Tray-Timer, Web dieselbe Layout-Basis responsiv (optional PWA), iOS eine Tab-Bar mit Mehr-Menü und mobil-optimierten Formularen. Der laufende Timer ist überall persistent sichtbar und steuerbar. Die Design-Direktion aus Abschnitt 1 (eine Akzentfarbe, tabulare Ziffern, zurückhaltende Motion, Dark/Light, keine Default-Shadows/uniformen Radii) gilt in allen Clients gleichermaßen und sichert einen wiedererkennbaren, professionellen Gesamteindruck ohne generischen Template-Look.
+Die drei Clients teilen dasselbe Informationsmodell und dieselben 15 Hauptbereiche, passen sich aber nativ an: Desktop nutzt eine materialisierte Seitennavigation plus Menüleisten-/Tray-Timer, Web dieselbe Hierarchie responsiv mit mobiler Navigation (optional PWA), iOS eine Tab-Bar mit Mehr-Menü und mobil optimierten Formularen. Der laufende Timer bleibt überall persistent sichtbar und erreichbar. Tarlog Flow verbindet die Clients über semantische Farben, Systemtypografie, tabulare Ziffern, klare Gruppierung und physische Rückmeldung; Navigation und Materialstärke passen sich jeweils der Plattform und Fenstergröße an.

@@ -5,7 +5,7 @@
 #   docker compose -f docker-compose.yml -f docker-compose.image.yml up -d
 #
 # Legt `build:` des web-Dienstes still und zieht stattdessen das Release-Image.
-# Version über PTL_VERSION (Default: latest), z. B. PTL_VERSION=0.0.1.
+# Version über PTL_VERSION (Default: latest), z. B. PTL_VERSION=0.0.2.
 
 services:
   web:

@@ -150,6 +150,18 @@ fn local_mode_end_to_end() {
 
     // --- 7. Audit-Log ------------------------------------------------------
     let conn = db::open().expect("open");
+    let app_version: String = conn
+        .query_row(
+            "SELECT app_version FROM devices WHERE id=?1",
+            [db::DEVICE_ID],
+            |r| r.get(0),
+        )
+        .expect("device app version");
+    assert_eq!(
+        app_version,
+        env!("CARGO_PKG_VERSION"),
+        "Gerätemetadaten müssen die gebaute App-Version ausweisen"
+    );
     let audits: i64 = conn
         .query_row("SELECT count(*) FROM audit_logs", [], |r| r.get(0))
         .expect("audit count");
