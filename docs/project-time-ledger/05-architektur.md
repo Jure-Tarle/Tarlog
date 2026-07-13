@@ -2,7 +2,7 @@
 
 > Hinweis: Rechtliche Aussagen sind Produkt-Hinweise, keine Rechtsberatung. Stand der Recherche: Juli 2026.
 
-Dieses Dokument beschreibt die technische Zielarchitektur von Project Time Ledger: Plattformstrategie, die konkrete Technologie-Empfehlung (SPEC §37), das Monorepo-Layout, das gemeinsame Core-Package, das API-Konzept (SPEC §32), die Webhooks (SPEC §33), die Live-Kanal-Architektur, die projektweiten Konventionen sowie die Betriebsthemen des selbst gehosteten Server-Modus (SPEC §4.2). Datenmodell-Details siehe [Datenmodell](06-datenmodell.md), Sync-Details siehe [Synchronisierung](04-sync.md), Rechenkern siehe [Zeitberechnung & Rundung](07-zeitberechnung-rundung.md).
+Dieses Dokument beschreibt die technische Zielarchitektur von Tarlog: Plattformstrategie, die konkrete Technologie-Empfehlung (SPEC §37), das Monorepo-Layout, das gemeinsame Core-Package, das API-Konzept (SPEC §32), die Webhooks (SPEC §33), die Live-Kanal-Architektur, die projektweiten Konventionen sowie die Betriebsthemen des selbst gehosteten Server-Modus (SPEC §4.2). Datenmodell-Details siehe [Datenmodell](06-datenmodell.md), Sync-Details siehe [Synchronisierung](04-sync.md), Rechenkern siehe [Zeitberechnung & Rundung](07-zeitberechnung-rundung.md).
 
 Leitprinzip: **local-first mit optionalem Server-Sync**. Die App ist vollständig lokal nutzbar (keine Registrierung, kein Cloud-Zwang, keine Telemetrie im Standard). Ein selbst gehosteter Server ist optional, aber professionell vorbereitet. Der Server ist die **kanonische Wahrheit** für synchronisierte Daten; jedes Gerät hält eine lokale Kopie.
 

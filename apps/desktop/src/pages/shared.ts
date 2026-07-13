@@ -1,12 +1,12 @@
 /**
  * shared.ts — small helpers reused by the ledger pages. No DB access of its own;
- * it only composes the finished `src/data` repositories + @ptl/core aggregates.
+ * it only composes the finished `src/data` repositories + @tarlog/core aggregates.
  */
 import { useEffect, useState } from "react";
 import { session } from "../data/session";
 import { entries, type TimeEntry, type Break } from "../data/repositories";
 import { buildDaySummaries, evaluateDays, type DayCompliance } from "../data/aggregates";
-import type { IanaTimezone } from "@ptl/core";
+import type { IanaTimezone } from "@tarlog/core";
 import { deviceTimezone } from "../data/format";
 
 /** Resolve the account timezone once (falls back to the device zone). */

@@ -8,7 +8,7 @@
  * Resolution is memoized per process — the singleton never changes at runtime.
  */
 import { select } from "../lib/db";
-import type { Uuid } from "@ptl/core";
+import type { Uuid } from "@tarlog/core";
 
 /** The resolved local identity + account defaults used to stamp writes. */
 export interface LocalContext {

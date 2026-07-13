@@ -10,7 +10,7 @@
 import { uuidv7 } from "uuidv7";
 import { select } from "../lib/db";
 import { deviceTimezone } from "./format";
-import type { IanaTimezone } from "@ptl/core";
+import type { IanaTimezone } from "@tarlog/core";
 
 /** Stable placeholder used before the local account row exists. */
 const NIL_ACCOUNT = "00000000-0000-0000-0000-000000000000";
@@ -53,7 +53,7 @@ export function resetSession(): void {
   cache = null;
 }
 
-/** A fresh UUIDv7 primary key (time-ordered, matches @ptl/db). */
+/** A fresh UUIDv7 primary key (time-ordered, matches @tarlog/db). */
 export function newId(): string {
   return uuidv7();
 }

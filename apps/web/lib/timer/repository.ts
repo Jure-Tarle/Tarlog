@@ -1,11 +1,11 @@
 /**
  * lib/timer/repository.ts — getippter Datenzugriff für timer_states,
  * time_entries, time_entry_breaks (doc 06 A.1/A.3). Rohes parametrisiertes SQL
- * (wie lib/session.ts / lib/events.ts), exakte @ptl/db-Spaltennamen. BIGINT-
+ * (wie lib/session.ts / lib/events.ts), exakte @tarlog/db-Spaltennamen. BIGINT-
  * Spalten (epoch-ms, *_cents, server_revision) kommen als String → `toNum`.
  */
 import type { PoolClient } from "pg";
-import type { BreakInput, TimerStatus } from "@ptl/core";
+import type { BreakInput, TimerStatus } from "@tarlog/core";
 import { pool } from "@/lib/db";
 import { toNum, toNumOrNull } from "@/lib/sync/mutation";
 

@@ -18,7 +18,7 @@ import {
   type TimerState,
   type TimerStopResult,
 } from "../lib/bridge";
-import type { Uuid, EpochMs } from "@ptl/core";
+import type { Uuid, EpochMs } from "@tarlog/core";
 
 /** Tray → frontend event names (Rust `app.emit(...)` from `tray.rs`). */
 export const TRAY_EVENTS = {

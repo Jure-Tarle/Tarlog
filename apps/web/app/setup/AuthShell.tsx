@@ -53,7 +53,7 @@ export function AuthShell({
             color: "var(--color-text-faint)",
           }}
         >
-          Project Time Ledger · {eyebrow}
+          Tarlog · {eyebrow}
         </div>
         <h1
           style={{

@@ -1,5 +1,5 @@
 /**
- * Project Time Ledger — Core contract (types.ts).
+ * Tarlog — Core contract (types.ts).
  *
  * This is THE CONTRACT. All engine modules (time, rounding, compliance,
  * billing, schemas) and all apps depend on these types. Field names match

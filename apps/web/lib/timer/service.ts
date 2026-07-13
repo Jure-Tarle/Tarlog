@@ -3,7 +3,7 @@
  *
  * start (Single-Timer, 409 bei laufendem Timer via Compare-and-Set +
  * conflict_records), pause, resume (Pause → time_entry_breaks +
- * accumulated_pause_seconds), stop (Finalisierung via @ptl/core calculateEntry
+ * accumulated_pause_seconds), stop (Finalisierung via @tarlog/core calculateEntry
  * mit aufgelöster Rundungsregel Projekt>Kunde>Default und Rate Task>…>Default;
  * Pflichtbeschreibung fehlt → Status needs_description), switch (Projekt/Task).
  *
@@ -18,7 +18,7 @@ import {
   resolveDayBoundary,
   spansMidnight,
   type RateSnapshot,
-} from "@ptl/core";
+} from "@tarlog/core";
 import { ApiError } from "@/lib/api";
 import type { AuthContext } from "@/lib/session";
 import {

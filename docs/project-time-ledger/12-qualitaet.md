@@ -2,7 +2,7 @@
 
 > Hinweis: Rechtliche Aussagen sind Produkt-Hinweise, keine Rechtsberatung. Stand der Recherche: Juli 2026.
 
-Diese Datei bündelt die Qualitätssicherung des Project Time Ledger: das Backup- und Restore-Konzept, den vollständigen Testplan über alle 36 Testfälle, die Rückverfolgbarkeit aller 32 V1-Akzeptanzkriterien auf Feature und Dokumentationsdatei, die Roadmap der sechs Phasen, die Produkt- und Projektrisiken mit Mitigation, die geordnete Liste der ersten konkreten Implementierungsschritte sowie den Qualitätsanspruch. Sie deckt SPEC §30, §34, §35, §36 und §39 ab.
+Diese Datei bündelt die Qualitätssicherung des Tarlog: das Backup- und Restore-Konzept, den vollständigen Testplan über alle 36 Testfälle, die Rückverfolgbarkeit aller 32 V1-Akzeptanzkriterien auf Feature und Dokumentationsdatei, die Roadmap der sechs Phasen, die Produkt- und Projektrisiken mit Mitigation, die geordnete Liste der ersten konkreten Implementierungsschritte sowie den Qualitätsanspruch. Sie deckt SPEC §30, §34, §35, §36 und §39 ab.
 
 Querverweise: [Datenmodell](06-datenmodell.md), [Zeitberechnung & Rundung](07-zeitberechnung-rundung.md), [Compliance](08-compliance.md), [Sync](04-sync.md), [Architektur](05-architektur.md), [Abrechnung & Export](10-abrechnung-export.md), [Datenschutz & Sicherheit](09-datenschutz-sicherheit.md).
 

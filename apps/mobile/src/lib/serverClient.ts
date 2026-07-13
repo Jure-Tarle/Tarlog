@@ -28,7 +28,7 @@ import * as SecureStore from "expo-secure-store";
 export interface SyncEventInput {
   /** UUIDv7 idempotency key (server dedups on correlation_id = event_id). */
   event_id: string;
-  /** `@ptl/db` table name of the entity, e.g. "time_entries". */
+  /** `@tarlog/db` table name of the entity, e.g. "time_entries". */
   entity_type: string;
   entity_id: string;
   operation: "create" | "update" | "delete";

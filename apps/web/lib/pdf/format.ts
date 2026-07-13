@@ -9,7 +9,7 @@
  * Zeitzonen werden über die eingebaute `Intl.DateTimeFormat`-API aufgelöst
  * (kein Extra-Font/Extra-Paket nötig, IANA-korrekt inkl. DST).
  */
-import type { CurrencyCode, EpochMs, IanaTimezone, Seconds } from "@ptl/core";
+import type { CurrencyCode, EpochMs, IanaTimezone, Seconds } from "@tarlog/core";
 
 /** Geldbetrag (Integer-Cents) → lokalisierte Währungsdarstellung, z. B. "1.234,56 €". */
 export function formatMoneyCents(

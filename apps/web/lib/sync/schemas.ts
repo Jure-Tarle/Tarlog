@@ -11,7 +11,7 @@ const uuid = z.string().uuid();
 export const syncEventSchema = z.object({
   /** UUIDv7 des Client-Events — Idempotenzschlüssel (doc 04 §1.4). */
   event_id: uuid,
-  /** @ptl/db-Tabellenname der Entität. */
+  /** @tarlog/db-Tabellenname der Entität. */
   entity_type: z.string().min(1),
   /** UUID der betroffenen Entität. */
   entity_id: z.string().min(1),

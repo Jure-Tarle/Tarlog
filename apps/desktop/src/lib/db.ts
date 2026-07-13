@@ -14,7 +14,7 @@
  * data directory (doc 02 §3.1 local-first, doc 05 §2.1 SQLite client).
  */
 import Database from "@tauri-apps/plugin-sql";
-import type { CustomerInput, ProjectInput, TimeEntryInput } from "@ptl/core";
+import type { CustomerInput, ProjectInput, TimeEntryInput } from "@tarlog/core";
 
 /** The single local database URL (doc 05 §2.1). */
 export const DB_URL = "sqlite:ptl.db" as const;
@@ -108,7 +108,7 @@ export abstract class Repository<Row> {
 }
 
 // Row aliases for the data-layer author to build repositories against. They
-// mirror @ptl/core input types so the local rows share the one data model.
+// mirror @tarlog/core input types so the local rows share the one data model.
 export type CustomerRow = CustomerInput;
 export type ProjectRow = ProjectInput;
 export type TimeEntryRow = TimeEntryInput;

@@ -1,7 +1,7 @@
 /**
  * Reports — Bereich 9 (doc 10 §Reports). Zeitraumauswahl (Woche/Monat) mit
  * getrennter Ausweisung von tatsächlicher Zeit (actual/netto) und
- * Abrechnungszeit (billing), plus Projektaufschlüsselung. Nur data + @ptl/core.
+ * Abrechnungszeit (billing), plus Projektaufschlüsselung. Nur data + @tarlog/core.
  */
 import { useMemo, useState } from "react";
 import { Page, Card, StatGrid, StatTile, SegmentedControl, AsyncBody, EmptyState, TableWrap } from "../components/ui";

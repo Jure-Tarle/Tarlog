@@ -1,7 +1,7 @@
 /**
  * Week — Wochentabelle (doc 11 §4). Sieben Tageszeilen mit Netto, Pause,
  * abrechenbar und Compliance-Ampel, plus Wochensumme. Navigierbar über die
- * Vor/Zurück-Steuerung. Nur src/data + @ptl/core.
+ * Vor/Zurück-Steuerung. Nur src/data + @tarlog/core.
  */
 import { useMemo, useState } from "react";
 import { Page, Card, Button, StatGrid, StatTile, TableWrap, StatusDot, Loading, ErrorNote } from "../components/ui";
@@ -10,7 +10,7 @@ import { sumNet, sumBreak, sumBillableSeconds, overallStatus } from "../data/agg
 import { fmtHM, fmtHoursDecimal, weekRange, weekLabel, fmtIsoDate } from "../data/format";
 import { DateTime } from "luxon";
 import { useTimezone, loadRange } from "./shared";
-import type { ComplianceStatus } from "@ptl/core";
+import type { ComplianceStatus } from "@tarlog/core";
 import type { TimeEntry } from "../data/repositories";
 
 export default function Week() {

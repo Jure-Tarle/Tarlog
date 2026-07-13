@@ -1,5 +1,5 @@
 {
-  "name": "@ptl/mobile",
+  "name": "@tarlog/mobile",
   "version": "0.0.1",
   "private": true,
   "main": "index.ts",
@@ -11,7 +11,7 @@
   "dependencies": {
     "@babel/runtime": "^7.29.7",
     "@expo/metro-runtime": "~4.0.1",
-    "@ptl/core": "workspace:*",
+    "@tarlog/core": "workspace:*",
     "@react-native-async-storage/async-storage": "1.23.1",
     "expo": "~52.0.0",
     "expo-notifications": "~0.29.0",

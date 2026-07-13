@@ -2,7 +2,7 @@
  * Timer — Start/Pause/Resume/Stop (doc 03, doc 11 §2).
  *
  * The Stop-Dialog enforces a project-mandated description, previews rounding
- * (@ptl/core roundingPreview + resolveRoundingRuleForEntry) and allows a
+ * (@tarlog/core roundingPreview + resolveRoundingRuleForEntry) and allows a
  * start/end correction. All state flows through the finished useTimer hook.
  */
 import { useEffect, useState } from "react";
@@ -15,7 +15,7 @@ import { projects as projectRepo } from "../data/repositories";
 import { listTasks } from "../data/tasks";
 import { getProject } from "../data/projects";
 import { resolveRoundingRuleForEntry } from "../data/rounding";
-import { roundingPreview, type RoundingResult } from "@ptl/core";
+import { roundingPreview, type RoundingResult } from "@tarlog/core";
 import { fmtHMS, fmtHM, fmtDurationShort, fromDateTimeInputs, toDateInputValue, toTimeInputValue } from "../data/format";
 import { useTimezone } from "./shared";
 
@@ -165,7 +165,7 @@ function StopDialog({
   const effectiveEnd = correctEnd ? fromDateTimeInputs(endAt.slice(0, 10), endAt.slice(11), tz) : null;
   const previewNet = effectiveEnd != null ? Math.max(0, Math.floor((effectiveEnd - startedAt) / 1000)) : netSeconds;
 
-  // Rounding preview must match what will be persisted (@ptl/core).
+  // Rounding preview must match what will be persisted (@tarlog/core).
   useEffect(() => {
     let alive = true;
     void resolveRoundingRuleForEntry({ projectId, customerId: null }).then((rule) => {

@@ -9,7 +9,7 @@
  */
 import { apiError, json, requireAuth } from "@/lib/api";
 import { pool } from "@/lib/db";
-import { computeBudgetUsage } from "@ptl/core";
+import { computeBudgetUsage } from "@tarlog/core";
 import { computeDayCompliance, loadTimesheetEntries, type TimesheetEntry } from "../exports/_shared.js";
 import { formatLocalDate } from "@/lib/pdf";
 

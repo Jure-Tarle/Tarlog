@@ -97,7 +97,7 @@ function zodDetails(err: ZodError): unknown {
   return err.issues;
 }
 
-/** Parst + validiert den JSON-Body gegen ein Zod-Schema (aus @ptl/core). */
+/** Parst + validiert den JSON-Body gegen ein Zod-Schema (aus @tarlog/core). */
 export async function parseJson<T>(
   req: Request,
   schema: ZodType<T>,

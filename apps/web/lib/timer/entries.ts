@@ -2,7 +2,7 @@
  * lib/timer/entries.ts — Zeiteinträge CRUD + Nachtrag (doc 03 §7, doc 04 §5).
  *
  * create: Live-/Nachtrag-Eintrag (source, backdate_reason aus 11 Gründen,
- * Pausen als time_entry_breaks) → @ptl/core calculateEntry mit aufgelöster
+ * Pausen als time_entry_breaks) → @tarlog/core calculateEntry mit aufgelöster
  * Rundung (Projekt>Kunde>Default) + Rate (Task>…>Default).
  * update: Feld-Änderung + Neuberechnung bei Zeit-/Pausenänderung; optimistische
  * Sperre über sync_version (Konfliktfall 6/7); Edit auf gelöschtem Eintrag =
@@ -19,7 +19,7 @@ import {
   type BreakInput,
   type RateSnapshot,
   type RoundingRule,
-} from "@ptl/core";
+} from "@tarlog/core";
 import { ApiError } from "@/lib/api";
 import type { AuthContext } from "@/lib/session";
 import {

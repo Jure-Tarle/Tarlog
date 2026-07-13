@@ -8,11 +8,11 @@
  *  - Durations are integer seconds.
  *
  * These are thin luxon wrappers for the UI/data layer. The authoritative
- * calculation pipeline (net, rounding, billing) stays in `@ptl/core`; nothing
+ * calculation pipeline (net, rounding, billing) stays in `@tarlog/core`; nothing
  * here duplicates that logic.
  */
 import { DateTime } from "luxon";
-import type { EpochMs, IanaTimezone, LocalDate, Seconds } from "@ptl/core";
+import type { EpochMs, IanaTimezone, LocalDate, Seconds } from "@tarlog/core";
 
 /** Current instant as UTC epoch-ms. */
 export function nowMs(): EpochMs {

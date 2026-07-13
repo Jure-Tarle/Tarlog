@@ -2,7 +2,7 @@
  * Dashboard — Tages-/Wochenüberblick (doc 11 §3).
  *
  * Live timer, heutige + Wochenzeit, abrechenbar vs. nicht abrechenbar,
- * Compliance-Ampel (@ptl/core evaluateDay via aggregates) und Schnellstart aus
+ * Compliance-Ampel (@tarlog/core evaluateDay via aggregates) und Schnellstart aus
  * den letzten Einträgen. Nur src/data + bridge, keine eigenen DB-Zugriffe.
  */
 import { useMemo } from "react";

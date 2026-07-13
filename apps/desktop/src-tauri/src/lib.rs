@@ -47,5 +47,5 @@ pub fn run() {
             commands::sync_pull,
         ])
         .run(tauri::generate_context!())
-        .expect("error while running Project Time Ledger");
+        .expect("error while running Tarlog");
 }

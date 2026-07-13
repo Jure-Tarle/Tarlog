@@ -3,9 +3,9 @@
  *
  * Server-Modus = PostgreSQL via drizzle-orm/node-postgres. Ein einziger
  * `pg.Pool` pro Prozess (aus `DATABASE_URL`), plus die getippte Drizzle-Instanz
- * über das aggregierte `pgSchema` aus @ptl/db. Business-Logik gehört NICHT
+ * über das aggregierte `pgSchema` aus @tarlog/db. Business-Logik gehört NICHT
  * hierher — nur Verbindung + Schema. Alle Tabellen werden als `schema.<table>`
- * (exakte @ptl/db-Namen) re-exportiert, damit Modul-Autoren konsistent
+ * (exakte @tarlog/db-Namen) re-exportiert, damit Modul-Autoren konsistent
  * darauf zugreifen.
  *
  * VERTRAG für Modul-Autoren:
@@ -16,9 +16,9 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import type { PoolConfig } from "pg";
-import { postgres, pgSchema } from "@ptl/db";
+import { postgres, pgSchema } from "@tarlog/db";
 
-/** Alle Postgres-Tabellen unter ihren exakten @ptl/db-Namen. */
+/** Alle Postgres-Tabellen unter ihren exakten @tarlog/db-Namen. */
 export const schema = postgres;
 export { pgSchema };
 export type DbSchema = typeof pgSchema;

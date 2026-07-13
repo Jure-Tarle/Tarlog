@@ -1,4 +1,4 @@
-# Project Time Ledger — Web (Server-Modus, Selbst-Hosting)
+# Tarlog — Web (Server-Modus, Selbst-Hosting)
 
 Next.js 15 App (App Router, TypeScript strict) mit Custom-Node-Server
 (`server.mjs`: Next-Handler + WebSocket-Live-Kanal). Local-first Zeiterfassung,
@@ -178,7 +178,7 @@ auch wenn sich das Schema ändert (doc 12 Risiko 5).
 ## 7. Build-Details (Referenz)
 
 - **Dockerfile** (`apps/web/Dockerfile`) — Multi-Stage: `pnpm fetch`
-  (Lockfile-Cache) → offline install → `@ptl/core`/`@ptl/db` bauen →
+  (Lockfile-Cache) → offline install → `@tarlog/core`/`@tarlog/db` bauen →
   Migrationen generieren → Next `output: 'standalone'` → schlankes Runtime-Bundle
   auf `node:22-alpine`, **non-root** (`node`), mit HEALTHCHECK auf `/api/health`.
 - **entrypoint.sh** — Migrationen anwenden, dann `exec node server.mjs` (Signale
@@ -189,9 +189,9 @@ auch wenn sich das Schema ändert (doc 12 Risiko 5).
 Lokale Entwicklung ohne Docker (separater PostgreSQL nötig):
 
 ```bash
-pnpm --filter @ptl/web db:generate   # Migrationen erzeugen (einmalig / bei Schemaänderung)
-pnpm --filter @ptl/web db:migrate    # anwenden (DATABASE_URL gesetzt)
-pnpm --filter @ptl/web dev           # Next Dev-Server
+pnpm --filter @tarlog/web db:generate   # Migrationen erzeugen (einmalig / bei Schemaänderung)
+pnpm --filter @tarlog/web db:migrate    # anwenden (DATABASE_URL gesetzt)
+pnpm --filter @tarlog/web dev           # Next Dev-Server
 ```
 
 ---

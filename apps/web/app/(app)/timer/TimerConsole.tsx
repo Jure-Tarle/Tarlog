@@ -4,15 +4,15 @@
  *
  * Start / Pause / Fortsetzen / Stopp + verpflichtender Stopp-Dialog (22
  * Elemente, doc 03 §4). Rundungsvorschau + Abrechnungsbetrag werden
- * clientseitig über @ptl/core berechnet (roundingPreview / computeAmountCents),
+ * clientseitig über @tarlog/core berechnet (roundingPreview / computeAmountCents),
  * damit der Nutzer VOR dem Speichern sieht, was fakturiert wird (doc 03 §4
  * Nr. 17/18). Start-/Endzeit-Korrektur verlangt einen Grund (Nr. 16). Alle
  * Mutationen laufen über die Timer-REST-Routen (/api/timer/*).
  */
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { computeAmountCents, roundingPreview } from "@ptl/core";
-import type { RateSnapshot, RoundingMode, RoundingRule } from "@ptl/core";
+import { computeAmountCents, roundingPreview } from "@tarlog/core";
+import type { RateSnapshot, RoundingMode, RoundingRule } from "@tarlog/core";
 import { API, ApiClientError, api } from "@/lib/ui/api";
 import { deviceTimezone, formatMoney, secondsToHM, toDatetimeLocalValue } from "@/lib/ui/format";
 import { Button, Checkbox, Field, FormRow, Select, StatusLine, TextArea, TextInput } from "@/lib/ui/controls";

@@ -1,6 +1,6 @@
 /**
  * sync/types.ts — wire + local types for the OPTIONAL server-connection mode
- * (doc 04). Field names mirror `@ptl/db` sqlite (`sync_events`,
+ * (doc 04). Field names mirror `@tarlog/db` sqlite (`sync_events`,
  * `conflict_records`, `sync_states`) and doc 06 EXACTLY so the client never
  * drifts from the data model.
  *
@@ -8,7 +8,7 @@
  * (doc 04 §1) is unaffected — these types only describe what crosses the wire
  * once a server is paired.
  */
-import type { EpochMs, Uuid } from "@ptl/core";
+import type { EpochMs, Uuid } from "@tarlog/core";
 
 // ---------------------------------------------------------------------------
 // Connection / pairing (doc 04 §2 device model)

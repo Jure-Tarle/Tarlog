@@ -10,7 +10,7 @@
  * `000001720000000000042-8f14e45f...`. Physical is zero-padded to 15 digits
  * (covers epoch-ms well past year 5000), logical to 6 digits.
  */
-import type { Uuid } from "@ptl/core";
+import type { Uuid } from "@tarlog/core";
 
 const PHYS_WIDTH = 15;
 const LOG_WIDTH = 6;

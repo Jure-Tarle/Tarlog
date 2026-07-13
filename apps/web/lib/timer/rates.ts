@@ -2,7 +2,7 @@
  * lib/timer/rates.ts — Rundungsregel- + Rate-Auflösung für den Stop-/Nachtrag-
  * Pfad (doc 07 §5, doc 10 §4.0). Reihenfolge Rundung: Projekt > Kunde > Default
  * (global). Reihenfolge Rate: Task > Projekt > Kunde > Default. Baut die
- * `RoundingRule`/`RateSnapshot`-Eingaben für @ptl/core (`applyRounding`,
+ * `RoundingRule`/`RateSnapshot`-Eingaben für @tarlog/core (`applyRounding`,
  * `resolveRate`, `calculateEntry`). Keine Mutation — reine Leseauflösung.
  */
 import type { PoolClient } from "pg";
@@ -10,8 +10,8 @@ import type {
   IntervalSeconds,
   RateSnapshot,
   RoundingRule,
-} from "@ptl/core";
-import { resolveRate } from "@ptl/core";
+} from "@tarlog/core";
+import { resolveRate } from "@tarlog/core";
 import { toNum, toNumOrNull } from "@/lib/sync/mutation";
 
 interface RoundingRuleRow {

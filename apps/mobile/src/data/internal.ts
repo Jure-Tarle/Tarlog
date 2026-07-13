@@ -7,11 +7,11 @@
  * SQLite row shapes, and the row→model mappers.
  *
  * Business logic (net/rounding/billing) is NEVER done here — it lives in
- * `@ptl/core`. This file only opens/reads/writes rows and shuttles them into the
+ * `@tarlog/core`. This file only opens/reads/writes rows and shuttles them into the
  * pure engine. Conventions mirror ../lib/db: epoch-ms UTC INTEGER, durations
  * `*_seconds` INTEGER, money `*_cents` INTEGER, ids UUIDv7 TEXT, booleans 0/1.
  */
-import type { RateSnapshot, RoundingRule, TimerStatus, Uuid } from "@ptl/core";
+import type { RateSnapshot, RoundingRule, TimerStatus, Uuid } from "@tarlog/core";
 import type * as SQLite from "expo-sqlite";
 import { getDb, initDb } from "../lib/db";
 import { newId } from "../lib/ids";

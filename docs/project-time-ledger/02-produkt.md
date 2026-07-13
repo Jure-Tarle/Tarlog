@@ -2,13 +2,13 @@
 
 > Hinweis: Rechtliche Aussagen sind Produkt-Hinweise, keine Rechtsberatung. Stand der Recherche: Juli 2026.
 
-Dieses Dokument definiert **was** der Project Time Ledger ist: die Produktvision und ihre 32 Kernfähigkeiten, die sieben Zielgruppen mit ihren Jobs-to-be-done, die fünf Betriebsarten, das Main-Account-Konzept und die vollständige, nach Phase (V1/V2) klassifizierte Feature-Liste. Technische Details liegen in den Schwesterdateien: [Architektur](05-architektur.md), [Datenmodell](06-datenmodell.md), [Synchronisierung](04-sync.md), [Zeiterfassung & Nachtrag](03-zeiterfassung.md).
+Dieses Dokument definiert **was** der Tarlog ist: die Produktvision und ihre 32 Kernfähigkeiten, die sieben Zielgruppen mit ihren Jobs-to-be-done, die fünf Betriebsarten, das Main-Account-Konzept und die vollständige, nach Phase (V1/V2) klassifizierte Feature-Liste. Technische Details liegen in den Schwesterdateien: [Architektur](05-architektur.md), [Datenmodell](06-datenmodell.md), [Synchronisierung](04-sync.md), [Zeiterfassung & Nachtrag](03-zeiterfassung.md).
 
 ---
 
 ## 1. Produktvision
 
-Der **Project Time Ledger** ist eine professionelle, revisionsfähige und datenschutzfreundliche Zeiterfassung für **eine einzelne Hauptperson** (Main Account). Er funktioniert zuerst vollständig **lokal ohne Server und ohne Cloud-Zwang** und lässt sich optional mit einem **selbst gehosteten Server** verbinden, um Desktop, Browser und iOS geräteübergreifend zu synchronisieren.
+Der **Tarlog** ist eine professionelle, revisionsfähige und datenschutzfreundliche Zeiterfassung für **eine einzelne Hauptperson** (Main Account). Er funktioniert zuerst vollständig **lokal ohne Server und ohne Cloud-Zwang** und lässt sich optional mit einem **selbst gehosteten Server** verbinden, um Desktop, Browser und iOS geräteübergreifend zu synchronisieren.
 
 Leitsatz aus der Spezifikation: **Das Produkt darf keine einfache Timer-App sein.** Es bildet die Grundlage für eine nachvollziehbare, auditierbare und abrechnungssichere Zeiterfassung. Zwei Prinzipien sind nicht verhandelbar und ziehen sich durch alle Module:
 

@@ -15,7 +15,7 @@ import "./globals.css";
  */
 
 export const metadata: Metadata = {
-  title: "Project Time Ledger",
+  title: "Tarlog",
   description: "Local-first Zeiterfassung, Abrechnung und Compliance.",
 };
 
@@ -79,7 +79,7 @@ export default function RootLayout({
                 letterSpacing: "-0.01em",
               }}
             >
-              Project Time Ledger
+              Tarlog
             </div>
 
             {/* Slot: persistente Timer-Kopfleiste (Timer-Autor füllt) */}

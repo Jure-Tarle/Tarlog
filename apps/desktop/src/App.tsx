@@ -61,7 +61,7 @@ function Sidebar({ activeId }: { activeId: string }) {
     <aside className="sidebar">
       <div className="sidebar__brand">
         <span className="sidebar__mark" aria-hidden />
-        Project Time Ledger
+        Tarlog
       </div>
       <nav className="sidebar__nav" aria-label="Hauptnavigation">
         {ROUTES.map((r, i) => (

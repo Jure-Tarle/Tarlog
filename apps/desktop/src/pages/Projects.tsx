@@ -10,7 +10,7 @@ import { useAsync } from "../data/hooks";
 import { listProjects, createProject, archiveProject } from "../data/projects";
 import { listCustomers } from "../data/customers";
 import { fmtMoney } from "../data/format";
-import type { ProjectInput } from "@ptl/core";
+import type { ProjectInput } from "@tarlog/core";
 import { nameMap } from "./shared";
 
 const BILLING: { value: ProjectInput["billing_type"]; label: string }[] = [

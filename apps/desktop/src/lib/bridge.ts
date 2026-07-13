@@ -7,12 +7,12 @@
  *   - Frontend authors call ONLY these functions (never `invoke` directly).
  *   - The Rust author fills the command bodies without changing signatures.
  *
- * Conventions (doc 05 §8, mirrored from @ptl/core):
+ * Conventions (doc 05 §8, mirrored from @tarlog/core):
  *   - Instants: UTC epoch-ms (number). Durations: integer seconds. Money: cents.
  *   - IDs: UUIDv7 strings. Field names match doc 06 EXACTLY.
  *   - Tauri maps JS camelCase invoke args → Rust snake_case params automatically.
  *
- * Return shapes reuse @ptl/core types so the wire format cannot drift from the
+ * Return shapes reuse @tarlog/core types so the wire format cannot drift from the
  * shared data model.
  */
 import { invoke } from "@tauri-apps/api/core";
@@ -24,10 +24,10 @@ import type {
   Uuid,
   EpochMs,
   IanaTimezone,
-} from "@ptl/core";
+} from "@tarlog/core";
 
 // ---------------------------------------------------------------------------
-// Wire types (rows returned by the backend). They mirror the @ptl/core input
+// Wire types (rows returned by the backend). They mirror the @tarlog/core input
 // types field-for-field — same names, same units — so there is one data model.
 // ---------------------------------------------------------------------------
 

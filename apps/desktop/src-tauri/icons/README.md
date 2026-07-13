@@ -8,7 +8,7 @@ Before packaging/notarization (doc 11 §5 nr. 17), replace it with the full set
 generated from a 1024×1024 master:
 
 ```sh
-pnpm --filter @ptl/desktop tauri icon path/to/icon-1024.png
+pnpm --filter @tarlog/desktop tauri icon path/to/icon-1024.png
 ```
 
 That emits `32x32.png`, `128x128.png`, `128x128@2x.png`, `icon.icns` (macOS),

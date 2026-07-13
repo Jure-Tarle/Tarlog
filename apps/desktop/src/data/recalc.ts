@@ -1,7 +1,7 @@
 /**
  * recalc.ts — the billing writeback (doc 07 §3.1, doc 10 §4). After a timer stop
  * or a backdate the raw entry exists, but the abrechenbaren Felder must be
- * (re)derived from @ptl/core: resolve the rounding rule (Projekt > Kunde >
+ * (re)derived from @tarlog/core: resolve the rounding rule (Projekt > Kunde >
  * Default) and rate (task > project > customer > default), run `calculateEntry`,
  * and persist the 12 rounding/snapshot fields back into `time_entries`.
  *
@@ -20,7 +20,7 @@ import {
   type EpochMs,
   type IanaTimezone,
   type Uuid,
-} from "@ptl/core";
+} from "@tarlog/core";
 
 interface EntryRow {
   id: Uuid;

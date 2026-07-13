@@ -1,10 +1,10 @@
-# Project Time Ledger — Dokumentation
+# Tarlog — Dokumentation
 
 > Hinweis: Rechtliche Aussagen sind Produkt-Hinweise, keine Rechtsberatung. Stand der Recherche: Juli 2026.
 
 ## Executive Summary
 
-**Project Time Ledger** ist eine professionelle, revisionsfähige und datenschutzfreundliche Zeiterfassung für **eine einzelne Hauptperson** (Main Account), die zuerst vollständig **lokal ohne Server und ohne Cloud-Zwang** läuft. Ein **selbst gehosteter Server** ist optional und synchronisiert Desktop, Browser und iOS geräteübergreifend — inklusive eines plattformübergreifend konsistenten laufenden Timers. Zwei Prinzipien sind unverhandelbar: **`actual_duration_seconds` und `billing_duration_seconds` bleiben strikt getrennt** (Rundung überschreibt nie die echte Arbeitszeit), und **Datenschutz ist Produktkern** (kein invasives Auto-Tracking, keine Screenshots, keine Telemetrie im Standard). Deutsches Arbeitszeitrecht (ArbZG), DSGVO-konforme Aufbewahrung und §14-UStG-konforme Rechnungen sind First-Class-Module, keine Beiwerke. Diese Dokumentation ist eine **Ausarbeitung, keine Implementierung** — sie ist die belastbare Grundlage für die spätere echte Umsetzung.
+**Tarlog** ist eine professionelle, revisionsfähige und datenschutzfreundliche Zeiterfassung für **eine einzelne Hauptperson** (Main Account), die zuerst vollständig **lokal ohne Server und ohne Cloud-Zwang** läuft. Ein **selbst gehosteter Server** ist optional und synchronisiert Desktop, Browser und iOS geräteübergreifend — inklusive eines plattformübergreifend konsistenten laufenden Timers. Zwei Prinzipien sind unverhandelbar: **`actual_duration_seconds` und `billing_duration_seconds` bleiben strikt getrennt** (Rundung überschreibt nie die echte Arbeitszeit), und **Datenschutz ist Produktkern** (kein invasives Auto-Tracking, keine Screenshots, keine Telemetrie im Standard). Deutsches Arbeitszeitrecht (ArbZG), DSGVO-konforme Aufbewahrung und §14-UStG-konforme Rechnungen sind First-Class-Module, keine Beiwerke. Diese Dokumentation ist eine **Ausarbeitung, keine Implementierung** — sie ist die belastbare Grundlage für die spätere echte Umsetzung.
 
 ## Section-Map — SPEC §38 (30 Abschnitte) → Datei + Anker
 

@@ -6,7 +6,7 @@
  * beim Kunden) führen zu `tax_rate = 0` + Pflichthinweis. Alles in
  * Integer-Cents, Rundung je Gruppe (kein Float-Drift).
  */
-import type { Cents } from "@ptl/core";
+import type { Cents } from "@tarlog/core";
 
 /** Steuerliche Behandlung der Rechnung. */
 export type TaxTreatment = "standard" | "small_business" | "reverse_charge";

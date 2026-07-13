@@ -2,7 +2,7 @@
  * SPEC-Testfälle 8–15 (docs/project-time-ledger/12-qualitaet.md §2).
  * Pausen, Rundung 15 min (KANON 70→75 min), Mitternacht-Split, Sommer-/Winterzeit,
  * Zeitzonen, alle 9 Rundungsmodi, calculateEntry Ende-zu-Ende inkl.
- * billing_amount_snapshot. Testet REALE Exporte aus @ptl/core (src via NodeNext).
+ * billing_amount_snapshot. Testet REALE Exporte aus @tarlog/core (src via NodeNext).
  * KEINE Quelldatei wird geändert — bei Rot: Fehler dokumentiert, nicht gefixt.
  */
 import { describe, expect, it } from "vitest";

@@ -1,7 +1,7 @@
 /**
  * aggregates.ts — derive day/week summaries and compliance from raw entries.
  *
- * All calculation reuses @ptl/core pure functions (evaluateDay, evaluateRest-
+ * All calculation reuses @tarlog/core pure functions (evaluateDay, evaluateRest-
  * Period, GERMAN_PROFILE) so the desktop never re-implements the engine
  * (doc 07 §1). Grouping happens in the entry's stored timezone (doc 07 §6.3).
  */
@@ -15,7 +15,7 @@ import {
   type DayEntrySummary,
   type IanaTimezone,
   type Seconds,
-} from "@ptl/core";
+} from "@tarlog/core";
 import type { TimeEntry, Break } from "./repositories";
 
 /** Public holidays configured on the DE profile (doc 08 §5.2 rules_json). */

@@ -24,7 +24,7 @@ pub fn build_tray<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
 
     let mut builder = TrayIconBuilder::with_id("main")
         .menu(&menu)
-        .tooltip("Project Time Ledger")
+        .tooltip("Tarlog")
         .on_menu_event(|_app, event| {
             // STUB: route tray actions to the timer commands here.
             match event.id.as_ref() {

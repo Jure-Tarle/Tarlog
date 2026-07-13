@@ -55,7 +55,7 @@ export interface PublishEventInput {
   main_account_id: string;
   /** Urheber-Gerät (für Echo-Vermeidung/Audit). */
   device_id: string;
-  /** @ptl/db-Tabellenname der betroffenen Entität (exakt). */
+  /** @tarlog/db-Tabellenname der betroffenen Entität (exakt). */
   entity_type: string;
   /** UUIDv7 der betroffenen Entität. */
   entity_id: string;

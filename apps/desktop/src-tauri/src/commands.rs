@@ -201,7 +201,7 @@ pub fn timer_stop(description: Option<String>, at: Option<i64>) -> Result<Value,
     }
     let actual = ((ended - started) / 1000).max(0);
     let net = (actual - break_secs).max(0);
-    let billing = net; // TS side re-derives rounding via @ptl/core.
+    let billing = net; // TS side re-derives rounding via @tarlog/core.
     let tz = account_timezone(&conn);
     let id = db::new_uuid();
     let now = db::now_ms();

@@ -20,10 +20,10 @@ importers:
 
   apps/desktop:
     dependencies:
-      '@ptl/core':
+      '@tarlog/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@ptl/db':
+      '@tarlog/db':
         specifier: workspace:*
         version: link:../../packages/db
       '@tauri-apps/api':
@@ -84,7 +84,7 @@ importers:
       '@expo/metro-runtime':
         specifier: ~4.0.1
         version: 4.0.1(react-native@0.76.5(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(@types/react@18.3.31)(react@18.3.1))
-      '@ptl/core':
+      '@tarlog/core':
         specifier: workspace:*
         version: link:../../packages/core
       '@react-native-async-storage/async-storage':
@@ -145,10 +145,10 @@ importers:
       '@node-rs/argon2':
         specifier: ^2.0.2
         version: 2.0.2
-      '@ptl/core':
+      '@tarlog/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@ptl/db':
+      '@tarlog/db':
         specifier: workspace:*
         version: link:../../packages/db
       cookie:

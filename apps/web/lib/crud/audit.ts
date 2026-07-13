@@ -41,7 +41,7 @@ export interface WriteAuditInput {
   main_account_id: string;
   /** Urheber-Gerät (aus AuthContext); bei Cookie-Session ggf. null. */
   device_id?: string | null;
-  /** @ptl/db-Tabellenname der Entität (z. B. "customers"). */
+  /** @tarlog/db-Tabellenname der Entität (z. B. "customers"). */
   entity_type: string;
   entity_id: string;
   action: AuditAction;

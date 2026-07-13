@@ -2,7 +2,7 @@
 
 > Hinweis: Rechtliche Aussagen sind Produkt-Hinweise, keine Rechtsberatung. Stand der Recherche: Juli 2026.
 
-Dieses Kapitel beschreibt das Compliance-Modul von Project Time Ledger: das deutsche Arbeitszeit-Profil als Standard, die generische EU-Erweiterung und die versionierten Länderprofile. Das Modul bewertet erfasste Zeiten regelbasiert, erklärt jede Regel, markiert Verstöße nachvollziehbar und speist die Ergebnisse in [Reports und Export](10-abrechnung-export.md), [Datenschutz und Audit](09-datenschutz-sicherheit.md) sowie das [Datenmodell](06-datenmodell.md) ein.
+Dieses Kapitel beschreibt das Compliance-Modul von Tarlog: das deutsche Arbeitszeit-Profil als Standard, die generische EU-Erweiterung und die versionierten Länderprofile. Das Modul bewertet erfasste Zeiten regelbasiert, erklärt jede Regel, markiert Verstöße nachvollziehbar und speist die Ergebnisse in [Reports und Export](10-abrechnung-export.md), [Datenschutz und Audit](09-datenschutz-sicherheit.md) sowie das [Datenmodell](06-datenmodell.md) ein.
 
 Die Compliance-Prüfung ist eine reine Funktion im Core-Package (`packages/core`) und wird von der [Zeitberechnungsengine](07-zeitberechnung-rundung.md) mit Nettoarbeitszeit, Pausen und Zeitstempeln versorgt. Bewertungsergebnisse landen in der Tabelle `compliance_results` (siehe [Datenmodell](06-datenmodell.md)); jede Überschreibung erzeugt einen Eintrag im Audit-Log.
 

@@ -10,4 +10,4 @@
 services:
   web:
     build: !reset null
-    image: ghcr.io/jure-tarle/project-time-ledger-web:${PTL_VERSION:-latest}
+    image: ghcr.io/jure-tarle/tarlog-web:${PTL_VERSION:-latest}

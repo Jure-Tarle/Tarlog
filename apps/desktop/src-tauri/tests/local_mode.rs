@@ -101,7 +101,7 @@ fn local_mode_end_to_end() {
     assert_eq!(i(entry, "actual_duration_seconds"), 4200, "Ist-Zeit brutto");
     assert_eq!(i(entry, "break_duration_seconds"), 60);
     assert_eq!(i(entry, "net_work_duration_seconds"), 4140, "netto = brutto - Pause");
-    // Rundung passiert in der TS-Schicht (@ptl/core); Rust persistiert netto.
+    // Rundung passiert in der TS-Schicht (@tarlog/core); Rust persistiert netto.
     assert_eq!(i(entry, "billing_duration_seconds"), 4140);
     assert_eq!(s(entry, "source"), "live_timer");
     assert_eq!(s(entry, "description"), "Konzeptarbeit");

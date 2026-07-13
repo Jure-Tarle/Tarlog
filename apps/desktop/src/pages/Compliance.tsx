@@ -1,7 +1,7 @@
 /**
  * Compliance — Bereich 13 (doc 08). Tagesweise Ampel (grün/gelb/rot) gegen das
  * deutsche Arbeitszeitprofil (ArbZG) mit Regel-Erklärung je betroffenem Tag.
- * Auswertung via @ptl/core (evaluateDay/evaluateRestPeriod) über die
+ * Auswertung via @tarlog/core (evaluateDay/evaluateRestPeriod) über die
  * aggregates-Schicht; reine Leseansicht.
  */
 import { useMemo } from "react";

@@ -3,7 +3,7 @@
  * day total. A quiet ledger list — one row per entry, tabular figures aligned
  * on the right, a summary card on top. Data via `entries.inRange` for the local
  * day window; sums are plain aggregation (no billing/rounding math here — that
- * stays in @ptl/core when entries are created).
+ * stays in @tarlog/core when entries are created).
  */
 import { useMemo } from "react";
 import { View } from "react-native";

@@ -18,7 +18,7 @@ use rusqlite::{Connection, Row};
 use serde_json::{json, Value};
 
 /// Bundle identifier — must match `tauri.conf.json` `identifier`.
-const APP_IDENTIFIER: &str = "com.ptl.desktop";
+const APP_IDENTIFIER: &str = "com.tarlog.desktop";
 /// Local DB filename — must match `db.ts` `DB_URL = "sqlite:ptl.db"`.
 const DB_FILE: &str = "ptl.db";
 /// Current local schema version (stored in `PRAGMA user_version`).
