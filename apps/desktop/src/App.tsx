@@ -12,6 +12,37 @@
  */
 import { useEffect, useState } from "react";
 import { ROUTES, resolveRoute, type RouteDef } from "./pages/routes";
+import { dbInit, dbMigrate } from "./lib/bridge";
+
+/**
+ * Boot-Gate: die lokale SQLite-Datenbank öffnen und migrieren, BEVOR
+ * irgendeine Seite Daten anfragt. Ohne diesen Schritt bleibt die DB schemalos
+ * (0 Tabellen) und alle Seiten zeigen nur leere Zustände. Läuft genau einmal
+ * beim Start; Ergebnis steuert den Render (laden / Fehler / bereit).
+ */
+type BootState = { phase: "loading" | "ready" } | { phase: "error"; message: string };
+
+function useDbBoot(): BootState {
+  const [state, setState] = useState<BootState>({ phase: "loading" });
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        await dbInit();
+        await dbMigrate();
+        if (alive) setState({ phase: "ready" });
+      } catch (err) {
+        if (alive) {
+          setState({ phase: "error", message: err instanceof Error ? err.message : String(err) });
+        }
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+  return state;
+}
 
 function useHashRoute(): RouteDef {
   const [route, setRoute] = useState<RouteDef>(() =>
@@ -71,8 +102,35 @@ function TimerBar() {
   );
 }
 
+function BootScreen({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="app-shell app-shell--boot">
+      <div className="boot">{children}</div>
+    </div>
+  );
+}
+
 export function App() {
+  const boot = useDbBoot();
   const route = useHashRoute();
+
+  if (boot.phase === "loading") {
+    return (
+      <BootScreen>
+        <span className="boot__spinner" aria-hidden />
+        <p>Lokale Datenbank wird vorbereitet …</p>
+      </BootScreen>
+    );
+  }
+  if (boot.phase === "error") {
+    return (
+      <BootScreen>
+        <p className="boot__error">Die lokale Datenbank konnte nicht initialisiert werden.</p>
+        <code className="boot__detail">{boot.message}</code>
+      </BootScreen>
+    );
+  }
+
   const Page = route.Component;
   return (
     <div className="app-shell">

@@ -153,6 +153,16 @@ fn bootstrap(conn: &Connection) -> Result<(), String> {
         rusqlite::params![TIMER_ID, MAIN_ACCOUNT_ID, DEVICE_ID],
     )
     .map_err(|e| format!("seed timer: {e}"))?;
+    // Standard-Rundungsregel: je angefangenes 15-Minuten-Intervall aufrunden
+    // (doc 07/14, AC18). Ohne globale Default-Regel bliebe die Abrechnung
+    // Pass-Through (billing = net); identisch zum Server-Setup.
+    conn.execute(
+        "INSERT INTO rounding_rules(id, main_account_id, name, mode, interval_minutes, scope, valid_from, calculation_version, created_at, updated_at)\
+         SELECT ?1, ?2, 'Standard — 15 Minuten aufrunden', 'ceil_started_interval', 15, 'global', '1970-01-01', 1, ?3, ?3\
+         WHERE NOT EXISTS (SELECT 1 FROM rounding_rules WHERE main_account_id = ?2 AND scope = 'global')",
+        rusqlite::params![new_uuid(), MAIN_ACCOUNT_ID, now],
+    )
+    .map_err(|e| format!("seed rounding rule: {e}"))?;
     Ok(())
 }
 
