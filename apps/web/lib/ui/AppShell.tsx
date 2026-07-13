@@ -19,21 +19,20 @@ import {
   FolderKanban,
   LayoutDashboard,
   Menu,
-  Moon,
   Paperclip,
   PlusCircle,
   ReceiptText,
   RefreshCw,
   Settings2,
   ShieldCheck,
-  Sun,
   TimerReset,
   Users,
   X,
   type LucideIcon,
 } from "lucide-react";
 import type { ReactNode, RefObject } from "react";
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AppearanceControl } from "./AppearanceControl";
 import { TimerTicker } from "./TimerTicker";
 import { BrandMark } from "./BrandMark";
 import {
@@ -43,8 +42,6 @@ import {
 } from "./appShellTimer";
 
 export type { AppShellTimer } from "./appShellTimer";
-
-type Theme = "light" | "dark";
 
 interface AppShellAccount {
   displayName: string;
@@ -101,12 +98,7 @@ const NAV_GROUPS: NavGroup[] = [
   },
 ];
 
-const THEME_KEY = "tarlog-theme";
 const SPRING = { type: "spring" as const, bounce: 0, duration: 0.36 };
-const ThemeContext = createContext<{
-  theme: Theme | null;
-  toggleTheme: () => void;
-} | null>(null);
 
 function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -119,96 +111,6 @@ function initials(name: string): string {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
     .join("") || "T";
-}
-
-function updateThemeColor(theme: Theme): void {
-  let meta = document.querySelector<HTMLMetaElement>('meta[data-tarlog-theme-color="true"]');
-  if (!meta) {
-    meta = document.createElement("meta");
-    meta.name = "theme-color";
-    meta.dataset.tarlogThemeColor = "true";
-    document.head.append(meta);
-  }
-  meta.content = theme === "dark" ? "#090b11" : "#f5f7fb";
-}
-
-function useThemeController(): { theme: Theme | null; toggleTheme: () => void } {
-  const [theme, setTheme] = useState<Theme | null>(null);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    const media = window.matchMedia("(prefers-color-scheme: dark)");
-    const current: Theme = root.dataset.theme === "dark" ? "dark" : "light";
-    setTheme(current);
-    updateThemeColor(current);
-
-    const followSystem = (event: MediaQueryListEvent) => {
-      try {
-        if (localStorage.getItem(THEME_KEY)) return;
-      } catch {
-        // Storage can be disabled; the in-memory theme still works.
-      }
-      const next: Theme = event.matches ? "dark" : "light";
-      root.dataset.theme = next;
-      root.style.colorScheme = next;
-      setTheme(next);
-      updateThemeColor(next);
-    };
-    media.addEventListener("change", followSystem);
-    return () => media.removeEventListener("change", followSystem);
-  }, []);
-
-  const toggleTheme = useCallback((): void => {
-    const root = document.documentElement;
-    const current: Theme = theme ?? (root.dataset.theme === "dark" ? "dark" : "light");
-    const next: Theme = current === "dark" ? "light" : "dark";
-    root.classList.add("theme-is-changing");
-    root.dataset.theme = next;
-    root.style.colorScheme = next;
-    try {
-      localStorage.setItem(THEME_KEY, next);
-    } catch {
-      // Theme remains active for the current session.
-    }
-    setTheme(next);
-    updateThemeColor(next);
-    window.setTimeout(() => root.classList.remove("theme-is-changing"), 320);
-  }, [theme]);
-
-  return { theme, toggleTheme };
-}
-
-function ThemeToggle({ compact = false }: { compact?: boolean }): React.ReactElement {
-  const context = useContext(ThemeContext);
-  if (!context) throw new Error("ThemeToggle must be rendered within AppShell");
-  const { theme, toggleTheme } = context;
-
-  const label = theme === "dark" ? "Helles Erscheinungsbild" : "Dunkles Erscheinungsbild";
-
-  return (
-    <button
-      type="button"
-      className={compact ? "icon-button theme-toggle" : "theme-control"}
-      onClick={toggleTheme}
-      aria-label={label}
-      title={label}
-    >
-      <span className="theme-control-icon" aria-hidden>
-        <AnimatePresence initial={false} mode="popLayout">
-          <motion.span
-            key={theme ?? "loading"}
-            initial={{ opacity: 0, scale: 0.72, rotate: -18 }}
-            animate={{ opacity: 1, scale: 1, rotate: 0 }}
-            exit={{ opacity: 0, scale: 0.72, rotate: 18 }}
-            transition={SPRING}
-          >
-            {theme === "dark" ? <Moon size={17} /> : <Sun size={17} />}
-          </motion.span>
-        </AnimatePresence>
-      </span>
-      {compact ? null : <span>{theme === "dark" ? "Dark" : "Light"}</span>}
-    </button>
-  );
 }
 
 function Brand({ compact = false }: { compact?: boolean }): React.ReactElement {
@@ -331,7 +233,7 @@ function Sidebar({
       <MiniTimer timer={timer} />
       <Navigation pathname={pathname} variant="desktop" />
       <div className="sidebar-footer">
-        <ThemeToggle />
+        <AppearanceControl />
         <Link href="/settings" className="account-card">
           <span className="account-avatar" aria-hidden>{initials(account.displayName)}</span>
           <span className="account-copy">
@@ -443,7 +345,7 @@ function MobileDrawer({
             <MiniTimer timer={timer} />
             <Navigation pathname={pathname} variant="drawer" onNavigate={onClose} firstLinkRef={firstLinkRef} />
             <div className="drawer-footer">
-              <ThemeToggle />
+              <AppearanceControl />
               <Link href="/settings" className="account-card" onClick={onClose}>
                 <span className="account-avatar" aria-hidden>{initials(account.displayName)}</span>
                 <span className="account-copy">
@@ -473,16 +375,14 @@ export function AppShell({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
-  const theme = useThemeController();
   const timer = useLiveTimer(initialTimer);
 
   useEffect(() => setDrawerOpen(false), [pathname]);
 
   return (
-    <ThemeContext.Provider value={theme}>
-      <MotionConfig reducedMotion="user" transition={SPRING}>
-        <a className="skip-link" href="#app-content">Zum Inhalt springen</a>
-        <div className="app-shell">
+    <MotionConfig reducedMotion="user" transition={SPRING}>
+      <a className="skip-link" href="#app-content">Zum Inhalt springen</a>
+      <div className="app-shell">
           <Sidebar pathname={pathname} account={account} timer={timer} />
 
           <header className="mobile-topbar material-heavy">
@@ -499,7 +399,7 @@ export function AppShell({
             <Brand compact />
             <div className="mobile-topbar-actions">
               <MiniTimer timer={timer} compact />
-              <ThemeToggle compact />
+              <AppearanceControl variant="compact" />
             </div>
           </header>
 
@@ -526,9 +426,8 @@ export function AppShell({
               </motion.div>
             </AnimatePresence>
           </main>
-        </div>
-      </MotionConfig>
-    </ThemeContext.Provider>
+      </div>
+    </MotionConfig>
   );
 }
 

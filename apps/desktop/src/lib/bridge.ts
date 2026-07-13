@@ -143,6 +143,36 @@ export interface SyncResult {
   conflicts: number;
 }
 
+/** Semantic, whitelisted SF Symbols exposed by the macOS native shell. */
+export type NativeSystemSymbolKey =
+  | "dashboard"
+  | "timer"
+  | "today"
+  | "week"
+  | "customers"
+  | "projects"
+  | "tasks"
+  | "reports"
+  | "invoices"
+  | "backdating"
+  | "compliance"
+  | "settings"
+  | "sync"
+  | "sidebarToggle"
+  | "timerPlay"
+  | "timerPause"
+  | "timerStop"
+  | "themeSystem"
+  | "themeLight"
+  | "themeDark";
+
+/** In-memory, macOS-only symbol masks. Missing keys use React fallbacks. */
+export interface NativeSystemSymbolSet {
+  supported: boolean;
+  symbols: Partial<Record<NativeSystemSymbolKey, string>>;
+  missing: NativeSystemSymbolKey[];
+}
+
 // ---------------------------------------------------------------------------
 // Command wrappers — one per registered Rust command. Function names are
 // camelCase; the invoked command string is the snake_case contract name.
@@ -267,6 +297,14 @@ export function syncPull(
   return invoke<SyncResult>("sync_pull", args);
 }
 
+/**
+ * Render Tarlog's fixed SF Symbols whitelist through AppKit. No symbol name is
+ * accepted from the webview and no generated image is persisted to disk.
+ */
+export function nativeSystemSymbols(): Promise<NativeSystemSymbolSet> {
+  return invoke<NativeSystemSymbolSet>("native_system_symbols");
+}
+
 /** Every command wrapper, grouped — convenient for tests/mocks. */
 export const bridge = {
   dbInit,
@@ -287,4 +325,5 @@ export const bridge = {
   setServerConnection,
   syncPush,
   syncPull,
+  nativeSystemSymbols,
 } as const;

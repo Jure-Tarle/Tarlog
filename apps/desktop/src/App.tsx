@@ -9,13 +9,14 @@ import {
   History,
   LayoutDashboard,
   ListChecks,
-  Moon,
+  MonitorCog,
   Pause,
+  PanelLeftClose,
+  PanelLeftOpen,
   Play,
   ReceiptText,
   Settings,
   ShieldCheck,
-  Sun,
   Timer,
   Users,
   type LucideIcon,
@@ -26,7 +27,9 @@ import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { ROUTES, resolveRoute, type RouteDef } from "./pages/routes";
 import { dbInit, dbMigrate } from "./lib/bridge";
+import type { NativeSystemSymbolKey } from "./lib/bridge";
 import { detectDesktopPlatform, type DesktopPlatform } from "./lib/platform";
+import { AppleSystemSymbol } from "./components/AppleSystemSymbol";
 import brandMarkUrl from "../../../assets/brand/tarlog-flow-mark.svg?url";
 import {
   elapsedSeconds,
@@ -40,9 +43,15 @@ import { fmtHMS } from "./data/format";
 import type { TimerStatus } from "@tarlog/core";
 
 type BootState = { phase: "loading" | "ready" } | { phase: "error"; message: string };
-type Theme = "light" | "dark";
+type AppearancePreference = "system" | "light" | "dark";
+type ResolvedTheme = Exclude<AppearancePreference, "system">;
 
 const THEME_STORAGE_KEY = "tarlog-theme";
+const SIDEBAR_HIDDEN_STORAGE_KEY = "tarlog-sidebar-hidden";
+const SIDEBAR_WIDTH_STORAGE_KEY = "tarlog-sidebar-width";
+const DEFAULT_SIDEBAR_WIDTH = 256;
+const MIN_SIDEBAR_WIDTH = 220;
+const MAX_SIDEBAR_WIDTH = 360;
 const SPRING = { type: "spring", bounce: 0, duration: 0.38 } as const;
 
 const TIMER_STATUS_META = {
@@ -91,39 +100,91 @@ const NAV_SHORTCUTS: Partial<Record<string, { key: string; mac: string; other: s
   settings: { key: ",", mac: "⌘,", other: "Ctrl ," },
 };
 
-function resolveInitialTheme(): Theme {
-  try {
-    const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-    if (stored === "light" || stored === "dark") return stored;
-  } catch {
-    // A disabled Web Storage API must not block the local desktop app.
-  }
+function systemTheme(): ResolvedTheme {
   return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
-function useTheme(platform: DesktopPlatform) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const initial = resolveInitialTheme();
-    document.documentElement.dataset.theme = initial;
+function resolveInitialAppearance(): AppearancePreference {
+  try {
+    const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+    if (stored === "system" || stored === "light" || stored === "dark") return stored;
+  } catch {
+    // A disabled Web Storage API must not block the local desktop app.
+  }
+  return "system";
+}
+
+function useAppearance(platform: DesktopPlatform) {
+  const [preference, setPreference] = useState<AppearancePreference>(() => {
+    const initial = resolveInitialAppearance();
+    document.documentElement.dataset.appearance = initial;
+    document.documentElement.dataset.theme = initial === "system" ? systemTheme() : initial;
     return initial;
   });
+  const [system, setSystem] = useState<ResolvedTheme>(() => systemTheme());
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
+    const query = window.matchMedia?.("(prefers-color-scheme: dark)");
+    if (!query) return;
+    const sync = (event: MediaQueryListEvent | MediaQueryList) => setSystem(event.matches ? "dark" : "light");
+    sync(query);
+    query.addEventListener("change", sync);
+    return () => query.removeEventListener("change", sync);
+  }, []);
+
+  const resolved: ResolvedTheme = preference === "system" ? system : preference;
+
+  useEffect(() => {
+    document.documentElement.dataset.appearance = preference;
+    document.documentElement.dataset.theme = resolved;
     try {
-      window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+      window.localStorage.setItem(THEME_STORAGE_KEY, preference);
     } catch {
       // Theme remains active for this session when persistence is unavailable.
     }
 
     if (platform === "macos" && isTauri()) {
-      void getCurrentWindow().setTheme(theme).catch(() => {
+      void getCurrentWindow().setTheme(preference === "system" ? null : preference).catch(() => {
         // The web theme remains usable when native window theming is unavailable.
       });
     }
-  }, [platform, theme]);
+  }, [platform, preference, resolved]);
 
-  return { theme, toggle: () => setTheme((current) => (current === "dark" ? "light" : "dark")) };
+  return { preference, resolved, setPreference };
+}
+
+function useWindowActivity(platform: DesktopPlatform) {
+  useEffect(() => {
+    const setActive = (active: boolean) => {
+      document.documentElement.dataset.windowActive = String(active);
+    };
+    setActive(document.hasFocus());
+
+    const onFocus = () => setActive(true);
+    const onBlur = () => setActive(false);
+    window.addEventListener("focus", onFocus);
+    window.addEventListener("blur", onBlur);
+
+    let disposed = false;
+    let unlisten: UnlistenFn | undefined;
+    if (platform === "macos" && isTauri()) {
+      void getCurrentWindow().onFocusChanged(({ payload }) => setActive(payload))
+        .then((stopListening) => {
+          if (disposed) stopListening();
+          else unlisten = stopListening;
+        })
+        .catch(() => {
+          // Browser focus events remain a reliable fallback.
+        });
+    }
+
+    return () => {
+      disposed = true;
+      unlisten?.();
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("blur", onBlur);
+    };
+  }, [platform]);
 }
 
 function useDbBoot(): BootState {
@@ -218,11 +279,112 @@ function useAppShortcuts(platform: DesktopPlatform) {
   }, [platform]);
 }
 
-function Sidebar({ activeId, platform }: { activeId: string; platform: DesktopPlatform }) {
+function storedBoolean(key: string, fallback: boolean) {
+  try {
+    const value = window.localStorage.getItem(key);
+    return value === null ? fallback : value === "true";
+  } catch {
+    return fallback;
+  }
+}
+
+function storedSidebarWidth() {
+  try {
+    const stored = window.localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY);
+    if (stored !== null) {
+      const parsed = Number(stored);
+      if (Number.isFinite(parsed)) return Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, parsed));
+    }
+  } catch {
+    // Fall through to the AppKit-like default width.
+  }
+  return DEFAULT_SIDEBAR_WIDTH;
+}
+
+function useSidebar(platform: DesktopPlatform) {
+  const [hidden, setHidden] = useState(() => storedBoolean(SIDEBAR_HIDDEN_STORAGE_KEY, false));
+  const [width, setWidth] = useState(storedSidebarWidth);
+  const [resizing, setResizing] = useState(false);
+  const toggle = () => setHidden((current) => !current);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(SIDEBAR_HIDDEN_STORAGE_KEY, String(hidden));
+    } catch {
+      // The sidebar still works for this session without persistence.
+    }
+  }, [hidden]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(width));
+    } catch {
+      // The sidebar still resizes for this session without persistence.
+    }
+  }, [width]);
+
+  useEffect(() => {
+    if (platform !== "macos" || !isTauri()) return;
+    let disposed = false;
+    let unlisten: UnlistenFn | undefined;
+    void listen("menu://toggle-sidebar", toggle)
+      .then((stopListening) => {
+        if (disposed) stopListening();
+        else unlisten = stopListening;
+      })
+      .catch(() => {
+        // The toolbar control remains available when native menu events fail.
+      });
+    return () => {
+      disposed = true;
+      unlisten?.();
+    };
+  }, [platform]);
+
+  return {
+    hidden,
+    width,
+    resizing,
+    toggle,
+    startResize: () => setResizing(true),
+    stopResize: () => setResizing(false),
+    resetWidth: () => setWidth(DEFAULT_SIDEBAR_WIDTH),
+    resizeTo: (next: number) => setWidth(Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, next))),
+  };
+}
+
+function Sidebar({
+  activeId,
+  platform,
+  hidden,
+  width,
+  onResize,
+  onResizeStart,
+  onResizeEnd,
+  onResetWidth,
+}: {
+  activeId: string;
+  platform: DesktopPlatform;
+  hidden: boolean;
+  width: number;
+  onResize: (width: number) => void;
+  onResizeStart: () => void;
+  onResizeEnd: () => void;
+  onResetWidth: () => void;
+}) {
   const routeMap = useMemo(() => new Map(ROUTES.map((route) => [route.id, route])), []);
+  const resizeStart = useRef<{ x: number; width: number } | null>(null);
+
+  const stopResize = (event: React.PointerEvent<HTMLDivElement>) => {
+    resizeStart.current = null;
+    onResizeEnd();
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
 
   return (
-    <aside className="sidebar" aria-label="Tarlog Navigation">
+    <aside className="sidebar" aria-label="Tarlog Navigation" aria-hidden={hidden || undefined} inert={hidden}>
       <div className="sidebar__window-chrome" data-tauri-drag-region aria-hidden="true" />
       <a className="sidebar__brand" href="#/dashboard" aria-label="Tarlog Flow – Dashboard">
         <motion.span className="sidebar__mark" whileTap={{ scale: 0.92 }} transition={SPRING} aria-hidden>
@@ -265,7 +427,12 @@ function Sidebar({ activeId, platform }: { activeId: string; platform: DesktopPl
                         aria-hidden
                       />
                     ) : null}
-                    <Icon className="nav-item__icon" size={17} strokeWidth={1.9} aria-hidden />
+                    <AppleSystemSymbol
+                      name={route.id as NativeSystemSymbolKey}
+                      className="nav-item__icon apple-system-symbol"
+                      size={16}
+                      fallback={<Icon className="nav-item__icon" size={17} strokeWidth={1.9} aria-hidden />}
+                    />
                     <span className="nav-item__label">{route.label}</span>
                     {shortcutLabel ? <span className="nav-item__shortcut" aria-hidden>{shortcutLabel}</span> : null}
                   </a>
@@ -285,6 +452,40 @@ function Sidebar({ activeId, platform }: { activeId: string; platform: DesktopPl
           <small>Deine Zeit bleibt bei dir.</small>
         </span>
       </div>
+      {platform === "macos" ? (
+        <div
+          className="sidebar__resize-handle"
+          role="separator"
+          aria-label="Breite der Seitenleiste ändern"
+          aria-orientation="vertical"
+          aria-valuemin={MIN_SIDEBAR_WIDTH}
+          aria-valuemax={MAX_SIDEBAR_WIDTH}
+          aria-valuenow={Math.round(width)}
+          tabIndex={hidden ? -1 : 0}
+          onDoubleClick={onResetWidth}
+          onPointerDown={(event) => {
+            if (event.button !== 0) return;
+            resizeStart.current = { x: event.clientX, width };
+            onResizeStart();
+            event.currentTarget.setPointerCapture(event.pointerId);
+          }}
+          onPointerMove={(event) => {
+            if (!resizeStart.current) return;
+            onResize(resizeStart.current.width + event.clientX - resizeStart.current.x);
+          }}
+          onPointerUp={stopResize}
+          onPointerCancel={stopResize}
+          onLostPointerCapture={() => {
+            resizeStart.current = null;
+            onResizeEnd();
+          }}
+          onKeyDown={(event) => {
+            if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+            event.preventDefault();
+            onResize(width + (event.key === "ArrowRight" ? 8 : -8));
+          }}
+        />
+      ) : null}
     </aside>
   );
 }
@@ -335,9 +536,19 @@ function PersistentTimer() {
         title={meta.control === "pause" ? "Pausieren" : meta.control === "resume" ? "Fortsetzen" : "Timer öffnen"}
       >
         {meta.control === "pause" ? (
-          <Pause size={15} fill="currentColor" />
+          <AppleSystemSymbol
+            name="timerPause"
+            size={15}
+            className="apple-system-symbol"
+            fallback={<Pause size={15} fill="currentColor" />}
+          />
         ) : meta.control === "resume" || status === "idle" || status === "stopped" ? (
-          <Play size={15} fill="currentColor" />
+          <AppleSystemSymbol
+            name="timerPlay"
+            size={15}
+            className="apple-system-symbol"
+            fallback={<Play size={15} fill="currentColor" />}
+          />
         ) : (
           <ChevronRight size={15} />
         )}
@@ -346,39 +557,82 @@ function PersistentTimer() {
   );
 }
 
-function ThemeToggle({ theme, onToggle }: { theme: Theme; onToggle: () => void }) {
-  const reduceMotion = useReducedMotion();
-  const target = theme === "dark" ? "Light Mode" : "Dark Mode";
+function AppearancePicker({
+  value,
+  onChange,
+}: {
+  value: AppearancePreference;
+  onChange: (value: AppearancePreference) => void;
+}) {
   return (
-    <button className="theme-toggle" type="button" onClick={onToggle} aria-label={`Zu ${target} wechseln`} title={target}>
-      <AnimatePresence initial={false} mode="popLayout">
-        <motion.span
-          className="theme-toggle__icon"
-          key={theme}
-          initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.72, rotate: -24 }}
-          animate={{ opacity: 1, scale: 1, rotate: 0 }}
-          exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.72, rotate: 24 }}
-          transition={reduceMotion ? { duration: 0.12 } : SPRING}
-          aria-hidden
-        >
-          {theme === "dark" ? <Moon size={17} /> : <Sun size={17} />}
-        </motion.span>
-      </AnimatePresence>
-    </button>
+    <label className="appearance-picker" title="Darstellung">
+      <AppleSystemSymbol
+        name="themeSystem"
+        className="appearance-picker__icon apple-system-symbol"
+        size={15}
+        fallback={<MonitorCog className="appearance-picker__icon" size={15} aria-hidden />}
+      />
+      <span className="sr-only">Darstellung</span>
+      <select
+        className="appearance-picker__select"
+        value={value}
+        onChange={(event) => onChange(event.currentTarget.value as AppearancePreference)}
+        aria-label="Darstellung"
+      >
+        <option value="system">System</option>
+        <option value="light">Hell</option>
+        <option value="dark">Dunkel</option>
+      </select>
+    </label>
   );
 }
 
-function Topbar({ route, theme, onThemeToggle }: { route: RouteDef; theme: Theme; onThemeToggle: () => void }) {
+function Topbar({
+  route,
+  platform,
+  sidebarHidden,
+  onSidebarToggle,
+  appearance,
+  onAppearanceChange,
+}: {
+  route: RouteDef;
+  platform: DesktopPlatform;
+  sidebarHidden: boolean;
+  onSidebarToggle: () => void;
+  appearance: AppearancePreference;
+  onAppearanceChange: (value: AppearancePreference) => void;
+}) {
   const group = NAV_GROUPS.find((candidate) => candidate.ids.some((id) => id === route.id));
   return (
-    <header className="topbar">
-      <div className="topbar__current" data-tauri-drag-region>
-        <span className="topbar__eyebrow" data-tauri-drag-region>{group?.label ?? "Tarlog"}</span>
-        <strong className="topbar__title" id="current-route-title" data-tauri-drag-region>{route.label}</strong>
+    <header
+      className="topbar"
+      style={platform === "macos" ? { paddingLeft: sidebarHidden ? "5.25rem" : "0.75rem" } : undefined}
+    >
+      <div className="topbar__leading">
+        {platform === "macos" ? (
+          <button
+            className="toolbar-icon-button sidebar-toggle"
+            type="button"
+            onClick={onSidebarToggle}
+            aria-label={sidebarHidden ? "Seitenleiste einblenden" : "Seitenleiste ausblenden"}
+            title={`${sidebarHidden ? "Seitenleiste einblenden" : "Seitenleiste ausblenden"} (⌥⌘S)`}
+          >
+            <AppleSystemSymbol
+              name="sidebarToggle"
+              className="apple-system-symbol"
+              size={16}
+              fallback={sidebarHidden ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+            />
+          </button>
+        ) : null}
+        <div className="topbar__current" data-tauri-drag-region>
+          <span className="topbar__eyebrow" data-tauri-drag-region>{group?.label ?? "Tarlog"}</span>
+          <strong className="topbar__title" id="current-route-title" data-tauri-drag-region>{route.label}</strong>
+        </div>
       </div>
       <div className="topbar__actions">
         <PersistentTimer />
-        <ThemeToggle theme={theme} onToggle={onThemeToggle} />
+        <AppearancePicker value={appearance} onChange={onAppearanceChange} />
       </div>
     </header>
   );
@@ -413,7 +667,9 @@ function AppContent() {
   useNavigationRequests();
   useNativeMenuNavigation(platform);
   useAppShortcuts(platform);
-  const { theme, toggle } = useTheme(platform);
+  useWindowActivity(platform);
+  const { preference, setPreference } = useAppearance(platform);
+  const sidebar = useSidebar(platform);
   const reduceMotion = useReducedMotion();
   const mainRef = useRef<HTMLElement>(null);
   const previousRoute = useRef(route.id);
@@ -453,10 +709,29 @@ function AppContent() {
   return (
     <TimerProvider>
       <a className="skip-link" href="#main-content">Zum Inhalt springen</a>
-      <div className={`app-shell app-shell--${platform}`}>
-        <Sidebar activeId={route.id} platform={platform} />
+      <div
+        className={`app-shell app-shell--${platform} ${sidebar.hidden ? "is-sidebar-hidden" : ""} ${sidebar.resizing ? "is-sidebar-resizing" : ""}`}
+        style={{ "--sidebar-user-w": `${sidebar.width}px` } as React.CSSProperties}
+      >
+        <Sidebar
+          activeId={route.id}
+          platform={platform}
+          hidden={sidebar.hidden}
+          width={sidebar.width}
+          onResize={sidebar.resizeTo}
+          onResizeStart={sidebar.startResize}
+          onResizeEnd={sidebar.stopResize}
+          onResetWidth={sidebar.resetWidth}
+        />
         <div className="main">
-          <Topbar route={route} theme={theme} onThemeToggle={toggle} />
+          <Topbar
+            route={route}
+            platform={platform}
+            sidebarHidden={sidebar.hidden}
+            onSidebarToggle={sidebar.toggle}
+            appearance={preference}
+            onAppearanceChange={setPreference}
+          />
           <main
             className="content"
             id="main-content"
@@ -468,10 +743,10 @@ function AppContent() {
               <motion.div
                 className="route-stage"
                 key={route.id}
-                initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.995 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -6, scale: 0.998 }}
-                transition={reduceMotion ? { duration: 0.14 } : SPRING}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: reduceMotion ? 0.08 : 0.16, ease: "easeOut" }}
               >
                 <PageComponent />
               </motion.div>

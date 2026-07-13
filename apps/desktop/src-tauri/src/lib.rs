@@ -11,6 +11,7 @@
 pub mod commands;
 pub mod db;
 mod menu;
+mod system_symbols;
 mod tray;
 
 /// Build and run the desktop app. `main.rs` calls this; the mobile entry point
@@ -49,6 +50,7 @@ pub fn run() {
             commands::set_server_connection,
             commands::sync_push,
             commands::sync_pull,
+            system_symbols::native_system_symbols,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Tarlog");

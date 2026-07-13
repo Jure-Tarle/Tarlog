@@ -12,6 +12,8 @@ const SETTINGS_EVENT: &str = "menu://navigate/settings";
 const TIMER_START_EVENT: &str = "tray://timer/start";
 #[cfg(target_os = "macos")]
 const BACKDATE_EVENT: &str = "tray://entry/backdate";
+#[cfg(target_os = "macos")]
+const SIDEBAR_TOGGLE_EVENT: &str = "menu://toggle-sidebar";
 
 /// Install the application-wide native menu.
 pub fn install<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
@@ -38,6 +40,7 @@ fn register_macos_actions<R: Runtime>(app: &AppHandle<R>) {
             "app_settings" => Some(SETTINGS_EVENT),
             "app_timer_start" => Some(TIMER_START_EVENT),
             "app_entry_backdate" => Some(BACKDATE_EVENT),
+            "app_toggle_sidebar" => Some(SIDEBAR_TOGGLE_EVENT),
             _ => None,
         };
 
@@ -132,14 +135,22 @@ fn macos_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
         ],
     )?;
 
+    let toggle_sidebar = MenuItem::with_id(
+        app,
+        "app_toggle_sidebar",
+        "Seitenleiste ein-/ausblenden",
+        true,
+        Some("CmdOrCtrl+Alt+S"),
+    )?;
     let view = Submenu::with_items(
         app,
         "Darstellung",
         true,
-        &[&PredefinedMenuItem::fullscreen(
-            app,
-            Some("Vollbild ein-/ausschalten"),
-        )?],
+        &[
+            &toggle_sidebar,
+            &PredefinedMenuItem::separator(app)?,
+            &PredefinedMenuItem::fullscreen(app, Some("Vollbild ein-/ausschalten"))?,
+        ],
     )?;
 
     // These IDs let macOS recognize and enrich the native Window/Help menus.

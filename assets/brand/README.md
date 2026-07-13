@@ -7,7 +7,11 @@ forward-facing hand communicate uninterrupted flow. It remains recognisable at
 
 ## Sources
 
-- `tarlog-flow-app-icon.svg` is the 1024-unit flattened desktop master.
+- `tarlog-flow-app-icon-layers/` contains the three editable 1024-by-1024
+  background, dial, and hand layers for Apple Icon Composer. They are square
+  and unmasked, with no baked corner radius, shadow, gloss, or specular effect.
+- `tarlog-flow-app-icon.svg` is the unmasked, full-bleed 1024-unit flattened
+  fallback master built from the same layers.
 - `tarlog-flow-mark.svg` is the compact brand and web source.
 - `tarlog-flow-tray-template.svg` is the monochrome macOS menu-bar source.
 - `tarlog-flow-touch-icon.svg` is the unmasked, opaque web touch-icon source.
@@ -29,8 +33,9 @@ master. Rebuild it from the repository root with:
 pnpm --filter @tarlog/desktop tauri icon ../../assets/brand/tarlog-flow-app-icon.png
 ```
 
-The SVG master intentionally includes the rounded desktop tile because Tauri's
-current flattened ICNS/ICO pipeline cannot package Apple Icon Composer layers.
-For a future native Icon Composer bundle, import the background and foreground
-geometry as separate square, unmasked layers and let macOS apply the final mask
-and Liquid Glass appearance.
+The SVG and PNG masters deliberately contain only the artwork. Apple platforms
+should apply the final icon mask, depth, and material appearance; those effects
+must not be painted into the source. Tauri's current flattened ICNS/ICO pipeline
+cannot package Apple Icon Composer layers, so its generated files use the
+full-bleed flattened fallback while the editable Apple layers remain available
+for a native layered-asset pipeline.

@@ -11,7 +11,11 @@ räumlicher Arbeitsbereich, der Präzision mit der direkten, physischen
 Bedienbarkeit hochwertiger Apple-Oberflächen verbindet. Die Anwendung wirkt
 hell und offen statt tabellenlastig, bleibt im Dark Mode aber ebenso klar und
 kontrastreich. Dekoration ist nie Selbstzweck; Material, Tiefe und Bewegung
-erklären Hierarchie und Zustand.
+erklären Hierarchie und Zustand. Verbindliche Referenzen sind Apples aktuelle
+[Design-Übersicht](https://developer.apple.com/design/), die
+[Human Interface Guidelines](https://developer.apple.com/design/human-interface-guidelines/)
+und das aktuelle Liquid-Glass-Designsystem. Apple-eigene Assets werden nur im
+Rahmen ihrer Plattformlizenz eingesetzt.
 
 | Aspekt | Entscheidung | Begründung |
 |---|---|---|
@@ -19,10 +23,10 @@ erklären Hierarchie und Zustand.
 | Farbsystem | Weißer Canvas im Light Mode, tiefes Graphit im Dark Mode, Systemblau als Fokusfarbe | Blau kennzeichnet Auswahl, laufenden Timer und Primäraktionen. Compliance-Farben bleiben ausschließlich semantisch und werden immer durch Symbol und Text ergänzt. |
 | Typografie | Plattformnahe Systemschrift mit optischer Größenanpassung; enge Display-, ruhige Text- und kleine UI-Schnitte | Die Hierarchie entsteht gemeinsam aus Größe, Gewicht, Tracking und Zeilenhöhe. Es werden keine externen Webfonts benötigt. |
 | Ziffern | **Tabulare Ziffern** (`font-variant-numeric: tabular-nums`) für Zeiten und Beträge | Live-Timer und Geldwerte bleiben beim Aktualisieren stabil und spaltenweise scanbar. |
-| Navigation | Gruppierte, materialisierte Seitenleiste mit semantischen Icons; der Timer bleibt global erreichbar | Bereiche sind schneller erfassbar, der aktive Ort ist eindeutig und Desktop/Web behalten dasselbe mentale Modell. |
-| Motion | Unterbrechbare Spring-Bewegung, unmittelbares Press-Feedback und symmetrische Ein-/Ausgänge | Bewegung beginnt aus dem sichtbaren Zustand, signalisiert Ursache und bleibt jederzeit umlenkbar. `prefers-reduced-motion` ersetzt räumliche Bewegung durch kurze Crossfades. |
-| Flächen | Transluzenz und kontrollierte Schatten staffeln Navigation, Karten und Dialoge | Materialstärke zeigt Hierarchie. Große Flächen wirken substanzieller; reduzierte Transparenz erhält solide, kontrastreiche Fallbacks. |
-| Themes | **Light und Dark** sind gleichwertig, folgen initial dem System und lassen sich persistent manuell umschalten | Beide Modi verwenden eigene semantische Tokens statt einer pauschalen Farbinvertierung. Der Wechsel erfolgt ohne abrupten Helligkeitssprung. |
+| Navigation | Gruppierte Source-List-Seitenleiste mit semantischen Icons; der Timer bleibt global erreichbar | Bereiche sind schneller erfassbar, der aktive Ort ist eindeutig und Desktop/Web behalten dasselbe mentale Modell. Auf macOS werden SF Symbols zur Laufzeit durch AppKit gerendert, andere Plattformen verwenden freie Fallback-Icons. |
+| Motion | Unterbrechbare Spring-Bewegung nur für physische Interaktionen, unmittelbares Press-Feedback und kurze Crossfades für gleichrangige Navigation | Bewegung beginnt aus dem sichtbaren Zustand, signalisiert Ursache und bleibt jederzeit umlenkbar. `prefers-reduced-motion` entfernt räumliche Bewegung. |
+| Flächen | Liquid Glass beziehungsweise dessen Web-Fallback liegt ausschließlich in der obersten Funktionsschicht: Sidebar, Toolbar und wenige schwebende Hauptaktionen | Inhaltskarten, Tabellen und Formulare bleiben ruhig und weitgehend opak. `prefers-reduced-transparency` ersetzt sämtliche Funktionsmaterialien durch solide Flächen. |
+| Themes | **System, Hell und Dunkel** sind gleichwertig; `System` ist der Standard und reagiert live auf Änderungen | Beide Erscheinungsbilder verwenden eigene semantische Tokens statt einer pauschalen Farbinvertierung. Native Fensterflächen folgen derselben Auswahl. |
 | Barrierefreiheit | Kontrast AA+, Tastaturvollbedienung, sichtbarer Fokus, ausreichend große Ziele, reduzierte Bewegung/Transparenz | Farbe trägt nie allein Bedeutung. Dialoge halten Fokus, Escape schließt und der Fokus kehrt zum Auslöser zurück. |
 
 Desktop und Web setzen Tarlog Flow gemeinsam um. iOS übernimmt dieselben
@@ -123,12 +127,20 @@ Die macOS-Oberfläche verwendet die öffentliche Tauri-Integration für eine
 native Overlay-Titlebar mit echten Traffic Lights, ein natives
 Tarlog-/Ablage-/Bearbeiten-/Darstellung-/Fenster-/Hilfe-Menü und ein
 monochromes Template-Icon in der Menüleiste. Der WebView-Inhalt folgt
-AppKit-Metriken und verwendet die nativen WebKit-Ausprägungen für Auswahlfelder,
-Checkboxen sowie Datum-/Zeit-Picker. Das manuelle Light-/Dark-Theme wird an das
-native Fenster weitergereicht, damit Titlebar und Traffic Lights synchron
-bleiben. Private macOS-APIs und volltransparente Fenster werden bewusst nicht
+AppKit-Metriken, lässt Inhalt unter der Toolbar-Glasschicht scrollen und
+verwendet native WebKit-Ausprägungen für Auswahlfelder, Checkboxen sowie
+Datum-/Zeit-Picker. Die Source-List-Sidebar ist ein-/ausblendbar und
+größenverstellbar; die Aktion liegt zusätzlich im nativen Darstellung-Menü.
+Navigation und Toolbar verwenden echte SF Symbols, die AppKit auf macOS zur
+Laufzeit als nicht persistierte Masken rendert. `System`/`Hell`/`Dunkel` wird an
+das native Fenster weitergereicht; Fensteraktivität und die Systemoptionen für
+reduzierte Bewegung, reduzierte Transparenz und erhöhten Kontrast werden live
+abgebildet. Private macOS-APIs und volltransparente Fenster werden bewusst nicht
 verwendet, damit Signierung, Notarisierung und eine spätere Mac-App-Store-
-Verteilung möglich bleiben.
+Verteilung möglich bleiben. Echtes `NSGlassEffectView` hinter einer Tauri-
+WebView würde sonst eine private Transparenzroute erfordern; die öffentliche,
+native Migration einer vollständigen Toolbar/Sidebar bleibt eine eigenständige
+Architekturarbeit.
 
 | # | macOS-Funktion | Umsetzung / Hinweis |
 |---|---|---|
@@ -155,6 +167,10 @@ Verteilung möglich bleiben.
 ## 6. Desktop-App Windows (SPEC §27 — alle 8 Funktionen)
 
 Windows wird von derselben Tauri-Codebasis bedient; statt Menüleiste kommt der System-Tray zum Einsatz.
+Die Informationshierarchie, konzentrischen Radien, System/Hell/Dunkel-Tokens,
+Funktionsmaterialien und Motion-Semantik entsprechen Tarlog Flow. Windows nutzt
+dabei keine Apple-Binärassets oder vorgetäuschten macOS-Chrome, sondern freie
+Icons, Windows-Systemschrift und WebView-/Windows-gerechte Material-Fallbacks.
 
 | # | Windows-Funktion | Umsetzung / Hinweis |
 |---|---|---|
@@ -203,4 +219,4 @@ Die Erinnerungen (Timer starten/stoppen, Pause, Beschreibung ergänzen, Woche ab
 
 ## 9. Plattformübergreifende UI-Konsistenz
 
-Die drei Clients teilen dasselbe Informationsmodell und dieselben 15 Hauptbereiche, passen sich aber nativ an: Desktop nutzt eine materialisierte Seitennavigation plus Menüleisten-/Tray-Timer, Web dieselbe Hierarchie responsiv mit mobiler Navigation (optional PWA), iOS eine Tab-Bar mit Mehr-Menü und mobil optimierten Formularen. Der laufende Timer bleibt überall persistent sichtbar und erreichbar. Tarlog Flow verbindet die Clients über semantische Farben, Systemtypografie, tabulare Ziffern, klare Gruppierung und physische Rückmeldung; Navigation und Materialstärke passen sich jeweils der Plattform und Fenstergröße an.
+Die drei Clients teilen dasselbe Informationsmodell und dieselben 15 Hauptbereiche, passen sich aber nativ an: Desktop nutzt eine materialisierte Seitennavigation plus Menüleisten-/Tray-Timer, Web dieselbe Hierarchie responsiv mit mobiler Navigation (optional PWA), iOS eine Tab-Bar mit Mehr-Menü und mobil optimierten Formularen. Der laufende Timer bleibt überall persistent sichtbar und erreichbar. Tarlog Flow verbindet die Clients über semantische Farben, Systemtypografie, tabulare Ziffern, klare Gruppierung und physische Rückmeldung. Liquid Glass bleibt auf jeder Plattform eine Funktionsschicht; Apple-Komponenten und SF Symbols bleiben macOS vorbehalten, während Web und Windows dieselbe Designlogik mit lizenzfreien und plattformgerechten Mitteln umsetzen.

@@ -41,6 +41,24 @@ argon2 = "0.5"
 # `image-png` feature (whose latest transitive `image` crate raises the MSRV
 # beyond this package's declared Rust 1.77 baseline).
 png = "0.17"
+# Render a small, fixed SF Symbols set through public AppKit APIs at runtime.
+# The glyphs stay macOS-only and are never bundled or written as asset files.
+base64 = "0.22"
+objc2 = "0.6.4"
+objc2-app-kit = { version = "0.3.2", default-features = false, features = [
+  "std",
+  "NSBitmapImageRep",
+  "NSFontDescriptor",
+  "NSImage",
+  "NSImageRep",
+] }
+objc2-foundation = { version = "0.3.2", default-features = false, features = [
+  "std",
+  "NSData",
+  "NSDictionary",
+  "NSProcessInfo",
+  "NSString",
+] }
 
 [features]
 # Default no custom features; kept for parity with the Tauri template.

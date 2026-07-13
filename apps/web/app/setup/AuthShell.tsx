@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { AppearanceControl } from "@/lib/ui/AppearanceControl";
 import { BrandMark } from "@/lib/ui/BrandMark";
 
 export function AuthShell({
@@ -17,14 +18,17 @@ export function AuthShell({
   return (
     <main className="auth-shell">
       <section className="auth-card" aria-labelledby="auth-title">
-        <div className="auth-brand" aria-label="Tarlog Flow">
-          <span className="brand">
-            <BrandMark />
-            <span className="brand-copy">
-              <strong>Tarlog</strong>
-              <small>Flow</small>
+        <div className="auth-card-toolbar">
+          <div className="auth-brand" aria-label="Tarlog Flow">
+            <span className="brand">
+              <BrandMark />
+              <span className="brand-copy">
+                <strong>Tarlog</strong>
+                <small>Flow</small>
+              </span>
             </span>
-          </span>
+          </div>
+          <AppearanceControl variant="icons" />
         </div>
         <div className="auth-eyebrow">{eyebrow}</div>
         <h1 id="auth-title">{title}</h1>

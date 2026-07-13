@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">Tarlog Flow app-icon background layer</title>
+  <desc id="desc">The full-bleed blue background layer for the Tarlog Flow app icon.</desc>
+  <defs>
+    <linearGradient id="flow-background" x1="112" y1="80" x2="912" y2="944" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#68B9FF"/>
+      <stop offset="0.48" stop-color="#1478F2"/>
+      <stop offset="1" stop-color="#173FB7"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#flow-background)"/>
+</svg>

@@ -14,21 +14,31 @@ plattformübergreifenden Tarlog-Flow-Markenauftritt.
   Werkzeugleisten, Apple-nahen Abständen, Typografie und Kontrollzuständen.
 - Native macOS-Overlay-Titelleiste mit Traffic Lights, deutsches AppKit-Menü,
   systemweite Tastenkürzel und monochromes Template-Icon für die Menüleiste.
-- Synchronisierter Light-/Dark-Mode sowie physische Spring-Animationen mit
-  Unterstützung für reduzierte Bewegung und reduzierte Transparenz.
+- System/Hell/Dunkel mit live synchronisierter macOS-Darstellung, inaktivem
+  Fensterzustand sowie Unterstützung für reduzierte Bewegung, Transparenz und
+  erhöhten Kontrast.
+- Laufzeitgerenderte, echte SF Symbols für Navigation und Werkzeugleiste mit
+  sicheren Lucide-Fallbacks auf Windows, Linux und im Browser.
+- Ein-/ausblendbare und größenverstellbare Source-List-Sidebar, ruhiger
+  Scroll-Edge-Toolbar-Layer und flachere, systemnahe Inhaltskomponenten.
 
 ### Browser-App
 - Neue responsive App-Shell, Navigation, Dashboards, Timer-Steuerung, Tabellen,
   Formulare und Dialoge im gemeinsamen Tarlog-Flow-Designsystem.
+- System/Hell/Dunkel folgt auf Wunsch live der Betriebssystem-Darstellung; Glas
+  bleibt auf Navigation, mobile Werkzeugleiste und modale Funktionsebenen begrenzt.
+- Der Standalone-Produktionsserver liefert die gebauten CSS- und JavaScript-
+  Assets zuverlässig aus; Entwicklung und Hot Reload bleiben davon unberührt.
 - Verbesserte Echtzeit-Timerdarstellung und konsistente Status-, Fokus- und
   Ladezustände in allen zentralen Arbeitsabläufen.
 
 ### Marke und Qualität
 - Neues Flow-Dial-Logo und vollständige Icon-Familie für macOS, Windows, Web,
-  iOS und Android.
+  iOS und Android; das App-Icon liegt zusätzlich als unmaskiertes,
+  schattenfreies Layer-Master für Apple Icon Composer vor.
 - Zusätzliche Tests für Desktop-Plattformerkennung, Timerlogik, Web-Controls und
-  Versionsauflösung; insgesamt 164 bestandene TypeScript-/React-Tests plus
-  Rust-Integrationstest.
+  Versionsauflösung; insgesamt 167 bestandene TypeScript-/React-Tests plus
+  Rust-Unit- und Integrationstest.
 
 ## [0.0.1] — 2026-07-10
 

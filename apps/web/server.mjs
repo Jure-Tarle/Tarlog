@@ -24,11 +24,11 @@
  *  mit mehreren Prozessen/Instanzen (jede LISTEN'ed denselben Kanal).
  */
 import { createServer } from "node:http";
-import { parse } from "node:url";
 import { WebSocketServer } from "ws";
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { createReadStream, existsSync, readFileSync } from "node:fs";
+import { stat } from "node:fs/promises";
+import { dirname, extname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import pg from "pg";
@@ -40,6 +40,7 @@ const hostname = process.env.HOST ?? "0.0.0.0";
 const port = Number.parseInt(process.env.PORT ?? "3000", 10);
 const WS_PATH = "/api/ws";
 const PTL_EVENTS_CHANNEL = "ptl_events";
+const NEXT_STATIC_PREFIX = "/_next/static/";
 
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
@@ -64,6 +65,71 @@ function hashToken(token) {
  * gebauten Konfiguration aus `.next/required-server-files.json`.
  */
 const appDir = dirname(fileURLToPath(import.meta.url));
+const nextStaticDir = resolve(appDir, ".next", "static");
+
+const STATIC_CONTENT_TYPES = new Map([
+  [".css", "text/css; charset=utf-8"],
+  [".js", "text/javascript; charset=utf-8"],
+  [".json", "application/json; charset=utf-8"],
+  [".map", "application/json; charset=utf-8"],
+  [".woff", "font/woff"],
+  [".woff2", "font/woff2"],
+]);
+
+/**
+ * `NextServer#getRequestHandler()` renders the standalone application but does
+ * not pass `/_next/static/*` through Next's outer router server. The runtime
+ * image already ships that directory, so serve only this immutable, generated
+ * asset namespace here. Path resolution stays rooted below `.next/static`.
+ */
+async function serveNextStatic(req, res, pathname) {
+  if (!pathname.startsWith(NEXT_STATIC_PREFIX)) return false;
+
+  if (req.method !== "GET" && req.method !== "HEAD") {
+    res.writeHead(405, { Allow: "GET, HEAD" });
+    res.end();
+    return true;
+  }
+
+  let relativePath;
+  try {
+    relativePath = decodeURIComponent(pathname.slice(NEXT_STATIC_PREFIX.length));
+  } catch {
+    res.writeHead(400);
+    res.end();
+    return true;
+  }
+
+  const filePath = resolve(nextStaticDir, relativePath);
+  if (!relativePath || !filePath.startsWith(`${nextStaticDir}${sep}`)) {
+    res.writeHead(404);
+    res.end();
+    return true;
+  }
+
+  try {
+    const file = await stat(filePath);
+    if (!file.isFile()) throw new Error("not a file");
+
+    res.writeHead(200, {
+      "Cache-Control": "public, max-age=31536000, immutable",
+      "Content-Length": file.size,
+      "Content-Type": STATIC_CONTENT_TYPES.get(extname(filePath)) ?? "application/octet-stream",
+      "X-Content-Type-Options": "nosniff",
+    });
+    if (req.method === "HEAD") {
+      res.end();
+    } else {
+      createReadStream(filePath)
+        .on("error", () => res.destroy())
+        .pipe(res);
+    }
+  } catch {
+    res.writeHead(404);
+    res.end();
+  }
+  return true;
+}
 
 async function createNextHandler() {
   if (dev) {
@@ -183,21 +249,35 @@ async function main() {
   }
   await startListener();
 
-  const httpServer = createServer((req, res) => {
-    const parsedUrl = parse(req.url, true);
-    handle(req, res, parsedUrl);
+  const httpServer = createServer(async (req, res) => {
+    let pathname;
+    try {
+      pathname = new URL(req.url ?? "/", "http://localhost").pathname;
+    } catch {
+      res.writeHead(400);
+      res.end();
+      return;
+    }
+    if (!dev && await serveNextStatic(req, res, pathname)) return;
+    handle(req, res);
   });
 
   // WS-Server ohne eigenen HTTP-Server; Upgrade wird manuell geroutet.
   const wss = new WebSocketServer({ noServer: true });
 
   httpServer.on("upgrade", async (req, socket, head) => {
-    const { pathname, query } = parse(req.url, true);
-    if (pathname !== WS_PATH) {
+    let requestUrl;
+    try {
+      requestUrl = new URL(req.url ?? "/", "http://localhost");
+    } catch {
       socket.destroy();
       return;
     }
-    const token = typeof query.token === "string" ? query.token : "";
+    if (requestUrl.pathname !== WS_PATH) {
+      socket.destroy();
+      return;
+    }
+    const token = requestUrl.searchParams.get("token") ?? "";
     let auth = null;
     try {
       auth = await verifyDeviceTokenSql(pool, token);

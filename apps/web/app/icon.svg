@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <defs>
     <linearGradient id="brand-tile" x1="8" y1="5" x2="57" y2="61" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#6BB6FF"/>
-      <stop offset="0.46" stop-color="#1677F2"/>
-      <stop offset="1" stop-color="#173DB8"/>
+      <stop stop-color="#68B9FF"/>
+      <stop offset="0.48" stop-color="#1478F2"/>
+      <stop offset="1" stop-color="#173FB7"/>
     </linearGradient>
   </defs>
   <rect x="2" y="2" width="60" height="60" rx="18" fill="url(#brand-tile)"/>
