@@ -1,11 +1,11 @@
 import type { NextConfig } from "next";
 
 /**
- * Next.js config — Project Time Ledger Web (doc 05 §1 Nr. 1, §9.1).
+ * Next.js config — Tarlog Web (doc 05 §1 Nr. 1, §9.1).
  *
  * `output: 'standalone'` erzeugt ein selbst-enthaltenes Server-Bundle für den
  * Self-Host-Betrieb (Docker). Der Custom-Node-Server `server.mjs` startet den
- * Next-Handler UND den WebSocket-Live-Kanal (doc 05 §7). `@ptl/core`/`@ptl/db`
+ * Next-Handler UND den WebSocket-Live-Kanal (doc 05 §7). `@tarlog/core`/`@tarlog/db`
  * sind Workspace-Packages und werden von Next transpiliert.
  *
  * `webpack.resolve.extensionAlias` bildet die `.js`-Endung der Quell-Imports auf
@@ -17,7 +17,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "standalone",
   reactStrictMode: true,
-  transpilePackages: ["@ptl/core", "@ptl/db"],
+  transpilePackages: ["@tarlog/core", "@tarlog/db"],
   serverExternalPackages: ["pg", "@node-rs/argon2", "pdfmake"],
   typedRoutes: true,
   webpack: (config) => {

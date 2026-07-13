@@ -1,6 +1,6 @@
 // @ts-nocheck
 /**
- * server.mjs — Custom-Node-Server für Project Time Ledger Web (doc 05 §7, §9.1).
+ * server.mjs — Custom-Node-Server für Tarlog Web (doc 05 §7, §9.1).
  *
  * Startet den Next.js-Handler UND den WebSocket-Live-Kanal in EINEM Prozess.
  * Plain JavaScript ohne Build-Schritt (start = `node server.mjs`), damit der

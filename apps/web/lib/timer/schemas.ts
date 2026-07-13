@@ -1,12 +1,12 @@
 /**
  * lib/timer/schemas.ts — Request-Validierung (zod) für Timer- und Zeiteintrag-
  * Routen. NUR die client-gesendeten Felder; abgeleitete Werte (Netto, Rundung,
- * Rate-Snapshot, Beträge) berechnet der Server via @ptl/core. Enum-Wiederver-
- * wendung aus @ptl/core (`backdateReasonEnum`, `timeEntrySourceEnum`), damit die
+ * Rate-Snapshot, Beträge) berechnet der Server via @tarlog/core. Enum-Wiederver-
+ * wendung aus @tarlog/core (`backdateReasonEnum`, `timeEntrySourceEnum`), damit die
  * Wahrheit im Core bleibt.
  */
 import { z } from "zod";
-import { backdateReasonEnum, timeEntrySourceEnum } from "@ptl/core";
+import { backdateReasonEnum, timeEntrySourceEnum } from "@tarlog/core";
 
 const epochMs = z.number().int();
 const uuid = z.string().uuid();

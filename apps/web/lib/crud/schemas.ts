@@ -1,7 +1,7 @@
 /**
  * lib/crud/schemas.ts — Zod-Eingabeschemas für die Stammdaten-CRUD-Routen.
  *
- * Basis sind die @ptl/core-Schemas (single source of truth, doc 05 §4). Für die
+ * Basis sind die @tarlog/core-Schemas (single source of truth, doc 05 §4). Für die
  * API werden `id` und `main_account_id` entfernt (Server vergibt `id` = uuidv7,
  * `main_account_id` kommt aus dem AuthContext) und um die restlichen
  * schreibbaren DB-Spalten aus doc 06 ergänzt. `*Update` = partielles Schema.
@@ -15,7 +15,7 @@ import {
   roundingRuleSchema,
   roundingModeEnum,
   CALCULATION_VERSION,
-} from "@ptl/core";
+} from "@tarlog/core";
 import { paginationSchema } from "./http.js";
 
 const OMIT_IDS = { id: true, main_account_id: true } as const;

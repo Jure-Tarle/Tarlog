@@ -1,6 +1,6 @@
 /**
  * tasks.ts — task CRUD (doc 06 A.2 `tasks`). No bridge command exists for tasks,
- * so all operations are local SQL via {@link ../lib/db}. Validation via @ptl/core
+ * so all operations are local SQL via {@link ../lib/db}. Validation via @tarlog/core
  * `taskSchema`.
  */
 import { execute, select } from "../lib/db";
@@ -9,7 +9,7 @@ import { getContext, now } from "./context";
 import { writeAudit } from "./audit";
 import { notifyChange } from "./backup";
 import { uuidv7 } from "uuidv7";
-import { taskSchema, type TaskInput, type Uuid } from "@ptl/core";
+import { taskSchema, type TaskInput, type Uuid } from "@tarlog/core";
 
 export type TaskRow = TaskInput;
 

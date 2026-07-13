@@ -1,7 +1,7 @@
 /**
  * rounding.ts — rounding-rule CRUD + precedence resolution Projekt > Kunde >
  * Default (doc 07 §3, doc 10 §4). Persists to `rounding_rules` (interval in
- * MINUTES, doc 06) but maps to the @ptl/core {@link RoundingRule} shape (interval
+ * MINUTES, doc 06) but maps to the @tarlog/core {@link RoundingRule} shape (interval
  * in SECONDS) that `applyRounding`/`calculateEntry` consume.
  */
 import { execute, select } from "../lib/db";
@@ -15,7 +15,7 @@ import {
   type RoundingRule,
   type RoundingRuleInput,
   type Uuid,
-} from "@ptl/core";
+} from "@tarlog/core";
 
 /** Persisted rounding-rule row (doc 06 `rounding_rules`). */
 export interface RoundingRuleRow {
@@ -79,7 +79,7 @@ export type RoundingRuleDraft = Omit<
 > & { name: string; mode: RoundingMode };
 
 /**
- * Insert or update a rounding rule. Validates through the @ptl/core
+ * Insert or update a rounding rule. Validates through the @tarlog/core
  * `roundingRuleSchema` so defaults + shape are enforced at the edge.
  */
 export async function upsertRoundingRule(

@@ -1,6 +1,6 @@
 /**
  * POST /api/timer/stop — Timer stoppen und Zeiteintrag finalisieren (doc 04 §3,
- * doc 07). Berechnung via @ptl/core calculateEntry (aufgelöste Rundungsregel
+ * doc 07). Berechnung via @tarlog/core calculateEntry (aufgelöste Rundungsregel
  * Projekt>Kunde>Default + Rate Task>…>Default). Fehlt eine projektweise
  * Pflichtbeschreibung, geht der Timer in Status needs_description (kein Finalize)
  * und die Antwort trägt needs_description=true.

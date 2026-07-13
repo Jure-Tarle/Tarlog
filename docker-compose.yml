@@ -1,4 +1,4 @@
-# docker-compose.yml — Project Time Ledger, selbst gehosteter Server-Modus.
+# docker-compose.yml — Tarlog, selbst gehosteter Server-Modus.
 # doc 05 §9.1 (Docker Compose), §9.2 (Env), §9.4 (Health-Check).
 #
 # Ein Kommando startet den vollständigen Stack:

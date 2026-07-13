@@ -2,7 +2,7 @@
  * Nachtrag (doc 03 §7, doc 11 §7 nr. 6): Arbeitszeit rückwirkend erfassen, wenn
  * der Timer vergessen wurde. Datum + Start/Ende als lokale Wandzeit, Projekt
  * optional, Pflichtgrund aus den elf Spec-Gründen. Die Berechnung (netto,
- * Rundung, Betrag) macht `entries.backdate` über @ptl/core.
+ * Rundung, Betrag) macht `entries.backdate` über @tarlog/core.
  */
 import { useMemo, useState } from "react";
 import { View } from "react-native";

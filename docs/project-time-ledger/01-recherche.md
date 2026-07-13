@@ -2,13 +2,13 @@
 
 > Hinweis: Rechtliche Aussagen sind Produkt-Hinweise, keine Rechtsberatung. Stand der Recherche: Juli 2026.
 
-Dieses Kapitel dokumentiert die Rechercheergebnisse, die der Architektur- und Feature-Planung von **Project Time Ledger** zugrunde liegen. SPEC §1 verlangt eine vorgelagerte Internetrecherche zu Wettbewerbsprodukten, Arbeitszeitrecht, Datenschutz, Rechnungsstellung, Tech-Stacks und Best Practices der Datenmodellierung. Jeder recherchierte Themenblock schließt mit einer klaren, übernommenen Lehre; der Abschnitt [Übernommene Erkenntnisse](#übernommene-erkenntnisse) am Ende fasst die produktbindenden Entscheidungen zusammen. Alle festgelegten Technologieentscheidungen sind in der [Architektur](05-architektur.md) sowie im Index [README](README.md) referenziert.
+Dieses Kapitel dokumentiert die Rechercheergebnisse, die der Architektur- und Feature-Planung von **Tarlog** zugrunde liegen. SPEC §1 verlangt eine vorgelagerte Internetrecherche zu Wettbewerbsprodukten, Arbeitszeitrecht, Datenschutz, Rechnungsstellung, Tech-Stacks und Best Practices der Datenmodellierung. Jeder recherchierte Themenblock schließt mit einer klaren, übernommenen Lehre; der Abschnitt [Übernommene Erkenntnisse](#übernommene-erkenntnisse) am Ende fasst die produktbindenden Entscheidungen zusammen. Alle festgelegten Technologieentscheidungen sind in der [Architektur](05-architektur.md) sowie im Index [README](README.md) referenziert.
 
 ---
 
 ## 1. Wettbewerbsanalyse
 
-Untersucht wurden öffentlich verfügbare Produktseiten, Hilfe- und Dokumentationsseiten sowie Feature-Listen etablierter Zeiterfassungsprogramme. Ziel war, den differenzierenden Kern von Project Time Ledger zu schärfen: **local-first, revisionsfähig, DSGVO-freundlich, ohne invasives Auto-Tracking**, mit Rechnungsstellung als First-Class-Modul.
+Untersucht wurden öffentlich verfügbare Produktseiten, Hilfe- und Dokumentationsseiten sowie Feature-Listen etablierter Zeiterfassungsprogramme. Ziel war, den differenzierenden Kern von Tarlog zu schärfen: **local-first, revisionsfähig, DSGVO-freundlich, ohne invasives Auto-Tracking**, mit Rechnungsstellung als First-Class-Modul.
 
 | Tool | Kern-Stärke | Bewertung für uns |
 |---|---|---|

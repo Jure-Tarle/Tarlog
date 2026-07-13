@@ -1,7 +1,7 @@
 /**
  * Today — Tagesübersicht (doc 11 §4.1): Einträge, Lücken und Pausen einer
  * Timeline, plus Tagessumme und Compliance-Verdikt. Reine Leseansicht über
- * loadRange (src/data + @ptl/core); Aktionen verlinken in den Nachtragsassistenten.
+ * loadRange (src/data + @tarlog/core); Aktionen verlinken in den Nachtragsassistenten.
  */
 import { useMemo } from "react";
 import { Page, Card, Button, StatGrid, StatTile, AsyncBody, EmptyState, ComplianceBadge, Tag, TableWrap } from "../components/ui";

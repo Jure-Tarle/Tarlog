@@ -1,7 +1,7 @@
 /**
  * lib/auth/schemas.ts — Zod-Eingabeschemas für die Auth-/Geräte-/Token-Routen.
  *
- * Auth-Inputs sind NICHT im @ptl/core-Schemapaket (das deckt fachliche Kern-
+ * Auth-Inputs sind NICHT im @tarlog/core-Schemapaket (das deckt fachliche Kern-
  * entitäten ab), daher hier lokal. Feld-Konventionen wie im Rest des Projekts:
  * Zeiten epoch-ms, IDs UUID, Geld hier nicht relevant.
  */

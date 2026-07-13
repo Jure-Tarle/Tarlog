@@ -7,7 +7,7 @@
  */
 import { and, eq, ilike, isNull, type SQL } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
-import { CALCULATION_VERSION } from "@ptl/core";
+import { CALCULATION_VERSION } from "@tarlog/core";
 import { json, parseJson, requireAuth } from "@/lib/api";
 import { db, schema } from "@/lib/db";
 import {

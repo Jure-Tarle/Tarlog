@@ -1,4 +1,4 @@
-# Project Time Ledger
+# Tarlog
 
 Professionelle, revisionsfähige, datenschutzfreundliche Zeiterfassung für eine
 Einzelperson (Freelancer, Berater, Entwickler, Designer, Kreative). Lokal
@@ -42,14 +42,14 @@ pnpm -r test       # core 98 + web 45 Unit-Tests
 cd apps/desktop/src-tauri && cargo test --test local_mode
 
 # iOS-App (Architektur vorbereitet):
-pnpm --filter @ptl/mobile exec tsc --noEmit
+pnpm --filter @tarlog/mobile exec tsc --noEmit
 
 # Server end-to-end: Postgres → Migration → REST → WebSocket → Rechnung → Sync.
 # 20 harte Assertions über alle Kern-Invarianten, Exit 0 = alles hält.
 ./scripts/smoke.sh
 
 # Natives Desktop-Binary (ohne Signing):
-pnpm --filter @ptl/desktop exec tauri build --no-bundle
+pnpm --filter @tarlog/desktop exec tauri build --no-bundle
 
 # Selbst hosten:
 cp .env.example .env && docker compose up   # Postgres + Web
@@ -79,7 +79,7 @@ Live-Sync über WebSocket an einen zweiten Client · Audit-Log.
 | 4 | Projekte erstellen | `commands::create_project`, `data/projects`, Web `POST /api/projects` |
 | 5 | Aufgaben erstellen | `tasks`-Tabelle, `data/tasks`, Web `POST /api/tasks` |
 | 6 | Stundensätze | `billing_rates` (historisiert), `resolveRate` (Aufgabe>Projekt>Kunde>Default) |
-| 7 | Tagessätze | `day_rate_rules`, `computeDayRate` in `@ptl/core` |
+| 7 | Tagessätze | `day_rate_rules`, `computeDayRate` in `@tarlog/core` |
 | 8 | Festpreise | `fixed_fee_contracts`, `computeFixedFeeMargin` |
 | 9–12 | Timer start/pause/resume/stop | `commands::timer_*` (Desktop), `POST /api/timer/*` (Web), `data/timer` (iOS) |
 | 13 | Beschreibung beim Stoppen | Stop-Dialog `Timer.tsx` (Pflicht je Projekt), `needs_description`-Status |

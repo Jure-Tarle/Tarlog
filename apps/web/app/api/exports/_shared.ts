@@ -13,7 +13,7 @@ import {
   evaluateRestPeriod,
   GERMAN_PROFILE,
   type DayEntrySummary,
-} from "@ptl/core";
+} from "@tarlog/core";
 import { formatLocalDate } from "@/lib/pdf";
 import { allocateNumber, formatExportNumber, recordAudit, sequenceKey } from "@/lib/invoice";
 

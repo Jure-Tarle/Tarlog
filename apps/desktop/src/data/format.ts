@@ -2,11 +2,11 @@
  * format.ts — display formatters for the ledger UI.
  *
  * All time math stays in the entry's IANA timezone (never the device zone) via
- * luxon, mirroring @ptl/core conventions (doc 07 §6). Durations render from
+ * luxon, mirroring @tarlog/core conventions (doc 07 §6). Durations render from
  * integer seconds, money from integer cents — the UI never invents precision.
  */
 import { DateTime } from "luxon";
-import type { EpochMs, IanaTimezone, Seconds, Cents } from "@ptl/core";
+import type { EpochMs, IanaTimezone, Seconds, Cents } from "@tarlog/core";
 
 /** The device's IANA timezone — the sensible default for new entries. */
 export function deviceTimezone(): IanaTimezone {

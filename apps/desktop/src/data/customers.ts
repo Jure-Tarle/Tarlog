@@ -2,7 +2,7 @@
  * customers.ts — customer CRUD (doc 06 A.2 `customers`). Inserts go through the
  * `create_customer` bridge command (Rust owns the write + `main_account_id`);
  * reads use the `list_customers` bridge command; updates/soft-deletes are local
- * SQL (no bridge command exists for them). Validation via @ptl/core
+ * SQL (no bridge command exists for them). Validation via @tarlog/core
  * `customerSchema`.
  */
 import { createCustomer as bridgeCreate, listCustomers as bridgeList } from "../lib/bridge";
@@ -11,7 +11,7 @@ import { getContext, now } from "./context";
 import { writeAudit } from "./audit";
 import { notifyChange } from "./backup";
 import { uuidv7 } from "uuidv7";
-import { customerSchema, type CustomerInput, type Uuid } from "@ptl/core";
+import { customerSchema, type CustomerInput, type Uuid } from "@tarlog/core";
 
 export type CustomerRow = CustomerInput;
 

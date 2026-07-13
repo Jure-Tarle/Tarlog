@@ -14,7 +14,7 @@ import { listProjects } from "../data/projects";
 import { listTasks } from "../data/tasks";
 import { entries } from "../data/repositories";
 import { resolveRoundingRuleForEntry } from "../data/rounding";
-import { roundingPreview, backdateReasonEnum, type RoundingResult } from "@ptl/core";
+import { roundingPreview, backdateReasonEnum, type RoundingResult } from "@tarlog/core";
 import type { BackdateEntryInput } from "../lib/bridge";
 import { fmtHM, fmtDate, fmtClock, fromDateTimeInputs, toDateInputValue, deviceTimezone } from "../data/format";
 import { useTimezone, nameMap } from "./shared";

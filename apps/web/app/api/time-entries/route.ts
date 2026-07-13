@@ -4,7 +4,7 @@
  *   GET  ?from=&to=&project_id=&status=&limit=  — gefilterte Liste (Account-scoped,
  *        ohne soft-gelöschte), absteigend nach actual_started_at.
  *   POST — Nachtrag/manueller Eintrag (source, backdate_reason, breaks) mit
- *        Server-Berechnung (@ptl/core calculateEntry).
+ *        Server-Berechnung (@tarlog/core calculateEntry).
  */
 import type { NextRequest } from "next/server";
 import { requireAuth, json, parseJson } from "@/lib/api";

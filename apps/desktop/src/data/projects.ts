@@ -1,7 +1,7 @@
 /**
  * projects.ts — project CRUD (doc 06 A.2 `projects`). Inserts via the
  * `create_project` bridge command; reads via `list_projects`; updates/archive
- * are local SQL. Validation via @ptl/core `projectSchema`.
+ * are local SQL. Validation via @tarlog/core `projectSchema`.
  */
 import { createProject as bridgeCreate, listProjects as bridgeList } from "../lib/bridge";
 import { execute, select } from "../lib/db";
@@ -10,7 +10,7 @@ import { getContext, now } from "./context";
 import { writeAudit } from "./audit";
 import { notifyChange } from "./backup";
 import { uuidv7 } from "uuidv7";
-import { projectSchema, type ProjectInput, type Uuid } from "@ptl/core";
+import { projectSchema, type ProjectInput, type Uuid } from "@tarlog/core";
 
 export type ProjectRow = ProjectInput;
 

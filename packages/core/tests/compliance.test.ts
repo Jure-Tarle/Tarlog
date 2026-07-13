@@ -7,7 +7,7 @@
  *   - evaluateWeek(net_seconds_week): WeekComplianceResult
  *   - GERMAN_PROFILE, EU_PROFILE
  *
- * Auftrag: Implementierung Project Time Ledger V1 gemäß docs/project-time-ledger;
+ * Auftrag: Implementierung Tarlog V1 gemäß docs/project-time-ledger;
  * die Tests prüfen die Compliance-Engine des Monorepos. KEINE Quelldateien geändert.
  *
  * Konvention: Fehler dokumentieren statt Implementierung anpassen. Wo die

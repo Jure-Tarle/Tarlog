@@ -3,12 +3,12 @@
  *
  * This file defines the FULL set of store functions the screen author and sync
  * author code against, implemented over expo-sqlite (see ../lib/db). Business
- * logic (net/rounding/billing/compliance) is delegated to `@ptl/core`; this
+ * logic (net/rounding/billing/compliance) is delegated to `@tarlog/core`; this
  * layer only orchestrates local storage + core (AC28: iOS architecture prepared).
  *
  * Hard rules baked into these signatures:
  *  - Business logic (net/rounding/billing/compliance) is NEVER done here; it
- *    comes from `@ptl/core`. This layer only orchestrates storage + core.
+ *    comes from `@tarlog/core`. This layer only orchestrates storage + core.
  *  - Instants are UTC epoch-ms (`EpochMs`); each entry carries its `timezone`.
  *  - Durations are integer seconds; money is integer cents; ids are UUIDv7.
  *  - Exactly ONE active timer per main account (single-timer invariant); the
@@ -25,8 +25,8 @@ import type {
   Seconds,
   TimerStatus,
   Uuid,
-} from "@ptl/core";
-import { CALCULATION_VERSION, calculateEntry } from "@ptl/core";
+} from "@tarlog/core";
+import { CALCULATION_VERSION, calculateEntry } from "@tarlog/core";
 import { deviceTimezone, durationSeconds, nowMs } from "../lib/time";
 import { newId } from "../lib/ids";
 import {
@@ -195,7 +195,7 @@ export interface RoundingRuleRef {
 
 // ===========================================================================
 // timer — the single-timer state machine (doc 04 §3, doc 11 §7 nr. 1–5)
-// Exactly ONE active timer per main account. Transitions call `@ptl/core` for
+// Exactly ONE active timer per main account. Transitions call `@tarlog/core` for
 // any duration math; this layer only persists state + emits sync events.
 // ===========================================================================
 
@@ -225,7 +225,7 @@ function loadEntryRow(entryId: Uuid): TimeEntryRow {
 
 /**
  * Insert a fresh `running` time entry (live-timer path). The 12 calc fields are
- * zeroed — they are computed by `@ptl/core` at stop time, never here.
+ * zeroed — they are computed by `@tarlog/core` at stop time, never here.
  */
 function insertRunningEntry(input: CreateEntryInput): Uuid {
   const conn = db();

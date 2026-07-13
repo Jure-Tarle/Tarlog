@@ -3,7 +3,7 @@
  * doc 11 §7 iOS local-first).
  *
  * The mobile client persists local-first into `ptl.db`. The schema here is
- * STRUKTURGLEICH to the `@ptl/db` `sqlite` Drizzle namespace: identical table
+ * STRUKTURGLEICH to the `@tarlog/db` `sqlite` Drizzle namespace: identical table
  * and column names (snake_case), the same type conventions (epoch-ms UTC as
  * INTEGER, durations `*_seconds` INTEGER, money `*_cents` INTEGER, ids UUIDv7
  * as TEXT, JSON as TEXT, booleans as INTEGER 0/1). Only the CORE subset of
@@ -12,10 +12,10 @@
  *   main_accounts, customers, projects, tasks, time_entries,
  *   time_entry_breaks, timer_states, rounding_rules, settings, sync_events
  *
- * Any divergence in a field name from `@ptl/db` sqlite is a data-model bug.
+ * Any divergence in a field name from `@tarlog/db` sqlite is a data-model bug.
  *
  * Business logic (net/rounding/billing/compliance) is NEVER done in SQL here —
- * it comes from `@ptl/core`. This module only owns storage + schema versioning.
+ * it comes from `@tarlog/core`. This module only owns storage + schema versioning.
  */
 import * as SQLite from "expo-sqlite";
 
@@ -45,7 +45,7 @@ export function resetDb(): void {
 /**
  * Ordered DDL migrations. Index 0 is applied when `user_version` is 0, index 1
  * when it is 1, and so on. Append new migrations — never edit a shipped one.
- * Column names/types mirror `@ptl/db` sqlite exactly (see module doc).
+ * Column names/types mirror `@tarlog/db` sqlite exactly (see module doc).
  */
 const MIGRATIONS: readonly string[] = [
   // 0 → 1: core tables for the iOS local-first subset.

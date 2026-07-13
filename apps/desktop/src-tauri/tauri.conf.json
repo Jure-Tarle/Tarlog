@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Project Time Ledger",
+  "productName": "Tarlog",
   "version": "0.0.1",
-  "identifier": "com.ptl.desktop",
+  "identifier": "com.tarlog.desktop",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:1420",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Project Time Ledger",
+        "title": "Tarlog",
         "width": 1100,
         "height": 720,
         "minWidth": 900,
@@ -29,7 +29,7 @@
       "id": "main",
       "iconPath": "icons/icon.png",
       "iconAsTemplate": true,
-      "tooltip": "Project Time Ledger"
+      "tooltip": "Tarlog"
     }
   },
   "bundle": {
@@ -44,7 +44,7 @@
     ],
     "category": "Productivity",
     "shortDescription": "Revisionsfähige lokale Zeiterfassung",
-    "longDescription": "Project Time Ledger — professionelle, revisionsfähige und datenschutzfreundliche Zeiterfassung. Lokaler Desktop-Modus mit optionalem Server-Sync.",
+    "longDescription": "Tarlog — professionelle, revisionsfähige und datenschutzfreundliche Zeiterfassung. Lokaler Desktop-Modus mit optionalem Server-Sync.",
     "macOS": {
       "minimumSystemVersion": "10.15"
     },

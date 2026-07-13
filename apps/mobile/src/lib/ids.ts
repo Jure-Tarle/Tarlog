@@ -6,7 +6,7 @@
  * server and desktop clients. Never use Math.random or uuidv4 for entity ids.
  */
 import { uuidv7 } from "uuidv7";
-import type { Uuid } from "@ptl/core";
+import type { Uuid } from "@tarlog/core";
 
 /** Generate a fresh UUIDv7 as a string. */
 export function newId(): Uuid {

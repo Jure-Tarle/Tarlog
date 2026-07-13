@@ -1,7 +1,7 @@
 /**
  * rates.ts — resolve the effective hourly {@link RateSnapshot} for an entry by
  * precedence task > project > customer > default (doc 07 §5, doc 10 §4.0) using
- * the @ptl/core `resolveRate`. Sources, in order per level:
+ * the @tarlog/core `resolveRate`. Sources, in order per level:
  *   1. historised `billing_rates` (scope + id, newest `valid_from` ≤ entry day),
  *   2. the entity's own `default_hourly_rate_cents` column,
  *   3. account default from `settings["billing.default_hourly_rate_cents"]` (0
@@ -10,7 +10,7 @@
 import { select } from "../lib/db";
 import { getContext } from "./context";
 import { getSetting } from "./settings";
-import { resolveRate, type RateSnapshot, type Uuid } from "@ptl/core";
+import { resolveRate, type RateSnapshot, type Uuid } from "@tarlog/core";
 
 /** Owning entities of an entry, used to resolve its rate. */
 export interface RateContext {

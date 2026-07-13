@@ -4,14 +4,14 @@
  *
  * Grundsatz (doc 10 §4): die abrechenbare Zeit stammt aus der gerundeten
  * `billing_duration_seconds`, nie aus `actual_duration_seconds`. Der Betrag wird
- * über `computeAmountCents(billing_seconds, rate)` aus @ptl/core berechnet
+ * über `computeAmountCents(billing_seconds, rate)` aus @tarlog/core berechnet
  * (Integer-Cents). Einträge werden nach aufgelöstem Satz + Bezeichnung gruppiert;
  * je Gruppe genau ein Posten, der Betrag EINMAL aus der Summensekundenzahl
  * gerundet — die Postensumme stimmt damit exakt zur gerundeten Abrechnungszeit
  * (Testfall 20).
  */
-import { computeAmountCents } from "@ptl/core";
-import type { Cents, CurrencyCode, RateSnapshot, Seconds } from "@ptl/core";
+import { computeAmountCents } from "@tarlog/core";
+import type { Cents, CurrencyCode, RateSnapshot, Seconds } from "@tarlog/core";
 import type { BillableEntry, DraftItem } from "./types.js";
 
 /** Fällt zurück, wenn ein Eintrag keinen eingefrorenen `rate_snapshot` trägt. */

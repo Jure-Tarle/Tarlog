@@ -1,6 +1,6 @@
 # Changelog
 
-Alle nennenswerten Änderungen an Project Time Ledger. Format nach
+Alle nennenswerten Änderungen an Tarlog. Format nach
 [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionierung nach
 [SemVer](https://semver.org/lang/de/).
 
@@ -10,7 +10,7 @@ Erste Release-Version. Lokale-zuerst, revisionsfähige, DSGVO-freundliche
 Zeiterfassung für eine Einzelperson, optional mit selbst gehostetem Server für
 Synchronisierung zwischen Desktop, Browser und iOS.
 
-### Core (`@ptl/core`)
+### Core (`@tarlog/core`)
 - Zeitberechnung, Rundung (9 Modi, 6 Intervalle), deutsches und EU-Arbeits­zeit­profil,
   Abrechnung (Stundensatz, Tagessatz, Festpreis, Retainer).
 - Tatsächliche Arbeitszeit (`actual_duration_seconds`) und Abrechnungszeit
@@ -18,7 +18,7 @@ Synchronisierung zwischen Desktop, Browser und iOS.
   gemessene Dauer (70 Minuten → 75 Minuten bei 15-Minuten-Intervall).
 - 98 Unit-Tests.
 
-### Datenmodell (`@ptl/db`)
+### Datenmodell (`@tarlog/db`)
 - 40 Tabellen als dual-dialektisches Drizzle-Schema (SQLite + PostgreSQL).
 - Generierte PostgreSQL-Migration.
 

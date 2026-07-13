@@ -7,8 +7,8 @@
  */
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { computeAmountCents, roundingPreview } from "@ptl/core";
-import type { RateSnapshot, RoundingMode, RoundingRule } from "@ptl/core";
+import { computeAmountCents, roundingPreview } from "@tarlog/core";
+import type { RateSnapshot, RoundingMode, RoundingRule } from "@tarlog/core";
 import { API, ApiClientError, api } from "@/lib/ui/api";
 import { deviceTimezone, formatMoney, secondsToHM } from "@/lib/ui/format";
 import { Button, Checkbox, Field, FormRow, Select, StatusLine, TextArea, TextInput } from "@/lib/ui/controls";

@@ -1,5 +1,5 @@
 /**
- * @ptl/db — public barrel. Dual-dialect Drizzle schema (doc 05 §2.1, doc 06).
+ * @tarlog/db — public barrel. Dual-dialect Drizzle schema (doc 05 §2.1, doc 06).
  *
  * Ein logisches Datenmodell, zwei Dialekte:
  *  - SQLite (Client-DB, better-sqlite3) → `sqliteSchema` / Namespace `sqlite`.

@@ -12,7 +12,7 @@ import type {
   SelectHTMLAttributes,
   ButtonHTMLAttributes,
 } from "react";
-import type { ComplianceStatus } from "@ptl/core";
+import type { ComplianceStatus } from "@tarlog/core";
 
 // --- Page scaffold ---------------------------------------------------------
 

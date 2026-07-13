@@ -6,7 +6,7 @@
  *    Summensekundenzahl, Testfall 20).
  */
 import { describe, expect, it } from "vitest";
-import { computeAmountCents, type RateSnapshot } from "@ptl/core";
+import { computeAmountCents, type RateSnapshot } from "@tarlog/core";
 import { buildHourlyItems, type FallbackRate } from "../lib/invoice/build.js";
 import type { BillableEntry } from "../lib/invoice/types.js";
 

@@ -35,7 +35,7 @@ jobs:
       - name: Unit-Tests (core 98, web 45)
         run: pnpm -r test
       - name: Typecheck iOS-App
-        run: pnpm --filter @ptl/mobile exec tsc --noEmit
+        run: pnpm --filter @tarlog/mobile exec tsc --noEmit
 
   # Lokaler Desktop-Modus: rusqlite-Backend headless gegen eine Wegwerf-DB.
   desktop:
@@ -93,6 +93,6 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Web bauen (server.mjs braucht .next)
-        run: pnpm --filter @ptl/web build
+        run: pnpm --filter @tarlog/web build
       - name: Smoke — 22 Invarianten (Rundung, Compliance, PDF, Rechnung, Sync, WS)
         run: bash scripts/smoke.sh

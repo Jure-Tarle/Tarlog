@@ -4,7 +4,7 @@
  *
  * Bewusst abhängigkeitsarm: das Skript nutzt AUSSCHLIESSLICH `pg`. Es ist nicht
  * Teil des Next-Trace, deshalb steht im `output: 'standalone'`-Bundle weder
- * `drizzle-orm` (Next bündelt es in die Server-Chunks) noch @ptl/db mit intakten
+ * `drizzle-orm` (Next bündelt es in die Server-Chunks) noch @tarlog/db mit intakten
  * transitiven Abhängigkeiten zur Verfügung. `pg` dagegen bleibt als natives
  * Paket extern und ist im Image auflösbar.
  *
@@ -13,7 +13,7 @@
  * den Tag in `_ptl_migrations`. Idempotent: ein zweiter Lauf ist ein No-op.
  *
  * Die SQL-Dateien erzeugt drizzle-kit außerhalb des Images:
- *   pnpm --filter @ptl/db exec drizzle-kit generate --config=drizzle.config.postgres.gen.ts
+ *   pnpm --filter @tarlog/db exec drizzle-kit generate --config=drizzle.config.postgres.gen.ts
  *
  *   DATABASE_URL=postgres://… node scripts/migrate.mjs
  */
@@ -38,7 +38,7 @@ const journalPath = join(migrationsFolder, "meta", "_journal.json");
 if (!existsSync(journalPath)) {
   console.error(
     `[migrate] Migrations-Journal fehlt: ${journalPath}\n` +
-      "Zuerst generieren: pnpm --filter @ptl/db exec drizzle-kit generate --config=drizzle.config.postgres.gen.ts",
+      "Zuerst generieren: pnpm --filter @tarlog/db exec drizzle-kit generate --config=drizzle.config.postgres.gen.ts",
   );
   process.exit(1);
 }

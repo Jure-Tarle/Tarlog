@@ -23,7 +23,7 @@ import type {
   RoundingRuleInput,
   EpochMs,
   Uuid,
-} from "@ptl/core";
+} from "@tarlog/core";
 
 export type Customer = CustomerInput;
 export type Project = ProjectInput;

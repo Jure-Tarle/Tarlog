@@ -2,7 +2,7 @@
 
 > Hinweis: Rechtliche Aussagen sind Produkt-Hinweise, keine Rechtsberatung. Stand der Recherche: Juli 2026.
 
-Dieses Dokument definiert das vollständige Datenmodell für Project Time Ledger — alle **31 SPEC-Tabellen + 1 abgeleitete Tabelle `timer_states` (aus SPEC §6.3)** für Version 1 und alle **8 vorbereiteten Team-Tabellen** aus SPEC §24. Es setzt die im [Architekturdokument](05-architektur.md) festgelegten Konventionen um und ist Grundlage für die [Zeitberechnungs- und Rundungslogik](07-zeitberechnung-rundung.md), das [Compliance-Modul](08-compliance.md), das [Sync-Konzept](04-sync.md) sowie [Abrechnung und Export](10-abrechnung-export.md).
+Dieses Dokument definiert das vollständige Datenmodell für Tarlog — alle **31 SPEC-Tabellen + 1 abgeleitete Tabelle `timer_states` (aus SPEC §6.3)** für Version 1 und alle **8 vorbereiteten Team-Tabellen** aus SPEC §24. Es setzt die im [Architekturdokument](05-architektur.md) festgelegten Konventionen um und ist Grundlage für die [Zeitberechnungs- und Rundungslogik](07-zeitberechnung-rundung.md), das [Compliance-Modul](08-compliance.md), das [Sync-Konzept](04-sync.md) sowie [Abrechnung und Export](10-abrechnung-export.md).
 
 ## 0. Grundkonventionen (aus PLAN §1, hier nur angewendet, nicht neu verhandelt)
 

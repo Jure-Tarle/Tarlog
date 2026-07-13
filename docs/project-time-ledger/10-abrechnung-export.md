@@ -2,7 +2,7 @@
 
 > Hinweis: Rechtliche Aussagen sind Produkt-Hinweise, keine Rechtsberatung. Stand der Recherche: Juli 2026.
 
-Diese Datei deckt die kaufmännische Kern-Domäne des Project Time Ledger ab: Kunden- und Projektstammdaten, Aufgaben, die vier Abrechnungsmodelle mit deterministischer Raten-Auflösung, das revisionsfähige Rechnungsmodul (inkl. §14-UStG-Pflichtangaben, Kleinunternehmer §19 UStG, Reverse Charge §13b UStG), die Export-Pipeline (fünf Formate, sieben PDF-Varianten), die Reports und den Import-Assistenten.
+Diese Datei deckt die kaufmännische Kern-Domäne des Tarlog ab: Kunden- und Projektstammdaten, Aufgaben, die vier Abrechnungsmodelle mit deterministischer Raten-Auflösung, das revisionsfähige Rechnungsmodul (inkl. §14-UStG-Pflichtangaben, Kleinunternehmer §19 UStG, Reverse Charge §13b UStG), die Export-Pipeline (fünf Formate, sieben PDF-Varianten), die Reports und den Import-Assistenten.
 
 Querverweise: Datenmodell und Snapshot-Felder in [Datenmodell](06-datenmodell.md); getrennte `actual_duration_seconds`/`billing_duration_seconds` und Rundung in [Zeitberechnung & Rundung](07-zeitberechnung-rundung.md); Compliance-Hinweise in [Compliance](08-compliance.md); Aufbewahrungsfristen für Rechnungen in [Datenschutz & Sicherheit](09-datenschutz-sicherheit.md); Timer/Nachtrag in [Zeiterfassung](03-zeiterfassung.md).
 

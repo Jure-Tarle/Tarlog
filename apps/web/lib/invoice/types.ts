@@ -5,7 +5,7 @@
  * epoch-ms UTC + IANA-Zeitzone, Dauern ganze Sekunden (doc 05 §8, doc 10
  * "Bewusste Entscheidungen").
  */
-import type { Cents, CurrencyCode, EpochMs, IanaTimezone, Seconds } from "@ptl/core";
+import type { Cents, CurrencyCode, EpochMs, IanaTimezone, Seconds } from "@tarlog/core";
 
 /** Aussteller (Leistender) — §14 Abs. 4 Nr. 1/3 (doc 10 §5.3). */
 export interface IssuerProfile {

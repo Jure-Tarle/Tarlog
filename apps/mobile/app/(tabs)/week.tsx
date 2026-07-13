@@ -1,7 +1,7 @@
 /**
  * Woche (doc 11 §7 nr. 12): sieben Tageszeilen mit Nettozeit, Pausen und
  * Abrechnungszeit, plus Wochensumme. Rein lesend über `entries.inRange` für das
- * lokale Wochenfenster; keine Rundungsmathematik hier (die liegt in @ptl/core).
+ * lokale Wochenfenster; keine Rundungsmathematik hier (die liegt in @tarlog/core).
  */
 import { useMemo } from "react";
 import { View } from "react-native";

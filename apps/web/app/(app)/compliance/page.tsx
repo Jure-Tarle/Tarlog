@@ -3,7 +3,7 @@
  * Nr. 13, doc 08). Ampel trägt immer Symbol + Text (Farbe nie allein).
  */
 import { PageHeader, LoadError, EmptyState, Card, ComplianceBadge, Badge, type Traffic } from "@/lib/ui/ui";
-import { GERMAN_PROFILE } from "@ptl/core";
+import { GERMAN_PROFILE } from "@tarlog/core";
 import { requireAccount, listComplianceResults, monthRange } from "@/lib/ui/queries";
 import { ComplianceOverride } from "./ComplianceOverride";
 

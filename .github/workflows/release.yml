@@ -16,7 +16,7 @@ permissions:
   packages: write # Image nach GHCR pushen
 
 env:
-  IMAGE: ghcr.io/jure-tarle/project-time-ledger-web
+  IMAGE: ghcr.io/jure-tarle/tarlog-web
 
 jobs:
   # 1) Vor dem Release müssen alle Prüfungen halten.
@@ -88,7 +88,7 @@ jobs:
           workspaces: apps/desktop/src-tauri
       - run: pnpm install --frozen-lockfile
       # Core wird vom Desktop-Frontend importiert und muss gebaut vorliegen.
-      - run: pnpm --filter @ptl/core build && pnpm --filter @ptl/db build
+      - run: pnpm --filter @tarlog/core build && pnpm --filter @tarlog/db build
       # Desktop-eigenes Gate: der headless Integrationstest des lokalen Modus
       # (Migration, Timer, Single-Timer, Nachtrag, Backup). Fängt Startup- und
       # Persistenzfehler VOR dem Bundling.
@@ -102,7 +102,7 @@ jobs:
           projectPath: apps/desktop
           args: ${{ matrix.args }}
           tagName: ${{ github.ref_name }}
-          releaseName: "Project Time Ledger ${{ github.ref_name }}"
+          releaseName: "Tarlog ${{ github.ref_name }}"
           releaseBody: "Automatisch erzeugte Bundles. Änderungen: siehe CHANGELOG.md. Desktop-Bundles sind unsigniert."
           releaseDraft: true
           prerelease: false

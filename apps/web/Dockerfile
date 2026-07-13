@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 #
-# Dockerfile — Project Time Ledger Web (doc 05 §9.1 Server-Betrieb).
+# Dockerfile — Tarlog Web (doc 05 §9.1 Server-Betrieb).
 #
 # Multi-Stage:
 #   base    — Node 22 (musl/alpine) + pnpm via corepack.
@@ -49,13 +49,13 @@ RUN pnpm install --frozen-lockfile --offline
 #    generierten SQL-Dateien liegen versioniert unter packages/db/drizzle/postgres
 #    und werden hier nur auf Existenz geprüft; erzeugt werden sie außerhalb des
 #    Images über `drizzle.config.postgres.gen.ts`.
-RUN pnpm --filter @ptl/core build \
- && pnpm --filter @ptl/db build \
+RUN pnpm --filter @tarlog/core build \
+ && pnpm --filter @tarlog/db build \
  && ls packages/db/drizzle/postgres/*.sql >/dev/null 2>&1 \
     || (echo "FEHLER: keine Migrationen unter packages/db/drizzle/postgres" && exit 1)
 
 # 5) Next-App als standalone bauen.
-RUN pnpm --filter @ptl/web build
+RUN pnpm --filter @tarlog/web build
 
 # 6) Laufzeit-Bundle /out zusammenstellen. `cp -rL` dereferenziert die
 #    pnpm-Symlinks. Standalone spiegelt das Monorepo-Root (/app) →
@@ -77,9 +77,9 @@ RUN set -eux; \
     cp -rL packages/db/drizzle/postgres /out/packages/db/drizzle/postgres; \
     mkdir -p /out/node_modules; \
     cp -rL apps/web/node_modules/ws /out/node_modules/ws; \
-    # Kein @ptl/db ins Bundle kopieren: `scripts/migrate.mjs` nutzt bewusst nur
+    # Kein @tarlog/db ins Bundle kopieren: `scripts/migrate.mjs` nutzt bewusst nur
     # `drizzle-orm` + `pg`, die Next samt vollständigem pnpm-Store ablegt. Eine
-    # dereferenzierte @ptl/db-Kopie brächte ein kaputtes verschachteltes `pg`
+    # dereferenzierte @tarlog/db-Kopie brächte ein kaputtes verschachteltes `pg`
     # mit ("Cannot find module 'pg-types'").
     # Frühwarnung: bricht den Build ab, statt den Container in eine
     # Restart-Schleife laufen zu lassen.

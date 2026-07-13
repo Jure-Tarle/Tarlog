@@ -2,13 +2,13 @@
 
 > Hinweis: Rechtliche Aussagen sind Produkt-Hinweise, keine Rechtsberatung. Stand der Recherche: Juli 2026.
 
-Dieses Kapitel beschreibt das Synchronisierungskonzept von Project Time Ledger: wie lokale Änderungen zwischen Desktop, Browser und iOS über einen optionalen, selbst gehosteten Server abgeglichen werden, wie der laufende Timer plattformübergreifend konsistent bleibt und wie Konflikte erkannt, dargestellt und ohne stillen Datenverlust aufgelöst werden. Es setzt die festgelegten Architektur-Entscheidungen um: **Event-Log + Feld-Level-LWW mit Hybrid Logical Clock (HLC)** (nicht voll-CRDT), **WebSocket primär / SSE / Polling-Fallback** und die **Single-Timer-UNIQUE-Durchsetzung** pro Main Account.
+Dieses Kapitel beschreibt das Synchronisierungskonzept von Tarlog: wie lokale Änderungen zwischen Desktop, Browser und iOS über einen optionalen, selbst gehosteten Server abgeglichen werden, wie der laufende Timer plattformübergreifend konsistent bleibt und wie Konflikte erkannt, dargestellt und ohne stillen Datenverlust aufgelöst werden. Es setzt die festgelegten Architektur-Entscheidungen um: **Event-Log + Feld-Level-LWW mit Hybrid Logical Clock (HLC)** (nicht voll-CRDT), **WebSocket primär / SSE / Polling-Fallback** und die **Single-Timer-UNIQUE-Durchsetzung** pro Main Account.
 
 Querverweise: [Datenmodell](06-datenmodell.md) (Tabellen `devices`, `sync_states`, `sync_events`, `conflict_records`, `time_entries`, `audit_logs`), [Architektur](05-architektur.md) (Live-Kanal-Architektur, API), [Zeiterfassung](03-zeiterfassung.md) (Timer-Bedienung, Stop-Dialog), [Compliance](08-compliance.md) (Pausen-/Ruhezeitregeln), [Datenschutz und Sicherheit](09-datenschutz-sicherheit.md) (Geräte widerrufen, sichere Sessions).
 
 ## 1. Synchronisationsprinzip — Local First mit optionalem Server-Sync
 
-Project Time Ledger arbeitet **local-first**: Jede App (Desktop, Browser, iOS) besitzt eine vollständige lokale Datenbank und ist ohne Server voll funktionsfähig. Der Server ist ein **optionaler Synchronisationsknoten**, der als kanonische Wahrheit dient, sobald er verbunden ist. Die Synchronisierung folgt exakt den 10 Grundsätzen aus SPEC §6.1:
+Tarlog arbeitet **local-first**: Jede App (Desktop, Browser, iOS) besitzt eine vollständige lokale Datenbank und ist ohne Server voll funktionsfähig. Der Server ist ein **optionaler Synchronisationsknoten**, der als kanonische Wahrheit dient, sobald er verbunden ist. Die Synchronisierung folgt exakt den 10 Grundsätzen aus SPEC §6.1:
 
 1. **Jede App kann lokale Änderungen erzeugen.** Alle Schreibvorgänge (Timer, Nachträge, Korrekturen, Stammdaten) laufen zuerst gegen die lokale Datenbank — offline garantiert.
 2. **Jede Änderung erzeugt ein Sync Event.** Ein Mutations-Event wird transaktional zusammen mit dem Datensatz in die lokale Tabelle `sync_events` geschrieben (Outbox-Muster) — kein Event geht verloren, auch bei App-Absturz zwischen Schreib- und Sendeschritt.

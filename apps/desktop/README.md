@@ -1,23 +1,23 @@
-# @ptl/desktop
+# @tarlog/desktop
 
-Tauri 2.x desktop app for **Project Time Ledger** (macOS priority + Windows).
-Local-first SQLite, optional server sync. Shares `@ptl/core` (time/rounding/
-compliance/billing + zod) and `@ptl/db` (Drizzle schema) with web + iOS.
+Tauri 2.x desktop app for **Tarlog** (macOS priority + Windows).
+Local-first SQLite, optional server sync. Shares `@tarlog/core` (time/rounding/
+compliance/billing + zod) and `@tarlog/db` (Drizzle schema) with web + iOS.
 
 ## Run
 
 ```sh
 pnpm install                       # from the monorepo root
-pnpm --filter @ptl/desktop tauri dev   # Rust host + Vite frontend
+pnpm --filter @tarlog/desktop tauri dev   # Rust host + Vite frontend
 ```
 
-Frontend-only (no Rust host): `pnpm --filter @ptl/desktop dev` (Vite on :1420).
+Frontend-only (no Rust host): `pnpm --filter @tarlog/desktop dev` (Vite on :1420).
 
 ## Checks
 
 ```sh
-pnpm --filter @ptl/desktop typecheck          # tsc --noEmit
-pnpm --filter @ptl/desktop exec vitest run    # frontend tests
+pnpm --filter @tarlog/desktop typecheck          # tsc --noEmit
+pnpm --filter @tarlog/desktop exec vitest run    # frontend tests
 cd src-tauri && cargo check                    # Rust host
 ```
 
@@ -42,7 +42,7 @@ author owns disjoint files:
    `list_projects`, `run_backup`, `app_lock_check`, `set_server_connection`,
    `sync_push`, `sync_pull`. JS passes **camelCase** args; Tauri maps them to the
    **snake_case** Rust params.
-2. **Data model** — `@ptl/core` types + zod schemas (doc 06). Wire rows reuse
+2. **Data model** — `@tarlog/core` types + zod schemas (doc 06). Wire rows reuse
    `CustomerInput` / `ProjectInput` / `TimeEntryInput` / `TimerStateInput`, so
    the shape cannot drift.
 
