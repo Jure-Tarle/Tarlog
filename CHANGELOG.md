@@ -4,6 +4,20 @@ Alle nennenswerten Änderungen an Tarlog. Format nach
 [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionierung nach
 [SemVer](https://semver.org/lang/de/).
 
+## [0.0.4] — 2026-07-15
+
+Korrektur der nativen macOS-Auslieferung und Fokusdarstellung nach der
+visuellen Abnahme des Onboardings.
+
+### macOS
+
+- Das Onboarding behält den programmatischen Fokus für Screenreader bei, zeigt
+  auf der nicht interaktiven Schrittüberschrift aber keinen irreführenden blauen
+  Tastaturfokus-Halo mehr.
+- Lokaler Start und Release-Abnahme erfolgen über das echte `Tarlog.app`-Bundle,
+  damit macOS den konfigurierten Namen und das gebündelte Tarlog-App-Icon statt
+  des generischen `exec`-Symbols einer direkt gestarteten Unix-Datei verwendet.
+
 ## [0.0.3] — 2026-07-13
 
 Vollständiger Produktdurchgang des Apple-orientierten Redesigns mit geführtem
@@ -131,6 +145,7 @@ Synchronisierung zwischen Desktop, Browser und iOS.
 - XLSX-/ZIP-Export, Import-Assistent und Webhooks sind vorgesehen, aber in 0.0.1
   noch nicht enthalten.
 
+[0.0.4]: https://github.com/Jure-Tarle/Tarlog/compare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/Jure-Tarle/Tarlog/compare/v0.0.1...v0.0.3
 [0.0.2]: https://github.com/Jure-Tarle/Tarlog/compare/v0.0.1...c7cac13
 [0.0.1]: https://github.com/Jure-Tarle/Tarlog/releases/tag/v0.0.1

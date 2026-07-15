@@ -2160,6 +2160,14 @@ button.stat {
   box-shadow: none;
 }
 
+/* The onboarding heading receives programmatic focus so screen readers announce
+   every step. It is not an interactive control and must not inherit the macOS
+   keyboard-focus halo intended for buttons, links, and form fields. */
+:root[data-platform="macos"] .onboarding__title:focus {
+  outline: none;
+  box-shadow: none;
+}
+
 :root[data-platform="macos"] [data-tauri-drag-region] {
   cursor: default;
   user-select: none;

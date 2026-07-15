@@ -65,7 +65,7 @@ POSTGRES_DB=ptl
 SESSION_SECRET=<64-stelliger-Hexwert>
 PORT=3000
 NEXT_PUBLIC_APP_URL=https://tarlog.example.com
-NEXT_PUBLIC_APP_VERSION=0.0.3
+NEXT_PUBLIC_APP_VERSION=0.0.4
 TARLOG_TRUST_PROXY=0
 ```
 
@@ -384,7 +384,7 @@ Repository-Prüfungen ohne hartkodierte Testanzahlen:
 
 ```bash
 pnpm install --frozen-lockfile
-pnpm version:check v0.0.3
+pnpm version:check v0.0.4
 pnpm -r build
 pnpm -r test
 pnpm -r typecheck

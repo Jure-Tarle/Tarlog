@@ -1,6 +1,6 @@
 [package]
 name = "ptl-desktop"
-version = "0.0.3"
+version = "0.0.4"
 description = "Tarlog — Desktop (macOS/Windows)"
 authors = ["Tarlog"]
 edition = "2021"

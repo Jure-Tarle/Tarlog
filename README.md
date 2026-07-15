@@ -39,7 +39,7 @@ von `billing_duration_seconds` (gerundet) — Rundung überschreibt nie die echt
 
 ```bash
 pnpm install --frozen-lockfile
-pnpm version:check v0.0.3
+pnpm version:check v0.0.4
 pnpm -r build
 pnpm -r test
 pnpm -r typecheck

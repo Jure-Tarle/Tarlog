@@ -206,7 +206,7 @@ log "Live-Sync über WebSocket (AC27)"
 PAIRING_CODE="$(browser_curl -s -b "$JAR" -X POST "$BASE/api/devices/pairing" -H 'content-type: application/json' \
   -d '{"device_name":"Smoke-Live-Gerät"}' | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).code||""))')"
 CONNECTED="$(curl -s -X POST "$BASE/api/devices/connect" -H 'content-type: application/json' \
-  -d "{\"code\":\"$PAIRING_CODE\",\"device_name\":\"Smoke-Live-Gerät\",\"platform\":\"macos\",\"app_version\":\"0.0.3\",\"local_db_version\":2}")"
+  -d "{\"code\":\"$PAIRING_CODE\",\"device_name\":\"Smoke-Live-Gerät\",\"platform\":\"macos\",\"app_version\":\"0.0.4\",\"local_db_version\":2}")"
 WEB_DEVICE_ID="$(printf '%s' "$CONNECTED" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).device_id||""))')"
 TOKEN="$(printf '%s' "$CONNECTED" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).device_token||""))')"
 COOKIE="ptl_session=$(awk '/ptl_session/{print $7}' "$JAR" | head -1)"
