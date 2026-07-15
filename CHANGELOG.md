@@ -4,6 +4,27 @@ Alle nennenswerten Änderungen an Tarlog. Format nach
 [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionierung nach
 [SemVer](https://semver.org/lang/de/).
 
+## [0.0.5] — 2026-07-15
+
+Strukturelle Korrektur der macOS-Fensterarchitektur nach der visuellen Prüfung
+von Onboarding, Dashboard, Timer und Einstellungen.
+
+### macOS
+
+- Die fehleranfällige Overlay-Titelleiste wurde durch die normale native
+  AppKit-Titelleiste ersetzt. Ampelknöpfe, Fenstertitel und WebView-Inhalt
+  besitzen damit wieder getrennte, systemverwaltete Bereiche.
+- Die doppelte Markenleiste im Onboarding entfällt; Ersteinrichtung und
+  Haupt-App verwenden eine kompakte Source-List-Sidebar und eine ruhige
+  Werkzeugleiste unterhalb der nativen Titelleiste.
+- System-, helle und dunkle Darstellung werden über echte Einträge im nativen
+  Menü „Darstellung“ umgeschaltet statt über ein Web-Select in der Toolbar.
+- Dashboard-Kennzahlen sind als geschlossenes dreispaltiges Inset-Grid ohne
+  Leerflächen angeordnet; redundante Seitentitel und übergroße Timer-Typografie
+  wurden entfernt.
+- Light Mode, Dark Mode, reduzierte Transparenz und erhöhter Kontrast behalten
+  die vorhandenen plattformspezifischen Fallbacks.
+
 ## [0.0.4] — 2026-07-15
 
 Korrektur der nativen macOS-Auslieferung und Fokusdarstellung nach der
@@ -145,6 +166,7 @@ Synchronisierung zwischen Desktop, Browser und iOS.
 - XLSX-/ZIP-Export, Import-Assistent und Webhooks sind vorgesehen, aber in 0.0.1
   noch nicht enthalten.
 
+[0.0.5]: https://github.com/Jure-Tarle/Tarlog/compare/v0.0.4...v0.0.5
 [0.0.4]: https://github.com/Jure-Tarle/Tarlog/compare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/Jure-Tarle/Tarlog/compare/v0.0.1...v0.0.3
 [0.0.2]: https://github.com/Jure-Tarle/Tarlog/compare/v0.0.1...c7cac13

@@ -267,6 +267,37 @@ function useNativeMenuNavigation(platform: DesktopPlatform) {
 
 }
 
+function useNativeMenuAppearance(
+  platform: DesktopPlatform,
+  setAppearance: (value: AppearancePreference) => void,
+) {
+  useEffect(() => {
+    if (platform !== "macos" || !isTauri()) return;
+
+    let disposed = false;
+    const unlisteners: UnlistenFn[] = [];
+    const bindings = [
+      ["menu://appearance/system", "system"],
+      ["menu://appearance/light", "light"],
+      ["menu://appearance/dark", "dark"],
+    ] as const;
+
+    void Promise.all(bindings.map(([eventName, value]) =>
+      listen(eventName, () => setAppearance(value)),
+    )).then((stops) => {
+      if (disposed) stops.forEach((stop) => stop());
+      else unlisteners.push(...stops);
+    }).catch(() => {
+      // System appearance remains active if the native menu is unavailable.
+    });
+
+    return () => {
+      disposed = true;
+      unlisteners.forEach((stop) => stop());
+    };
+  }, [platform, setAppearance]);
+}
+
 function useAppShortcuts(platform: DesktopPlatform) {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -641,10 +672,7 @@ function Topbar({
 }) {
   const group = NAV_GROUPS.find((candidate) => candidate.ids.some((id) => id === route.id));
   return (
-    <header
-      className="topbar"
-      style={platform === "macos" ? { paddingLeft: sidebarHidden ? "5.25rem" : "0.75rem" } : undefined}
-    >
+    <header className="topbar">
       <div className="topbar__leading">
         <button
           className="toolbar-icon-button sidebar-toggle icon-btn"
@@ -667,7 +695,9 @@ function Topbar({
       </div>
       <div className="topbar__actions">
         <PersistentTimer />
-        <AppearancePicker value={appearance} onChange={onAppearanceChange} />
+        {platform === "macos" ? null : (
+          <AppearancePicker value={appearance} onChange={onAppearanceChange} />
+        )}
       </div>
     </header>
   );
@@ -704,6 +734,7 @@ function AppContent() {
   useAppShortcuts(platform);
   useWindowActivity(platform);
   const { preference, setPreference } = useAppearance(platform);
+  useNativeMenuAppearance(platform, setPreference);
   const sidebar = useSidebar(platform);
   const onboarding = useDesktopOnboarding(boot.phase === "ready");
   const reduceMotion = useReducedMotion();

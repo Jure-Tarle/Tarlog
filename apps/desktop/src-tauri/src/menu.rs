@@ -15,6 +15,12 @@ use tauri::{menu::Menu, AppHandle, Runtime};
 const SETTINGS_EVENT: &str = "menu://navigate/settings";
 #[cfg(target_os = "macos")]
 const SIDEBAR_TOGGLE_EVENT: &str = "menu://toggle-sidebar";
+#[cfg(target_os = "macos")]
+const APPEARANCE_SYSTEM_EVENT: &str = "menu://appearance/system";
+#[cfg(target_os = "macos")]
+const APPEARANCE_LIGHT_EVENT: &str = "menu://appearance/light";
+#[cfg(target_os = "macos")]
+const APPEARANCE_DARK_EVENT: &str = "menu://appearance/dark";
 
 /// Install the application-wide native menu.
 pub fn install<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<TimerCommandItems<R>> {
@@ -51,6 +57,9 @@ fn register_macos_actions<R: Runtime>(app: &AppHandle<R>) {
             "app_timer_stop" => Some(TIMER_STOP_EVENT),
             "app_entry_backdate" => Some(BACKDATE_EVENT),
             "app_toggle_sidebar" => Some(SIDEBAR_TOGGLE_EVENT),
+            "app_appearance_system" => Some(APPEARANCE_SYSTEM_EVENT),
+            "app_appearance_light" => Some(APPEARANCE_LIGHT_EVENT),
+            "app_appearance_dark" => Some(APPEARANCE_DARK_EVENT),
             _ => None,
         };
 
@@ -172,12 +181,27 @@ fn macos_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<(Menu<R>, TimerCo
         true,
         Some("CmdOrCtrl+Alt+S"),
     )?;
+    let appearance_system = MenuItem::with_id(
+        app,
+        "app_appearance_system",
+        "Systemdarstellung",
+        true,
+        None::<&str>,
+    )?;
+    let appearance_light =
+        MenuItem::with_id(app, "app_appearance_light", "Hell", true, None::<&str>)?;
+    let appearance_dark =
+        MenuItem::with_id(app, "app_appearance_dark", "Dunkel", true, None::<&str>)?;
     let view = Submenu::with_items(
         app,
         "Darstellung",
         true,
         &[
             &toggle_sidebar,
+            &PredefinedMenuItem::separator(app)?,
+            &appearance_system,
+            &appearance_light,
+            &appearance_dark,
             &PredefinedMenuItem::separator(app)?,
             &PredefinedMenuItem::fullscreen(app, Some("Vollbild ein-/ausschalten"))?,
         ],

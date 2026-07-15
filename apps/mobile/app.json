@@ -3,7 +3,7 @@
     "name": "Tarlog",
     "slug": "ptl-mobile",
     "scheme": "ptl",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
