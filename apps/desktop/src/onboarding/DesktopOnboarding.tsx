@@ -59,16 +59,16 @@ interface StepMeta {
 const STEP_META: Record<OnboardingStep, StepMeta> = {
   welcome: {
     label: "Willkommen",
-    eyebrow: "Tarlog kennenlernen",
-    title: "Zeit erfassen, ohne den Überblick zu verlieren.",
-    summary: "Tarlog verbindet laufende Timer, saubere Nachträge und nachvollziehbare Abrechnung in einem lokalen Arbeitsbereich.",
+    eyebrow: "Ersteinrichtung",
+    title: "Willkommen bei Tarlog",
+    summary: "Richte deinen Arbeitsbereich ein und lerne die zwei Wege der Zeiterfassung kennen. Deine Daten bleiben standardmäßig auf diesem Mac.",
     symbol: "onboarding",
     fallback: CircleHelp,
   },
   workspace: {
     label: "Arbeitsbereich",
     eyebrow: "Kunde & Projekt",
-    title: "Richte deinen ersten Arbeitsbereich ein.",
+    title: "Ersten Arbeitsbereich einrichten",
     summary: "Ein Projekt bündelt Zeiten, Beschreibungen und Abrechnungsregeln. Ein Kunde ist optional – interne Projekte funktionieren genauso.",
     symbol: "projects",
     fallback: FolderKanban,
@@ -76,7 +76,7 @@ const STEP_META: Record<OnboardingStep, StepMeta> = {
   live_tracking: {
     label: "Live-Timer",
     eyebrow: "Aktive Arbeit",
-    title: "Starte dann, wenn die Arbeit beginnt.",
+    title: "Arbeitszeit mit dem Timer erfassen",
     summary: "Der Timer bleibt in der Toolbar sichtbar. Du kannst ihn jederzeit pausieren, fortsetzen und mit einer Beschreibung sauber abschließen.",
     symbol: "timer",
     fallback: Play,
@@ -84,7 +84,7 @@ const STEP_META: Record<OnboardingStep, StepMeta> = {
   backdating: {
     label: "Nachträge",
     eyebrow: "Vergangene Arbeit",
-    title: "Vergessene Zeiten bleiben nachvollziehbar.",
+    title: "Vergangene Arbeit nachtragen",
     summary: "Im Nachtragsassistenten erfasst du Datum, Zeitraum, Grund und Pausen. Tarlog trennt dabei tatsächliche Zeit und Abrechnungszeit.",
     symbol: "backdating",
     fallback: History,
@@ -92,7 +92,7 @@ const STEP_META: Record<OnboardingStep, StepMeta> = {
   sync: {
     label: "Sync",
     eyebrow: "Geräte & Server",
-    title: "Lokal ist vollständig. Sync bleibt optional.",
+    title: "Sync nach Bedarf einrichten",
     summary: "Der lokale Desktop-Modus funktioniert ohne Konto und Internet. Einen selbst gehosteten Server kannst du ergänzen, wenn du mehrere Geräte abgleichen möchtest.",
     symbol: "sync",
     fallback: CloudOff,
@@ -100,7 +100,7 @@ const STEP_META: Record<OnboardingStep, StepMeta> = {
   ready: {
     label: "Bereit",
     eyebrow: "Einrichtung abgeschlossen",
-    title: "Dein Arbeitsbereich ist startklar.",
+    title: "Tarlog ist bereit",
     summary: "Es wurden keine Demo-Zeiten erzeugt. Starte jetzt eine echte Bearbeitung oder öffne das Dashboard für den Überblick.",
     symbol: "compliance",
     fallback: Check,
@@ -308,8 +308,12 @@ export function DesktopOnboarding({
                 exit={reduceMotion ? { opacity: 0 } : { opacity: 0, x: direction * -28 }}
                 transition={reduceMotion ? { duration: 0.12 } : SPRING}
               >
-                <div className="onboarding__hero-icon" aria-hidden>
-                  <StepSymbol step={progress.step} size={28} />
+                <div className={`onboarding__hero-icon ${progress.step === "welcome" ? "is-brand" : ""}`} aria-hidden>
+                  {progress.step === "welcome" ? (
+                    <img className="brand-mark__image" src={brandMarkUrl} alt="" />
+                  ) : (
+                    <StepSymbol step={progress.step} size={26} />
+                  )}
                 </div>
                 <p className="onboarding__eyebrow">{meta.eyebrow}</p>
                 <h1 className="onboarding__title" ref={titleRef} tabIndex={-1}>{meta.title}</h1>
@@ -373,9 +377,9 @@ export function DesktopOnboarding({
 function WelcomeStep() {
   return (
     <div className="onboarding-feature-grid">
-      <Feature title="Local first" copy="Ohne Anmeldung, Cloud-Zwang oder dauerhafte Internetverbindung." icon={Laptop} />
-      <Feature title="Echte Zeit" copy="Ist-Zeit und gerundete Abrechnungszeit bleiben getrennt nachvollziehbar." icon={RotateCcw} />
-      <Feature title="Zwei Wege" copy="Laufende Arbeit mit dem Timer, Vergangenes über einen begründeten Nachtrag." icon={History} />
+      <Feature title="Lokal auf deinem Mac" copy="Ohne Anmeldung, Cloud-Zwang oder dauerhafte Internetverbindung." icon={Laptop} />
+      <Feature title="Nachvollziehbare Zeiten" copy="Ist-Zeit und gerundete Abrechnungszeit bleiben sauber getrennt." icon={RotateCcw} />
+      <Feature title="Timer und Nachträge" copy="Erfasse laufende Arbeit direkt und Vergangenes mit einer Begründung." icon={History} />
     </div>
   );
 }

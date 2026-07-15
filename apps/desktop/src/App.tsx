@@ -792,7 +792,7 @@ function AppContent() {
       <DesktopOnboarding
         progress={onboarding.progress}
         required={onboarding.required}
-        toolbar={<AppearancePicker value={preference} onChange={setPreference} />}
+        toolbar={platform === "macos" ? undefined : <AppearancePicker value={preference} onChange={setPreference} />}
         onCheckpoint={onboarding.checkpoint}
         onDismiss={onboarding.dismissReplay}
         onFinish={async (progress, destination) => {
