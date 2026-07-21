@@ -1,5 +1,5 @@
 /**
- * /api/tasks/[id] — Detail, Ändern, Soft-Delete (doc 06 §A.2 `tasks`).
+ * /api/tasks/[id], Detail, Ändern, Soft-Delete (doc 06 §A.2 `tasks`).
  * Audit-Pflicht: nein.
  */
 import { and, eq, isNull } from "drizzle-orm";

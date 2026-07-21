@@ -1,17 +1,30 @@
 /**
- * Projects — Projektliste + Anlageformular (doc 06 A.2). Über data/projects
+ * Projects, Projektliste + Anlageformular (doc 06 A.2). Über data/projects
  * (Bridge create + lokale Patches) und data/customers für die Zuordnung.
  */
 import { useState } from "react";
+import { Archive, ArchiveRestore, Pencil, Plus, Trash2 } from "lucide-react";
 import {
-  Page, Card, Button, Field, FormRow, TextInput, TextArea, Select, Checkbox, AsyncBody, EmptyState, TableWrap, Tag, ErrorNote,
+  Page, Card, Button, Select, AsyncBody, EmptyState, TableWrap, Tag,
 } from "../components/ui";
 import { useAsync } from "../data/hooks";
-import { listProjects, createProject, archiveProject } from "../data/projects";
+import { listProjects, archiveProject, restoreProject, deleteProject, type ProjectRow } from "../data/projects";
 import { listCustomers } from "../data/customers";
 import { fmtMoney } from "../data/format";
+import { t } from "../i18n";
 import type { ProjectInput } from "@tarlog/core";
 import { nameMap } from "./shared";
+import ProjectDetail from "./ProjectDetail";
+import ProjectWorkspace from "./ProjectWorkspace";
+import { ProjectEditor } from "./EntityEditors";
+
+// Labels bleiben deutsch (Wörterbuch-Schlüssel); t() erst beim Rendern.
+const STATUS_LABEL: Record<string, string> = {
+  active: "Aktiv",
+  planned: "Geplant",
+  completed: "Abgeschlossen",
+  archived: "Archiviert",
+};
 
 const BILLING: { value: ProjectInput["billing_type"]; label: string }[] = [
   { value: "hourly", label: "Stundensatz" },
@@ -21,137 +34,144 @@ const BILLING: { value: ProjectInput["billing_type"]; label: string }[] = [
   { value: "non_billable", label: "nicht abrechenbar" },
 ];
 
-function toCents(euro: string): number | null {
-  const v = parseFloat(euro.replace(",", "."));
-  return Number.isFinite(v) ? Math.round(v * 100) : null;
+export default function Projects() {
+  const hashParts = window.location.hash.split("/");
+  const projectId = decodeURIComponent(hashParts[2] ?? "");
+  if (projectId && hashParts[3] === "workspace") {
+    const initialTaskId = hashParts[4] === "task" ? decodeURIComponent(hashParts[5] ?? "") : null;
+    return <ProjectWorkspace projectId={projectId} initialTaskId={initialTaskId || null} />;
+  }
+  if (projectId) return <ProjectDetail projectId={projectId} />;
+
+  return <ProjectsList />;
 }
 
-export default function Projects() {
+function ProjectsList() {
   const [status, setStatus] = useState("active");
   const list = useAsync(() => listProjects(status === "all" ? {} : { status }), [status]);
   const customers = useAsync(() => listCustomers(), []);
   const custNames = nameMap((customers.data ?? []) as { id: string; name: string }[]);
 
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [customerId, setCustomerId] = useState("");
-  const [code, setCode] = useState("");
-  const [billing, setBilling] = useState<ProjectInput["billing_type"]>("hourly");
-  const [rate, setRate] = useState("");
-  const [descReq, setDescReq] = useState(false);
-  const [reasonReq, setReasonReq] = useState(false);
-  const [description, setDescription] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [editingProject, setEditingProject] = useState<ProjectRow | null>(null);
+  // window.confirm ist in der Tauri-WebView nicht verfügbar (liefert sofort
+  // false), daher zweistufige Inline-Bestätigung direkt in der Zeile.
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
-  async function save() {
-    setError(null);
-    if (!name.trim()) { setError("Name ist erforderlich."); return; }
-    setBusy(true);
-    try {
-      const cents = rate ? toCents(rate) : null;
-      await createProject({
-        name: name.trim(),
-        customer_id: customerId || null,
-        project_code: code || null,
-        billing_type: billing,
-        hourly_rate_cents: billing === "hourly" ? cents : null,
-        day_rate_cents: billing === "day_rate" ? cents : null,
-        fixed_fee_cents: billing === "fixed_fee" ? cents : null,
-        description: description || null,
-        description_required: descReq,
-        backdating_reason_required: reasonReq,
-      });
-      setName(""); setCustomerId(""); setCode(""); setRate(""); setDescription(""); setDescReq(false); setReasonReq(false);
-      setOpen(false);
-      list.reload();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally { setBusy(false); }
+  function resetForm() {
+    setOpen(false);
+    setEditingProject(null);
+  }
+  function createNew() { resetForm(); setOpen(true); }
+  function edit(project: ProjectRow) {
+    setEditingProject(project);
+    setOpen(true);
+  }
+
+  function projectActions(project: ProjectRow) {
+    if (project.status !== "archived") {
+      return (
+        <>
+          <Button variant="ghost" className="btn--sm" onClick={() => edit(project)}><Pencil size={14}/>{t("Bearbeiten")}</Button>
+          <Button variant="ghost" className="btn--sm" onClick={() => void archiveProject(project.id).then(() => list.reload())}><Archive size={14}/>{t("Archivieren")}</Button>
+        </>
+      );
+    }
+    if (confirmDeleteId === project.id) {
+      return (
+        <>
+          <Button
+            variant="danger"
+            className="btn--sm"
+            title={t("Erfasste Zeiten bleiben erhalten.")}
+            onClick={() => {
+              setConfirmDeleteId(null);
+              void deleteProject(project.id).then(() => list.reload());
+            }}
+          ><Trash2 size={14}/>{t("Endgültig löschen")}</Button>
+          <Button variant="ghost" className="btn--sm" onClick={() => setConfirmDeleteId(null)}>{t("Abbrechen")}</Button>
+        </>
+      );
+    }
+    return (
+      <>
+        <Button variant="ghost" className="btn--sm" onClick={() => void restoreProject(project.id).then(() => list.reload())}><ArchiveRestore size={14}/>{t("Reaktivieren")}</Button>
+        <Button variant="danger" className="btn--sm" onClick={() => setConfirmDeleteId(project.id)}><Trash2 size={14}/>{t("Löschen")}</Button>
+      </>
+    );
   }
 
   return (
     <Page
-      title="Projekte"
-      hint="Projektverwaltung"
+      title={t("Projekte")}
+      hint={t("Projektverwaltung")}
       actions={
         <>
           <Select value={status} onChange={(e) => setStatus(e.target.value)} style={{ width: "auto" }}>
-            <option value="active">Aktiv</option>
-            <option value="planned">Geplant</option>
-            <option value="completed">Abgeschlossen</option>
-            <option value="archived">Archiviert</option>
-            <option value="all">Alle</option>
+            <option value="active">{t("Aktiv")}</option>
+            <option value="planned">{t("Geplant")}</option>
+            <option value="completed">{t("Abgeschlossen")}</option>
+            <option value="archived">{t("Archiviert")}</option>
+            <option value="all">{t("Alle")}</option>
           </Select>
-          <Button variant="primary" onClick={() => setOpen((o) => !o)}>{open ? "Schließen" : "Neues Projekt"}</Button>
+          <Button variant="primary" onClick={open ? resetForm : createNew}>{open ? t("Schließen") : <><Plus size={15}/>{t("Neues Projekt")}</>}</Button>
         </>
       }
     >
       {open ? (
-        <Card title="Neues Projekt">
-          {error ? <ErrorNote error={error} /> : null}
-          <div className="stack">
-            <FormRow>
-              <Field label="Name" required><TextInput value={name} onChange={(e) => setName(e.target.value)} autoFocus /></Field>
-              <Field label="Kunde">
-                <Select value={customerId} onChange={(e) => setCustomerId(e.target.value)}>
-                  <option value="">— intern —</option>
-                  {(customers.data ?? []).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </Select>
-              </Field>
-              <Field label="Projektcode"><TextInput value={code} onChange={(e) => setCode(e.target.value)} /></Field>
-            </FormRow>
-            <FormRow>
-              <Field label="Abrechnungsart" required>
-                <Select value={billing} onChange={(e) => setBilling(e.target.value as ProjectInput["billing_type"])}>
-                  {BILLING.map((b) => <option key={b.value} value={b.value}>{b.label}</option>)}
-                </Select>
-              </Field>
-              <Field label="Satz (€)" hint={billing === "non_billable" ? "entfällt" : "Stunde/Tag/Festpreis"}>
-                <TextInput inputMode="decimal" value={rate} disabled={billing === "non_billable"} onChange={(e) => setRate(e.target.value)} placeholder="0,00" />
-              </Field>
-            </FormRow>
-            <Field label="Beschreibung"><TextArea value={description} onChange={(e) => setDescription(e.target.value)} /></Field>
-            <div className="cluster">
-              <Checkbox label="Beschreibung beim Stoppen Pflicht" checked={descReq} onChange={(e) => setDescReq((e.target as HTMLInputElement).checked)} />
-              <Checkbox label="Nachtrag-Begründung Pflicht" checked={reasonReq} onChange={(e) => setReasonReq((e.target as HTMLInputElement).checked)} />
-            </div>
-            <div className="cluster">
-              <Button variant="primary" disabled={busy} onClick={() => void save()}>Speichern</Button>
-              <Button variant="ghost" onClick={() => setOpen(false)}>Abbrechen</Button>
-            </div>
-          </div>
+        <Card title={editingProject ? t("Projekt bearbeiten") : t("Neues Projekt")} subtitle={editingProject ? t("Abrechnung, Zuordnung und Pflichtfelder aktualisieren") : undefined}>
+          <ProjectEditor
+            key={editingProject?.id ?? "new-project"}
+            project={editingProject}
+            customers={customers.data ?? []}
+            onSaved={() => { resetForm(); list.reload(); }}
+            onCancel={resetForm}
+          />
         </Card>
       ) : null}
 
-      <Card title="Projekte" subtitle={`${list.data?.length ?? 0} Einträge`}>
-        <AsyncBody state={{ data: list.data, error: list.error, loading: list.loading }} empty={<EmptyState title="Keine Projekte">Lege das erste Projekt an.</EmptyState>}>
+      <Card title={t("Projekte")} subtitle={t("{n} Einträge", { n: list.data?.length ?? 0 })}>
+        <AsyncBody state={{ data: list.data, error: list.error, loading: list.loading }} empty={<EmptyState title={t("Keine Projekte")}>{t("Lege das erste Projekt an.")}</EmptyState>}>
           {(rows) => (
-            <TableWrap>
-              <table className="table">
-                <thead><tr><th>Name</th><th>Kunde</th><th>Abrechnung</th><th className="right">Satz</th><th>Flags</th><th>Status</th><th className="right">Aktion</th></tr></thead>
-                <tbody>
-                  {rows.map((p) => (
-                    <tr key={p.id}>
-                      <td>{p.name}{p.project_code ? <span className="faint num"> · {p.project_code}</span> : null}</td>
-                      <td className="muted">{p.customer_id ? custNames.get(p.customer_id) ?? "—" : <span className="faint">intern</span>}</td>
-                      <td>{BILLING.find((b) => b.value === p.billing_type)?.label ?? p.billing_type}</td>
-                      <td className="right num">{fmtMoney(p.hourly_rate_cents ?? p.day_rate_cents ?? p.fixed_fee_cents ?? null)}</td>
-                      <td className="cluster">
-                        {p.description_required ? <Tag tone="muted">Beschr.</Tag> : null}
-                        {p.backdating_reason_required ? <Tag tone="muted">Grund</Tag> : null}
-                      </td>
-                      <td><Tag tone={p.status === "active" ? "accent" : "muted"}>{p.status}</Tag></td>
-                      <td className="right">
-                        {p.status !== "archived" ? (
-                          <Button variant="ghost" className="btn--sm" onClick={() => void archiveProject(p.id).then(() => list.reload())}>Archivieren</Button>
-                        ) : null}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </TableWrap>
+            <div className="responsive-entity-list responsive-entity-list--projects">
+              <div className="responsive-entity-list__table">
+                <TableWrap>
+                  <table className="table">
+                    <thead><tr><th>{t("Name")}</th><th>{t("Kunde")}</th><th>{t("Abrechnung")}</th><th className="right">{t("Satz")}</th><th>{t("Flags")}</th><th>{t("Status")}</th><th className="right">{t("Aktion")}</th></tr></thead>
+                    <tbody>
+                      {rows.map((project) => (
+                        <tr key={project.id}>
+                          <td><a className="table-link" href={`#/projects/${encodeURIComponent(project.id)}`}>{project.name}</a>{project.project_code ? <span className="faint num"> | {project.project_code}</span> : null}</td>
+                          <td className="muted">{project.customer_id ? custNames.get(project.customer_id) ?? t("Unbekannter Kunde") : <span className="faint">{t("intern")}</span>}</td>
+                          <td>{t(BILLING.find((option) => option.value === project.billing_type)?.label ?? project.billing_type)}</td>
+                          <td className="right num">{fmtMoney(project.hourly_rate_cents ?? project.day_rate_cents ?? project.fixed_fee_cents ?? null)}</td>
+                          <td className="cluster">{project.description_required ? <Tag tone="muted">{t("Beschr.")}</Tag> : null}{project.backdating_reason_required ? <Tag tone="muted">{t("Grund")}</Tag> : null}</td>
+                          <td><Tag tone={project.status === "active" ? "accent" : "muted"}>{t(STATUS_LABEL[project.status] ?? project.status)}</Tag></td>
+                          <td className="right"><div className="table-actions">{projectActions(project)}</div></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </TableWrap>
+              </div>
+              <div className="entity-card-list" role="list">
+                {rows.map((project) => (
+                  <article className="entity-record-card" role="listitem" key={project.id}>
+                    <header className="entity-record-card__head">
+                      <div><a className="entity-record-card__title" href={`#/projects/${encodeURIComponent(project.id)}`}>{project.name}</a><span>{project.project_code || (project.customer_id ? custNames.get(project.customer_id) ?? t("Unbekannter Kunde") : t("Internes Projekt"))}</span></div>
+                      <Tag tone={project.status === "active" ? "accent" : "muted"}>{t(STATUS_LABEL[project.status] ?? project.status)}</Tag>
+                    </header>
+                    <dl className="entity-record-card__facts">
+                      <div><dt>{t("Kunde")}</dt><dd>{project.customer_id ? custNames.get(project.customer_id) ?? t("Unbekannter Kunde") : t("intern")}</dd></div>
+                      <div><dt>{t("Abrechnung")}</dt><dd>{t(BILLING.find((option) => option.value === project.billing_type)?.label ?? project.billing_type)}</dd></div>
+                      <div><dt>{t("Satz")}</dt><dd className="num">{fmtMoney(project.hourly_rate_cents ?? project.day_rate_cents ?? project.fixed_fee_cents ?? null)}</dd></div>
+                      <div><dt>{t("Pflichtfelder")}</dt><dd className="entity-record-card__tags">{project.description_required ? <Tag tone="muted">{t("Beschreibung")}</Tag> : null}{project.backdating_reason_required ? <Tag tone="muted">{t("Nachtragsgrund")}</Tag> : null}{!project.description_required && !project.backdating_reason_required ? <span className="faint">{t("Keine")}</span> : null}</dd></div>
+                    </dl>
+                    <footer className="entity-record-card__actions">{projectActions(project)}</footer>
+                  </article>
+                ))}
+              </div>
+            </div>
           )}
         </AsyncBody>
       </Card>

@@ -1,14 +1,14 @@
 /**
- * sync/store.ts — small key-value persistence for the server-connection state
+ * sync/store.ts, small key-value persistence for the server-connection state
  * (base URL, device token, revision high-water marks, last HLC).
  *
- * This is intentionally NOT the event outbox — sync events live in the
+ * This is intentionally NOT the event outbox, sync events live in the
  * `sync_events` table (see `outbox.ts`). This store only holds the handful of
  * scalar sync settings. It is injectable so a later `src/data`-backed store can
  * replace the default without touching the engine.
  *
  * Default is a `localStorage` adapter, guarded for SSR / non-DOM contexts so
- * importing this module can never throw — keeping the client inert offline.
+ * importing this module can never throw, keeping the client inert offline.
  */
 import type { ServerConfig } from "./types";
 
@@ -51,7 +51,7 @@ function webStorage(): WebStorageLike | null {
       return (globalThis as { localStorage: WebStorageLike }).localStorage;
     }
   } catch {
-    // Access can throw in sandboxed contexts — treat as unavailable.
+    // Access can throw in sandboxed contexts, treat as unavailable.
   }
   return null;
 }
@@ -79,7 +79,7 @@ export class LocalStorageSyncStore implements SyncStore {
     try {
       ls.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch {
-      // Quota / disabled storage — memory copy still holds for this session.
+      // Quota / disabled storage, memory copy still holds for this session.
     }
   }
 

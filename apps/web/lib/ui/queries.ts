@@ -1,8 +1,8 @@
 /**
- * lib/ui/queries.ts — serverseitige Lese-Helfer (Server Components).
+ * lib/ui/queries.ts, serverseitige Lese-Helfer (Server Components).
  *
  * Lesen passiert „wo möglich" direkt gegen die Server-DB (doc 05 §2.1) statt
- * über HTTP — typsicher via Drizzle, kein Round-Trip, kein Frontend-State.
+ * über HTTP, typsicher via Drizzle, kein Round-Trip, kein Frontend-State.
  * Alles ist auf `main_account_id` gescoped (getAuth, lib/api). Schreiben läuft
  * getrennt über die `/api/**`-Routen der anderen Module (lib/ui/api.ts).
  *
@@ -644,6 +644,7 @@ export async function listRoundingRules(accountId: string): Promise<RoundingRule
       interval_minutes: schema.roundingRules.interval_minutes,
       min_duration_seconds: schema.roundingRules.min_duration_seconds,
       scope: schema.roundingRules.scope,
+      priority: schema.roundingRules.priority,
       valid_from: schema.roundingRules.valid_from,
       valid_until: schema.roundingRules.valid_until,
     })

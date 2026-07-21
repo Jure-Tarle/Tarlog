@@ -1,4 +1,4 @@
-# docker-compose.image.yml — Betrieb aus dem veröffentlichten GHCR-Image, ohne
+# docker-compose.image.yml, Betrieb aus dem veröffentlichten GHCR-Image, ohne
 # lokalen Build. Für Nutzer, die nur deployen wollen.
 #
 #   cp .env.example .env   # Werte anpassen (SESSION_SECRET, Passwörter!)

@@ -1,5 +1,5 @@
 /**
- * GET /api/realtime/token — kurzlebiges, gerätegebundenes WebSocket-Token.
+ * GET /api/realtime/token, kurzlebiges, gerätegebundenes WebSocket-Token.
  *
  * Der Browser authentifiziert normale Requests per HttpOnly-Session-Cookie.
  * Ein WebSocket-Upgrade kann diesen Cookie-Pfad nicht über den Next-Handler

@@ -1,6 +1,6 @@
 /**
- * Time module — gross/break/net durations, timezones, DST, day boundaries,
- * midnight split (doc 07 §2 functions 1–3, 5–9). Pure functions: no Date.now(),
+ * Time module, gross/break/net durations, timezones, DST, day boundaries,
+ * midnight split (doc 07 §2 functions 1,3, 5,9). Pure functions: no Date.now(),
  * no I/O. Durations are ALWAYS derived from UTC epoch differences; the IANA
  * timezone is used only for calendar questions (local day, midnight), so DST
  * transitions are handled correctly by construction (doc 07 §6).
@@ -18,15 +18,15 @@ export interface LocalDateTime {
   date: LocalDate;
   /** Local calendar year. */
   year: number;
-  /** Local calendar month, 1–12. */
+  /** Local calendar month, 1,12. */
   month: number;
-  /** Local calendar day-of-month, 1–31. */
+  /** Local calendar day-of-month, 1,31. */
   day: number;
-  /** Local hour, 0–23. */
+  /** Local hour, 0,23. */
   hour: number;
-  /** Local minute, 0–59. */
+  /** Local minute, 0,59. */
   minute: number;
-  /** Local second, 0–59. */
+  /** Local second, 0,59. */
   second: number;
   /** Local weekday, 1 = Monday … 7 = Sunday (luxon convention). */
   weekday: number;

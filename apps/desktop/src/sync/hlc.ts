@@ -1,7 +1,7 @@
 /**
- * sync/hlc.ts — Hybrid Logical Clock (doc 04 §1.1).
+ * sync/hlc.ts, Hybrid Logical Clock (doc 04 §1.1).
  *
- * `(physical_ms, logical_counter, device_id)` — monotone even when the wall
+ * `(physical_ms, logical_counter, device_id)`, monotone even when the wall
  * clock jumps backwards, and totally ordered across devices. Serialized as a
  * fixed-width, lexicographically sortable string so `ORDER BY hlc` in SQL and
  * string compare in JS agree.
@@ -43,7 +43,7 @@ export function parseHlc(s: string): Hlc {
 /**
  * Per-device HLC generator. Keep one instance per device id. `send()` stamps a
  * new local event; `receive()` merges a remote stamp to stay monotone ahead of
- * peers (doc 04 §1.1 — the server may normalize on gross skew).
+ * peers (doc 04 §1.1, the server may normalize on gross skew).
  */
 export class HlcClock {
   private last: Hlc;

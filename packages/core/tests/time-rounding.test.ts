@@ -1,9 +1,9 @@
 /**
- * SPEC-Testfälle 8–15 (docs/project-time-ledger/12-qualitaet.md §2).
+ * SPEC-Testfälle 8,15 (docs/project-time-ledger/12-qualitaet.md §2).
  * Pausen, Rundung 15 min (KANON 70→75 min), Mitternacht-Split, Sommer-/Winterzeit,
  * Zeitzonen, alle 9 Rundungsmodi, calculateEntry Ende-zu-Ende inkl.
  * billing_amount_snapshot. Testet REALE Exporte aus @tarlog/core (src via NodeNext).
- * KEINE Quelldatei wird geändert — bei Rot: Fehler dokumentiert, nicht gefixt.
+ * KEINE Quelldatei wird geändert, bei Rot: Fehler dokumentiert, nicht gefixt.
  */
 import { describe, expect, it } from "vitest";
 import { DateTime } from "luxon";
@@ -51,10 +51,10 @@ const RULE_CEIL_15: RoundingRule = {
 };
 
 // ============================================================================
-// SPEC 8 — Pausenberechnung (mehrere Pausen, Überlappung)
+// SPEC 8, Pausenberechnung (mehrere Pausen, Überlappung)
 // net = actual − break; mehrere Pausen korrekt summiert.
 // ============================================================================
-describe("SPEC 8 — Pausenberechnung", () => {
+describe("SPEC 8, Pausenberechnung", () => {
   it("summiert mehrere nicht-überlappende Pausen (computeBreakSeconds)", () => {
     const breaks: BreakInput[] = [
       { started_at: 1_000_000, ended_at: 1_000_000 + 600_000 }, // 600 s
@@ -100,9 +100,9 @@ describe("SPEC 8 — Pausenberechnung", () => {
 });
 
 // ============================================================================
-// SPEC 9 — Rundung auf 15 Minuten: netto 70 min → billing 4500 (75 min)
+// SPEC 9, Rundung auf 15 Minuten: netto 70 min → billing 4500 (75 min)
 // ============================================================================
-describe("SPEC 9 — Rundung 15 min (ceil_started_interval)", () => {
+describe("SPEC 9, Rundung 15 min (ceil_started_interval)", () => {
   it("netto 4200 s (70 min) → billing_duration_seconds = 4500", () => {
     const r = applyRounding(4200, RULE_CEIL_15);
     expect(r.billing_duration_seconds).toBe(4500);
@@ -121,9 +121,9 @@ describe("SPEC 9 — Rundung 15 min (ceil_started_interval)", () => {
 });
 
 // ============================================================================
-// SPEC 10 — 70 min → 75 min Abrechnungszeit, rounding_delta_seconds = +300
+// SPEC 10, 70 min → 75 min Abrechnungszeit, rounding_delta_seconds = +300
 // ============================================================================
-describe("SPEC 10 — delta +300 (1h10 → 1h15)", () => {
+describe("SPEC 10, delta +300 (1h10 → 1h15)", () => {
   it("rounding_delta_seconds = +300", () => {
     const r = applyRounding(4200, RULE_CEIL_15);
     expect(r.rounding_delta_seconds).toBe(300);
@@ -136,9 +136,9 @@ describe("SPEC 10 — delta +300 (1h10 → 1h15)", () => {
 });
 
 // ============================================================================
-// SPEC 11 — actual_duration_seconds bleibt exakt 4200 (Rundung überschreibt nie)
+// SPEC 11, actual_duration_seconds bleibt exakt 4200 (Rundung überschreibt nie)
 // ============================================================================
-describe("SPEC 11 — actual_duration_seconds unverändert", () => {
+describe("SPEC 11, actual_duration_seconds unverändert", () => {
   it("calculateEntry: gross bleibt 4200 trotz billing 4500", () => {
     const input: TimeEntryCalcInput = {
       actual_started_at: 0,
@@ -157,10 +157,10 @@ describe("SPEC 11 — actual_duration_seconds unverändert", () => {
 });
 
 // ============================================================================
-// SPEC 12 — über Mitternacht (splitAtMidnight Europe/Berlin)
+// SPEC 12, über Mitternacht (splitAtMidnight Europe/Berlin)
 // Start 23:30, Ende 00:45 = 75 min, als "über Mitternacht" markiert, Split.
 // ============================================================================
-describe("SPEC 12 — über Mitternacht", () => {
+describe("SPEC 12, über Mitternacht", () => {
   const start = at(BERLIN, 2025, 1, 15, 23, 30);
   const end = at(BERLIN, 2025, 1, 16, 0, 45);
   const input: TimeEntryCalcInput = {
@@ -193,10 +193,10 @@ describe("SPEC 12 — über Mitternacht", () => {
 });
 
 // ============================================================================
-// SPEC 13 — Sommerzeit: 30.03.2025 01:30→03:30 Europe/Berlin = 3600 echte s
+// SPEC 13, Sommerzeit: 30.03.2025 01:30→03:30 Europe/Berlin = 3600 echte s
 // Uhr springt +1 h; Wanduhr-Differenz 2 h, reale Dauer 1 h.
 // ============================================================================
-describe("SPEC 13 — Sommerzeit (Frühjahr +1h)", () => {
+describe("SPEC 13, Sommerzeit (Frühjahr +1h)", () => {
   const start = at(BERLIN, 2025, 3, 30, 1, 30);
   const end = at(BERLIN, 2025, 3, 30, 3, 30);
 
@@ -211,10 +211,10 @@ describe("SPEC 13 — Sommerzeit (Frühjahr +1h)", () => {
 });
 
 // ============================================================================
-// SPEC 14 — Winterzeit: 26.10.2025 01:30→03:30 Europe/Berlin = 10800 echte s
+// SPEC 14, Winterzeit: 26.10.2025 01:30→03:30 Europe/Berlin = 10800 echte s
 // Uhr springt −1 h; Wanduhr-Differenz 2 h, reale Dauer 3 h.
 // ============================================================================
-describe("SPEC 14 — Winterzeit (Herbst −1h)", () => {
+describe("SPEC 14, Winterzeit (Herbst −1h)", () => {
   const start = at(BERLIN, 2025, 10, 26, 1, 30);
   const end = at(BERLIN, 2025, 10, 26, 3, 30);
 
@@ -229,10 +229,10 @@ describe("SPEC 14 — Winterzeit (Herbst −1h)", () => {
 });
 
 // ============================================================================
-// SPEC 15 — Zeitzonen: resolveDayBoundary America/New_York vs Europe/Berlin
+// SPEC 15, Zeitzonen: resolveDayBoundary America/New_York vs Europe/Berlin
 // Derselbe UTC-Instant → unterschiedlicher lokaler Kalendertag; Dauer identisch.
 // ============================================================================
-describe("SPEC 15 — Zeitzonen", () => {
+describe("SPEC 15, Zeitzonen", () => {
   // 15.01.2025 03:00 UTC → Berlin 04:00 (15.), NY 22:00 (14.)
   const instant = DateTime.fromObject(
     { year: 2025, month: 1, day: 15, hour: 3, minute: 0 },
@@ -260,7 +260,7 @@ describe("SPEC 15 — Zeitzonen", () => {
 });
 
 // ============================================================================
-// Alle 9 Rundungsmodi — je min. 1 Assertion (doc 07 §3.2).
+// Alle 9 Rundungsmodi, je min. 1 Assertion (doc 07 §3.2).
 // Netto 4200 s (70 min); Intervall 900 s; minimum 5400 s wo nötig.
 // ============================================================================
 describe("Alle 9 Rundungsmodi", () => {
@@ -306,6 +306,24 @@ describe("Alle 9 Rundungsmodi", () => {
     expect(r.billing_duration_seconds).toBe(5400);
   });
 
+  it("min_per_entry: wendet erst die Mindestdauer und danach die Intervallrundung an", () => {
+    const r = applyRounding(1300, {
+      id,
+      mode: "min_per_entry",
+      minimum_seconds: 1800,
+      interval_seconds: 900,
+    });
+    expect(r.billing_duration_seconds).toBe(1800);
+
+    const aboveMinimum = applyRounding(1900, {
+      id,
+      mode: "min_per_entry",
+      minimum_seconds: 1800,
+      interval_seconds: 900,
+    });
+    expect(aboveMinimum.billing_duration_seconds).toBe(2700);
+  });
+
   it("min_per_day: deferred pass-through (aggregat extern)", () => {
     const r = applyRounding(NET, { id, mode: "min_per_day", minimum_seconds: 5400 });
     expect(r.billing_duration_seconds).toBe(4200);
@@ -326,10 +344,10 @@ describe("Alle 9 Rundungsmodi", () => {
 });
 
 // ============================================================================
-// calculateEntry — Ende-zu-Ende inkl. billing_amount_snapshot.
+// calculateEntry, Ende-zu-Ende inkl. billing_amount_snapshot.
 // KANON: Rate 9000 cents/h × 4500 s = 11250 cents.
 // ============================================================================
-describe("calculateEntry — Pipeline Ende-zu-Ende", () => {
+describe("calculateEntry, Pipeline Ende-zu-Ende", () => {
   const rate: RateSnapshot = { amount_cents: 9000, currency: "EUR", source: "project" };
 
   it("KANON: 70 min brutto, keine Pause → billing 4500, amount 11250 cents", () => {

@@ -1,5 +1,5 @@
 /**
- * lib/auth/http.ts — Route-Helper für NICHT-authentifizierte Auth-Endpunkte
+ * lib/auth/http.ts, Route-Helper für NICHT-authentifizierte Auth-Endpunkte
  * (Setup, Login, Logout, Session-Check, Geräte-Pairing-Connect) + CSRF-/IP-Helfer.
  *
  * `requireAuth` (lib/api) deckt bereits die authentifizierten Routen ab. Die
@@ -35,7 +35,7 @@ export function getClientIp(req: NextRequest): string {
   return req.headers.get("x-tarlog-client-ip") ?? "local";
 }
 
-/** SHA-256-Hex einer IP — Speicherform für `sessions.ip_hash` (doc 09 §5 Nr.13). */
+/** SHA-256-Hex einer IP, Speicherform für `sessions.ip_hash` (doc 09 §5 Nr.13). */
 export function hashIp(ip: string): string {
   return hashToken(ip);
 }

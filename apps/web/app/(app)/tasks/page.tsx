@@ -1,5 +1,5 @@
 /**
- * /tasks — Aufgaben/Tätigkeitsarten (doc 11 §2 Nr. 8), global oder projektbezogen.
+ * /tasks, Aufgaben/Tätigkeitsarten (doc 11 §2 Nr. 8), global oder projektbezogen.
  */
 import { PageHeader, LoadError, Table, Th, Td, EmptyState, Badge } from "@/lib/ui/ui";
 import { requireAccount, listTasks, listProjects } from "@/lib/ui/queries";
@@ -35,7 +35,7 @@ export default async function TasksPage(): Promise<React.ReactElement> {
             <tr key={t.id}>
               <Td><span style={{ fontWeight: 500 }}>{t.name}</span></Td>
               <Td muted>{t.projectName ?? "global"}</Td>
-              <Td mono muted>{t.cost_center ?? "—"}</Td>
+              <Td mono muted>{t.cost_center ?? ","}</Td>
               <Td align="center">{t.default_billable ? <Badge tone="accent">ja</Badge> : <Badge tone="muted">nein</Badge>}</Td>
               <Td align="center"><Badge tone={t.status === "active" ? "neutral" : "muted"}>{t.status ?? "active"}</Badge></Td>
             </tr>

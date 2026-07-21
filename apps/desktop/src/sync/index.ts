@@ -1,5 +1,5 @@
 /**
- * sync/ — the OPTIONAL server-connection module (doc 04).
+ * sync/, the OPTIONAL server-connection module (doc 04).
  *
  * Public surface for the UI (Sync page) and the Timer author (live mirroring).
  * Everything is inert until a server is paired: `getSyncEngine()` is safe to
@@ -7,7 +7,7 @@
  *
  *   import { getSyncEngine } from "../sync";
  *   const sync = getSyncEngine({ onLiveEvent: mirrorTimer });
- *   if (!sync.isConfigured()) { /* local mode — nothing to do *\/ }
+ *   if (!sync.isConfigured()) { /* local mode, nothing to do *\/ }
  */
 export * from "./types";
 export { HlcClock, formatHlc, parseHlc } from "./hlc";

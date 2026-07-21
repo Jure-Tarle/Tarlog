@@ -1,5 +1,5 @@
 /**
- * lib/timer/entries.ts — Zeiteinträge CRUD + Nachtrag (doc 03 §7, doc 04 §5).
+ * lib/timer/entries.ts, Zeiteinträge CRUD + Nachtrag (doc 03 §7, doc 04 §5).
  *
  * create: Live-/Nachtrag-Eintrag (source, backdate_reason aus 11 Gründen,
  * Pausen als time_entry_breaks) → @tarlog/core calculateEntry mit aufgelöster
@@ -88,10 +88,8 @@ async function resolveCalcContext(
     mainAccountId,
     taskId: e.task_id,
     projectId: e.project_id,
-    customerId,
     taskRateCents: task?.default_hourly_rate_cents,
     projectRateCents: project?.hourly_rate_cents,
-    customerRateCents: customer?.default_hourly_rate_cents,
     customerCurrency: customer?.default_currency,
     defaultCurrency: acct.default_currency,
     onDate,
@@ -328,7 +326,7 @@ export async function updateTimeEntry(
       const current = await loadTimeEntry(ctx.client, id, mainAccountId);
       if (!current) throw new ApiError("not_found", "Zeiteintrag nicht gefunden.");
 
-      // Konfliktfall 9 — Edit auf soft-gelöschtem Eintrag.
+      // Konfliktfall 9, Edit auf soft-gelöschtem Eintrag.
       if (current.deleted_at != null) {
         const conflictId = await insertConflictRecord(ctx, {
           main_account_id: mainAccountId,
@@ -366,7 +364,7 @@ export async function updateTimeEntry(
         };
       }
 
-      // Optimistische Sperre — Konfliktfall 6 (Feld) / 7 (Beschreibung).
+      // Optimistische Sperre, Konfliktfall 6 (Feld) / 7 (Beschreibung).
       if (
         body.expected_sync_version != null &&
         current.sync_version !== body.expected_sync_version
@@ -390,7 +388,7 @@ export async function updateTimeEntry(
             conflict: {
               conflict_case: conflictCase,
               message: descDiverges
-                ? "Beschreibung divergiert (Konfliktfall 7) — bitte manuell auflösen."
+                ? "Beschreibung divergiert (Konfliktfall 7), bitte manuell auflösen."
                 : "Eintrag wurde zwischenzeitlich geändert (Konfliktfall 6).",
               conflict_id: conflictId,
               server_version: current,
@@ -594,7 +592,7 @@ export async function deleteTimeEntry(
       const current = await loadTimeEntry(ctx.client, id, mainAccountId);
       if (!current) throw new ApiError("not_found", "Zeiteintrag nicht gefunden.");
       if (current.deleted_at != null) {
-        // Idempotent — bereits gelöscht.
+        // Idempotent, bereits gelöscht.
         return {
           result: { deleted: true },
           audit: {

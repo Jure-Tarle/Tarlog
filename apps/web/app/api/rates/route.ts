@@ -1,5 +1,5 @@
 /**
- * /api/rates — Liste + Anlegen historisierter Stundensätze
+ * /api/rates, Liste + Anlegen historisierter Stundensätze
  * (doc 06 §A.4 `billing_rates`, doc 10 §4.0/§4.1).
  *
  * Sätze sind über `valid_from`/`valid_until` historisiert (doc 06). Beim Anlegen

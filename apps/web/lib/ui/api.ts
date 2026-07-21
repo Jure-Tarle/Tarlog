@@ -1,11 +1,11 @@
 /**
- * lib/ui/api.ts — Client-Fetch-Helfer + kanonische API-Pfade.
+ * lib/ui/api.ts, Client-Fetch-Helfer + kanonische API-Pfade.
  *
  * Mutationen (Formulare, Timer-Steuerung) laufen über REST gegen die
  * `/api/**`-Routen der anderen Module. Diese Datei kennt NUR die Pfad-Namen
  * (Vertrag) und ein einheitliches Fehler-Handling passend zu lib/api.ts
  * (`{ error: { code, message, details } }`). Lesen passiert wo möglich direkt
- * serverseitig (lib/ui/queries.ts) — hier steht die Schreib-/Live-Seite.
+ * serverseitig (lib/ui/queries.ts), hier steht die Schreib-/Live-Seite.
  *
  * Isomorph nutzbar (global `fetch`); in Server-Components wird i. d. R. nicht
  * gefetcht, sondern die DB gelesen.

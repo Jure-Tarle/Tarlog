@@ -1,5 +1,5 @@
 /**
- * lib/events.ts — Live-Kanal-Publish (doc 05 §5 Live-Event-Spalte, §7; doc 04 §5.2).
+ * lib/events.ts, Live-Kanal-Publish (doc 05 §5 Live-Event-Spalte, §7; doc 04 §5.2).
  *
  * Entkopplung Next-Routen ↔ WebSocket-Server: Eine API-Route ruft
  * `publishEvent(...)` auf. Das schreibt (a) einen append-only Eintrag in

@@ -1,19 +1,19 @@
 /**
- * serverClient.ts — REST client for the OPTIONAL self-hosted sync server
+ * serverClient.ts, REST client for the OPTIONAL self-hosted sync server
  * (doc 04). Handles device pairing and the sync endpoints with a Bearer device
  * token. Native Tauri builds use the scoped Rust HTTP plugin; tests and
  * non-Tauri previews fall back to the platform `fetch` implementation.
  *
  * INERT WITHOUT A SERVER: this class is only constructed once a `ServerConfig`
- * exists. The local-first mode (doc 04 §1) never touches it — the {@link SyncEngine}
+ * exists. The local-first mode (doc 04 §1) never touches it, the {@link SyncEngine}
  * short-circuits when unconfigured, so pure local usage stays unaffected.
  *
  * Endpoints (doc 04):
- *   - POST /api/devices/connect — pairing (code → device_token)
- *   - POST /api/sync/events    — push outbox (local_revision + hlc)
- *   - GET  /api/sync/changes   — pull delta since a revision
- *   - GET  /api/sync/poll      — long-poll fallback for live updates
- *   - WS   /api/ws             — live channel (see sync/liveChannel.ts)
+ *   - POST /api/devices/connect, pairing (code → device_token)
+ *   - POST /api/sync/events, push outbox (local_revision + hlc)
+ *   - GET  /api/sync/changes, pull delta since a revision
+ *   - GET  /api/sync/poll, long-poll fallback for live updates
+ *   - WS   /api/ws, live channel (see sync/liveChannel.ts)
  */
 import type {
   ChangesResponse,
@@ -28,6 +28,7 @@ import type {
   WireEvent,
 } from "../sync/types";
 import { fetchSyncServer, NativeHttpTransportError } from "./nativeHttp";
+import { t } from "../i18n";
 
 /** Non-2xx server response (other than a 409 conflict). */
 export class ServerHttpError extends Error {
@@ -64,9 +65,9 @@ export class ServerProtocolError extends Error {
 }
 
 /**
- * HTTP 409 on push — the server rejected part of the batch as conflicting
+ * HTTP 409 on push, the server rejected part of the batch as conflicting
  * (doc 04 §6). Carries the conflict payloads so the engine can persist them to
- * `conflict_records` and open the dialog — NEVER a silent drop.
+ * `conflict_records` and open the dialog, NEVER a silent drop.
  */
 export class ServerConflictError extends Error {
   constructor(
@@ -102,19 +103,19 @@ export function normalizeServerBaseUrl(input: string): string {
   try {
     parsed = new URL(value);
   } catch {
-    throw new Error("Server-Adresse muss eine vollständige http(s)-URL sein.");
+    throw new Error(t("Server-Adresse muss eine vollständige http(s)-URL sein."));
   }
   if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-    throw new Error("Server-Adresse muss mit http:// oder https:// beginnen.");
+    throw new Error(t("Server-Adresse muss mit http:// oder https:// beginnen."));
   }
   if (parsed.protocol === "http:" && !isLoopbackHost(parsed.hostname)) {
-    throw new Error("Außerhalb dieses Geräts ist für Sync eine HTTPS-Adresse erforderlich.");
+    throw new Error(t("Außerhalb dieses Geräts ist für Sync eine HTTPS-Adresse erforderlich."));
   }
   if (parsed.username || parsed.password) {
-    throw new Error("Server-Adresse darf keine Zugangsdaten enthalten.");
+    throw new Error(t("Server-Adresse darf keine Zugangsdaten enthalten."));
   }
   if (parsed.search || parsed.hash) {
-    throw new Error("Server-Adresse darf keine Query oder Raute enthalten.");
+    throw new Error(t("Server-Adresse darf keine Query oder Raute enthalten."));
   }
   return normalizeBaseUrl(parsed.toString());
 }
@@ -123,7 +124,7 @@ export function normalizeServerBaseUrl(input: string): string {
 export function normalizePairingCode(input: string): string {
   const compact = input.trim().toUpperCase().replace(/[\s-]+/g, "");
   if (!/^[A-HJ-NP-Z2-9]{8}$/.test(compact)) {
-    throw new Error("Pairing-Code muss aus acht gültigen Zeichen bestehen.");
+    throw new Error(t("Pairing-Code muss aus acht gültigen Zeichen bestehen."));
   }
   return compact;
 }

@@ -1,5 +1,5 @@
 /**
- * lib/invoice/audit.ts — Audit-Log-Schreiber für Abrechnung/Export (doc 10
+ * lib/invoice/audit.ts, Audit-Log-Schreiber für Abrechnung/Export (doc 10
  * §5.6, doc 06 audit_logs). Jede kritische Aktion (Rechnung erstellt/
  * finalisiert/storniert, Export erstellt, PDF erzeugt) schreibt einen
  * revisionsfähigen Eintrag mit before/after (doc 12 Testfall 32).
@@ -18,7 +18,7 @@ export type AuditAction =
   | "export_created"
   | "pdf_generated";
 
-/** Pool oder PoolClient — beide haben `.query`. */
+/** Pool oder PoolClient, beide haben `.query`. */
 type Queryable = Pool | PoolClient;
 
 export interface AuditInput {

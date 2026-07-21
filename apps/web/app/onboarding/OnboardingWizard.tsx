@@ -420,7 +420,6 @@ function WorkspaceStep({
   const [customerChoice, setCustomerChoice] = useState(initialCustomerId ?? "");
   const [customerName, setCustomerName] = useState("");
   const [customerCompany, setCustomerCompany] = useState("");
-  const [customerRate, setCustomerRate] = useState("");
   const [projectName, setProjectName] = useState("");
   const [billingType, setBillingType] = useState("hourly");
   const [projectRate, setProjectRate] = useState("");
@@ -459,11 +458,6 @@ function WorkspaceStep({
       return;
     }
 
-    const customerCents = createsCustomer ? eurosToCents(customerRate) : null;
-    if (customerCents === undefined) {
-      setError("Gib den Kunden-Stundensatz als Zahl mit höchstens zwei Nachkommastellen ein.");
-      return;
-    }
     const projectCents = rateDisabled ? null : eurosToCents(projectRate);
     if (projectCents === undefined) {
       setError(`Gib ${rateLabel.toLowerCase()} als Zahl mit höchstens zwei Nachkommastellen ein.`);
@@ -474,23 +468,21 @@ function WorkspaceStep({
     setBusy(true);
     setError(null);
     try {
-      const cents = projectCents ?? (billingType === "hourly" ? customerCents : null);
       const result = await api.post<WorkspaceCreationResult>(API.onboarding, {
         customerId: customerChoice && customerChoice !== "new" ? customerChoice : null,
         customer: createsCustomer
           ? {
               name: customerName.trim(),
               company: customerCompany.trim() || null,
-              defaultHourlyRateCents: customerCents,
               defaultCurrency: currency,
             }
           : null,
         project: {
           name: projectName.trim(),
           billingType,
-          hourlyRateCents: billingType === "hourly" ? cents : null,
-          dayRateCents: billingType === "day_rate" ? cents : null,
-          fixedFeeCents: billingType === "fixed_fee" ? cents : null,
+          hourlyRateCents: billingType === "hourly" ? projectCents : null,
+          dayRateCents: billingType === "day_rate" ? projectCents : null,
+          fixedFeeCents: billingType === "fixed_fee" ? projectCents : null,
           roundingRuleId: roundingRuleId || null,
           descriptionRequired,
         },
@@ -510,7 +502,7 @@ function WorkspaceStep({
   return (
     <div className="onboarding-workspace-form">
       <p className="onboarding-lead compact">
-        Ein Projekt bündelt Timer, Nachträge und Abrechnung. Ein Kunde ist optional – interne Arbeit funktioniert genauso.
+        Ein Projekt bündelt Timer, Nachträge und Abrechnung. Ein Kunde ist optional, interne Arbeit funktioniert genauso.
       </p>
 
       {projects.length > 0 ? (
@@ -532,7 +524,7 @@ function WorkspaceStep({
             <Select value={existingProjectId} onChange={(event) => setExistingProjectId(event.target.value)}>
               {projects.map((project) => (
                 <option key={project.id} value={project.id}>
-                  {project.name}{project.customerName ? ` · ${project.customerName}` : " · intern"}
+                  {project.name}{project.customerName ? ` | ${project.customerName}` : " | intern"}
                 </option>
               ))}
             </Select>
@@ -565,9 +557,6 @@ function WorkspaceStep({
                 <Field label="Kundenname" required><TextInput value={customerName} onChange={(event) => setCustomerName(event.target.value)} autoFocus /></Field>
                 <Field label="Firma"><TextInput value={customerCompany} onChange={(event) => setCustomerCompany(event.target.value)} /></Field>
               </FormRow>
-              <Field label={`Standard-Stundensatz (${currency})`} hint="Optional, kann später geändert werden.">
-                <TextInput inputMode="decimal" value={customerRate} onChange={(event) => setCustomerRate(event.target.value)} placeholder="z. B. 95,00" />
-              </Field>
             </div>
           ) : null}
 
@@ -642,7 +631,7 @@ function BackdatingStep({ project }: { project: ProjectOption | null }): React.R
   return (
     <div className="onboarding-copy-stack">
       <p className="onboarding-lead compact">
-        Timer vergessen? „Nachtragen“ erfasst Start, Ende und Pause für <strong>{project?.name ?? "ein Projekt"}</strong> – ohne die Herkunft zu verschleiern.
+        Timer vergessen? „Nachtragen“ erfasst Start, Ende und Pause für <strong>{project?.name ?? "ein Projekt"}</strong>, ohne die Herkunft zu verschleiern.
       </p>
       <div className="onboarding-demo backdate-demo">
         <div className="backdate-fields" aria-hidden>

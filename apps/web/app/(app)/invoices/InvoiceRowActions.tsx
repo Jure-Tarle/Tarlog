@@ -1,6 +1,6 @@
 "use client";
 /**
- * InvoiceRowActions — Finalisieren / Storno / PDF je Rechnung (doc 10). Nach
+ * InvoiceRowActions, Finalisieren / Storno / PDF je Rechnung (doc 10). Nach
  * Finalisierung ist die Rechnung unveränderlich; Storno erzeugt eine
  * Stornorechnung. PDF ist ein direkter Download-Link.
  */

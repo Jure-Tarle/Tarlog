@@ -1,6 +1,6 @@
 "use client";
 /**
- * NachtragForm — Arbeitszeit nachtragen (doc 03 §7.1, alle 14 Felder; §7.2, 11
+ * NachtragForm, Arbeitszeit nachtragen (doc 03 §7.1, alle 14 Felder; §7.2, 11
  * Gründe). Quelle wird fest auf „manuell nachgetragen" gesetzt (Feld 14). Der
  * Assistent zeigt live die gerundete abrechenbare Dauer (§7.3 Nr. 11) und
  * Compliance-Hinweise (kurze Pausen). POST an /api/time-entries.
@@ -156,7 +156,7 @@ export function NachtragForm({
         </Field>
         <Field label="Aufgabe (optional)">
           <Select value={taskId} onChange={(e) => setTaskId(e.target.value)}>
-            <option value="">—</option>
+            <option value="">,</option>
             {projectTasks.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
           </Select>
         </Field>
@@ -196,13 +196,13 @@ export function NachtragForm({
       </div>
 
       <div className="backdate-preview-grid">
-        <Metric label="Nettozeit" value={preview ? secondsToHM(preview.net) + " h" : "—"} />
-        <Metric label="Abrechenbar (gerundet)" value={preview ? secondsToHM(preview.rounded.billing_duration_seconds) + " h" : "—"} hint={preview?.rounded.rounding_reason} />
-        <Metric label="Betrag" value={preview ? formatMoney(preview.amount, currency) : "—"} accent />
+        <Metric label="Nettozeit" value={preview ? secondsToHM(preview.net) + " h" : ","} />
+        <Metric label="Abrechenbar (gerundet)" value={preview ? secondsToHM(preview.rounded.billing_duration_seconds) + " h" : ","} hint={preview?.rounded.rounding_reason} />
+        <Metric label="Betrag" value={preview ? formatMoney(preview.amount, currency) : ","} accent />
       </div>
 
       <div style={{ fontSize: 12, color: "var(--color-text-faint)" }}>
-        Quelle: manuell nachgetragen · wird im Audit-Log protokolliert und im PDF-Nachweis als Nachtrag markiert.
+        Quelle: manuell nachgetragen | wird im Audit-Log protokolliert und im PDF-Nachweis als Nachtrag markiert.
       </div>
 
       <div style={{ display: "flex", gap: 8 }}>

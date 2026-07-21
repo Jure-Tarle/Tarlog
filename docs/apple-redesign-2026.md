@@ -1,11 +1,30 @@
 # Tarlog Apple Redesign 2026
 
-Stand: 13. Juli 2026
+Stand: 18. Juli 2026
 
-Release: 0.0.3
+Release: 0.0.5
 
 Status: Umsetzungsinventar und ehrlicher Abnahmeplan; native visuelle
 Plattformgates bleiben offen
+
+Aktueller Implementierungsstand: Desktop und Web bieten in den Einstellungen
+die Auswahl **System**, **Hell** und **Dunkel**. System ist die empfohlene
+Voreinstellung und folgt der Geräteanzeige; unter macOS wird zusätzlich das
+native Tauri-Fensterthema gesetzt. Die Paletten verwenden semantische
+Apple-Systemrollen für Canvas, Flächen, Text, Status und Akzent. Glass/Material
+bleibt auf Navigation, Werkzeugleisten und temporäre Ebenen beschränkt;
+Inhaltskarten sind opak. Reduzierte Transparenz, erhöhter Kontrast und fehlende
+Backdrop-Filter besitzen opake Fallbacks.
+
+Die Mobile-Vorbereitung verwendet auf iOS semantische UIKit-Farbrollen über
+React Native `PlatformColor`, maximal fünf primäre Tab-Ziele, zugängliche
+Auswahlzustände und Reduce-Motion-Verhalten. Expo SDK 52 und die JavaScript-
+Tabbar sind jedoch kein Nachweis für Apples aktuellen nativen Liquid-Glass-
+Renderer; auch diese Oberfläche wird bis zu einem SDK-Upgrade und einer
+Geräteabnahme nur als Apple-inspiriert bezeichnet.
+Der lokale Simulatorlauf erreicht derzeit wegen der bereits dokumentierten
+pnpm-/Metro-Auflösung (`Unable to resolve "react"` aus Expo-Routen) kein
+ausführbares Bundle. Typecheck und Build ersetzen diese Laufzeitabnahme nicht.
 
 ## 1. Ziel und Referenzrahmen
 
@@ -18,9 +37,10 @@ ihre eigenen Konventionen.
 
 Die aktuellen [Apple Design Resources](https://developer.apple.com/design/resources/)
 führen **macOS 27** als neueste macOS-UI-Kit-Referenz. Deshalb ist macOS 27 das
-visuelle Referenzziel. Das native Binary wurde lokal auf **macOS 26.5.1**
-gebaut; eine visuelle und interaktive Fensterabnahme konnte wegen der
-gesperrten Mac-Sitzung nicht durchgeführt werden. Das Paket behält
+visuelle Referenzziel. Das native Binary wurde lokal auf **macOS 26.5.2** mit
+**Xcode 26.6** gebaut und in der Tauri-App visuell sowie über den macOS-
+Accessibility-Tree stichprobenartig geprüft. Eine vollständige VoiceOver- und
+Gerätematrix steht weiterhin aus. Das Paket behält
 **macOS 10.15** als technisches Mindestziel; ein realer Lauf auf 10.15 steht
 ebenso aus wie die Abnahme auf macOS 27. Neuere Materialien und Symbole
 benötigen dort definierte Fallbacks.
@@ -49,7 +69,7 @@ Verbindliche Apple-Quellen für dieses Dokument:
 
 ### 2.2 Screen-Inventar
 
-**Desktop – 13 Hauptbereiche**
+**Desktop, 13 Hauptbereiche**
 
 1. Dashboard
 2. Timer
@@ -69,7 +89,7 @@ Zusätzlich existieren der lokale Datenbank-Bootzustand, ein verpflichtendes
 Erststart-Onboarding, Dialoge für Timerabschluss und Bearbeitung sowie native
 Menü- und Tray-Einstiegspunkte.
 
-**Web – Zugangsfluss plus 17 Arbeitsbereiche**
+**Web, Zugangsfluss plus 17 Arbeitsbereiche**
 
 - Zugang: Setup des ersten Kontos, Login und Produkt-Onboarding.
 - Zeit: Übersicht, Timer, Heute, Woche, Monat, Nachtragen.
@@ -78,11 +98,12 @@ Menü- und Tray-Einstiegspunkte.
 - System: Einführung erneut öffnen, Compliance, Synchronisierung,
   Einstellungen.
 
-**Mobile-Vorbereitung – 6 Tabs**
+**Mobile-Vorbereitung, 5 primäre Tabs plus sekundäre Route**
 
-Timer, Heute, Woche, Nachtragen, Sync und Einstellungen. Diese Oberfläche ist
-im Redesign-Inventar enthalten, aber nicht Teil der Produktionsfreigabe für
-Desktop und Web.
+Timer, Heute, Woche, Nachtragen und Einstellungen bilden die primäre Tabbar.
+Sync bleibt als sekundäre Route aus den Einstellungen erreichbar. Diese
+Oberfläche ist im Redesign-Inventar enthalten, aber nicht Teil der
+Produktionsfreigabe für Desktop und Web.
 
 ### 2.3 Kritische Daten- und Zustandsmodelle
 
@@ -171,7 +192,7 @@ CSS-Invertierung.
 | Abstand | 4-Punkt-Grundraster mit 8/12/16/24/32-Schritten | Beziehungen über Nähe und Ausrichtung zeigen; Abstände in `rem` skalierbar halten |
 | Radien | kleine Controls, Inhaltskarten, Materialflächen, große Dialoge | konzentrische Radien: innerer Radius folgt Außenradius minus Abstand |
 | Schatten | `control`, `content`, `material`, `modal` | Tiefe nur dort, wo Ebenen tatsächlich überlagert sind; Dark Mode erhält geringere helle Kanten und kontrollierte Schatten |
-| Dauer | `state`, `enter`, `layout` | Statusfeedback ca. 100–180 ms; räumliche Layoutbewegung als kritisch gedämpfte Feder statt starre Show-Animation |
+| Dauer | `state`, `enter`, `layout` | Statusfeedback ca. 100 bis 180 ms; räumliche Layoutbewegung als kritisch gedämpfte Feder statt starre Show-Animation |
 
 Auf macOS soll die Akzentfarbe nach Möglichkeit `AccentColor`/Systemakzent
 folgen. Web und Windows verwenden einen stabilen Tarlog-Akzent mit genügend
@@ -220,7 +241,7 @@ Liquid Glass bezeichnet werden.
 ### 5.4 Motion
 
 - Standardbewegungen sind kritisch gedämpft, ohne dekoratives Überschwingen;
-  Zielwert: Dämpfung 1,0 und Reaktion ca. 0,3–0,4 s.
+  Zielwert: Dämpfung 1,0 und Reaktion ca. 0,3 bis 0,4 s.
 - Leichtes Überschwingen ist nur nach einer tatsächlichen Impulsgeste zulässig.
 - Bewegung startet am sichtbaren Istwert, bleibt unterbrechbar und führt beim
   Rückweg denselben räumlichen Pfad zurück.
@@ -280,7 +301,7 @@ und darf nicht implizit als erledigt gelten.
 | Ziel | Erwartung | Fallback |
 |---|---|---|
 | macOS 27 | visuelles Referenzziel gemäß aktuellem Apple-UI-Kit; aktuelle Material-, Icon- und Sidebar-Sprache | keine Nutzung unveröffentlichter oder privater API; Verhalten bleibt wichtiger als Effekt |
-| macOS 26.5.1 | lokale Build- und Laufzeitplattform | WebView-Material und verfügbare SF Symbols werden nach Entsperren der Mac-Sitzung visuell geprüft; Abweichung zu macOS 27 wird dokumentiert |
+| macOS 26.5.2 | lokale Build- und Laufzeitplattform | WebView-Material und Accessibility-Tree wurden auf Dashboard, Timer und Nachtrag stichprobenartig geprüft; Abweichung zu macOS 27 bleibt zu dokumentieren |
 | macOS 10.15+ | technisches Mindestziel des Bundles | opake/klassisch transluzente Flächen, Symbol-Assets oder Lucide statt nicht verfügbarer SF Symbols, keine Annahme aktueller Liquid-Glass-Fähigkeiten |
 
 Das Mindestziel ist erst dann als **unterstützt** zu bezeichnen, wenn ein
@@ -311,16 +332,16 @@ Fallback.
 
 Das umgesetzte Onboarding ist ein versionierter Sechs-Schritt-Fluss:
 
-1. **Willkommen** – Nutzen und Datenmodell erklären.
-2. **Arbeitsbereich** – vorhandenes Projekt wählen oder Kunde und Projekt real
+1. **Willkommen**, Nutzen und Datenmodell erklären.
+2. **Arbeitsbereich**, vorhandenes Projekt wählen oder Kunde und Projekt real
    anlegen; ohne unbestätigte Beispieldaten.
-3. **Live-Timer** – Projekt wählen, aktive Arbeit starten, pausieren,
+3. **Live-Timer**, Projekt wählen, aktive Arbeit starten, pausieren,
    fortsetzen und beenden verstehen.
-4. **Nachtragen** – vergangene Arbeit mit Start, Ende, Pause und sichtbarer
+4. **Nachtragen**, vergangene Arbeit mit Start, Ende, Pause und sichtbarer
    Herkunft erfassen.
-5. **Sync** – lokaler Desktop-Modus, gemeinsame Browser-Wahrheit und Grenzen
+5. **Sync**, lokaler Desktop-Modus, gemeinsame Browser-Wahrheit und Grenzen
    der experimentellen Desktop-Replikation klar unterscheiden.
-6. **Fertig** – gewählten Arbeitsbereich bestätigen und direkt zu Timer oder
+6. **Fertig**, gewählten Arbeitsbereich bestätigen und direkt zu Timer oder
    Übersicht führen.
 
 Für einen wirklich leeren Arbeitsbereich ist der Fluss verpflichtend. Ein
@@ -409,13 +430,13 @@ experimentellen Desktop-Sync nicht als produktionsreife Sicherung bewerben.
 ### 9.1 Automatisierte Gates
 
 Frühere Baseline-Läufe sind kein Freigabenachweis für einen später veränderten
-Commit. Für Release 0.0.3 müssen die folgenden Befehle auf dem exakten
+Commit. Für Release 0.0.5 müssen die folgenden Befehle auf dem exakten
 Tag-Commit erfolgreich sein; die konkrete Ausgabe von CI beziehungsweise dem
 Release-Handoff ist die maßgebliche Evidenz.
 
-| Gate | Zweck | Release-0.0.3-Anforderung |
+| Gate | Zweck | Release-0.0.5-Anforderung |
 |---|---|---|
-| `pnpm version:check v0.0.3` | Root-, Workspace-, Expo-, Tauri-, Cargo- und Lockfile-Versionen gegen den Release-Tag prüfen | muss vor Tag und Release bestehen |
+| `pnpm version:check v0.0.5` | Root-, Workspace-, Expo-, Tauri-, Cargo- und Lockfile-Versionen gegen den Release-Tag prüfen | muss vor Tag und Release bestehen |
 | `pnpm -r typecheck` | Typverträge über Core, DB, Desktop, Web und Mobile | muss auf dem Tag-Commit bestehen |
 | `pnpm -r test` | Fachlogik, UI-Helfer, Auth, Timer, Rechnung, PDF und Onboarding | muss auf dem Tag-Commit bestehen; keine dauerhaft hartkodierte Testzahl |
 | `cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml --all-targets` | Rust-Unit- und Integrationstests, lokaler Modus, Fresh DB, v1→v2 und idempotenter Wiederlauf | muss vollständig bestehen, nicht nur der einzelne `local_mode`-Test |
@@ -430,13 +451,14 @@ Release-Handoff ist die maßgebliche Evidenz.
 | Web 1440 × 1000 | ja | ja | Reduced Motion/Transparency separat | Setup, Onboarding und Dashboard im realen Browser geprüft |
 | Web 1024 × 768 | erforderlich | erforderlich | Tastatur und 200 % Zoom | finale mittlere Navigation noch als Abnahmepunkt |
 | Web 390 × 844 | ja | ja | grobe Eingabe, Drawer-Fokus | Onboarding und Workspace im realen Browser geprüft |
-| macOS 26.5.1, 1100 × 720 und Mindestgröße | erforderlich | erforderlich | VoiceOver, Tastatur, Reduce Motion/Transparency/Contrast | nicht durchgeführt: Mac-Sitzung gesperrt; Binary-Build ist kein nativer Screenshot- oder Interaktionsnachweis |
+| macOS 26.5.2, 1100 × 720 und Mindestgröße | teilweise | teilweise | VoiceOver, Tastatur, Reduce Motion/Transparency/Contrast | Tauri-App visuell und im Accessibility-Tree auf Dashboard, Timer und Nachträgen geprüft; vollständige Matrix offen |
 | macOS 27 | erforderlich | erforderlich | aktuelle Material-/Symbolwirkung | nicht lokal verfügbar; Referenz-, Geräte- oder VM-Test vor voller Aussage nötig |
 | macOS 10.15 | erforderlich | erforderlich | Fallback ohne aktuelle Symbole/Materialien | noch nicht ausgeführt; Mindestziel deshalb bis dahin technisch, nicht verifiziert |
 | Windows 11, 100/125/150 % | erforderlich | erforderlich | High Contrast, Tastatur, WebView2 | auf echtem Windows-Runner beziehungsweise Gerät offen |
+| iOS/iPadOS Simulator und Gerät | erforderlich | erforderlich | VoiceOver, Dynamic Type, Reduce Motion/Transparency | Typecheck grün; Laufzeitabnahme durch dokumentierten pnpm-/Metro-Resolverfehler blockiert |
 
 Für jeden Hauptscreen werden mindestens Normal-, Leer-, Lade-, Fehler-,
-Offline- und – sofern relevant – Konfliktzustand geprüft. Screenshots allein
+Offline- und, sofern relevant, Konfliktzustand geprüft. Screenshots allein
 reichen nicht: Timer, Dialoge, Onboarding, Sidebar, Tastaturpfad, Fokus und
 unterbrochene Animation müssen interaktiv getestet werden.
 
@@ -449,7 +471,7 @@ unterbrochene Animation müssen interaktiv getestet werden.
    vollständiger lokaler Outbox-Befüllung, Fach-Merge, Konfliktauflösung,
    Keychain-Ablage, aktivierter CSP, Neustart und großem Backlog steht aus.
 3. **Plattformabdeckung:** macOS 27, macOS 10.15 und Windows wurden in der
-   lokalen macOS-26.5.1-Umgebung nicht real ausgeführt.
+   lokalen macOS-26.5.2-Umgebung nicht real ausgeführt.
 4. **Responsive Desktop-App:** Mindestfenstergröße, kompakte Sidebar und breite
    Fachansichten müssen gemeinsam auf erreichbare Breakpoints abgestimmt sein.
 5. **Accessibility:** semantische Struktur und Media Queries sind vorhanden,
@@ -458,13 +480,16 @@ unterbrochene Animation müssen interaktiv getestet werden.
 6. **Icon-Pipeline:** aktuelle geschichtete macOS-Icons und flache Legacy-
    Exporte müssen aus einer kontrollierten Masterquelle reproduzierbar gebaut
    und in Dock, Finder, Spotlight, Installer und Windows-Shell geprüft werden.
-   Icon Composer und native Screenshots waren wegen der gesperrten Mac-Sitzung
-   in diesem Release-Lauf nicht verfügbar.
+   Icon Composer und die vollständige native Icon-Abnahme wurden in diesem
+   Lauf nicht durchgeführt.
 7. **Web-Skalierung:** prozesslokale Pairing-Codes und Rate-Limits begrenzen den
    sicheren Standard auf eine Webinstanz, bis ein gemeinsamer Store existiert.
 8. **Release-Ehrlichkeit:** Ein grüner Webtest belegt weder native
    macOS-Materialien noch Windows-Kompatibilität. Jede Freigabe nennt die real
    getesteten Betriebssysteme und die experimentellen Bereiche ausdrücklich.
+9. **Mobile-Laufzeit:** Der Expo-Simulatorlauf bleibt bis zur Behebung der
+   pnpm-/Metro-Modulauflösung blockiert; semantische iOS-Tokens und bestandene
+   Typechecks sind kein Ersatz für die Geräte- und VoiceOver-Abnahme.
 
 ## 11. Definition of Done
 

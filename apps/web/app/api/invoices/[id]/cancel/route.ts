@@ -1,5 +1,5 @@
 /**
- * app/api/invoices/[id]/cancel — finalisierte Rechnung stornieren (doc 10 §5.6).
+ * app/api/invoices/[id]/cancel, finalisierte Rechnung stornieren (doc 10 §5.6).
  *
  * Erzeugt eine Storno-Rechnung (type=cancellation, cancels_invoice_id, negierte
  * Beträge/Posten), setzt das Original auf `cancelled`. Das Original wird nie

@@ -1,6 +1,6 @@
 /**
- * Billing module (doc 07 §2 functions 11–14, §4/§5; doc 10 §4). Integer-cent
- * arithmetic only — Geld nie als Float (doc 10, "Bewusste Entscheidungen").
+ * Billing module (doc 07 §2 functions 11,14, §4/§5; doc 10 §4). Integer-cent
+ * arithmetic only, Geld nie als Float (doc 10, "Bewusste Entscheidungen").
  * calculateEntry is the main per-entry pipeline (1→2→3→4→11).
  */
 import {
@@ -184,7 +184,7 @@ export function calculateEntry(input: TimeEntryCalcInput, rule: RoundingRule, ra
   return {
     actual_started_at: input.actual_started_at,
     actual_ended_at,
-    actual_duration_seconds: gross, // BRUTTO — nie durch Rundung verändert
+    actual_duration_seconds: gross, // BRUTTO, nie durch Rundung verändert
     break_duration_seconds: breakSec,
     net_work_duration_seconds: net,
     billing_duration_seconds: rounding.billing_duration_seconds,

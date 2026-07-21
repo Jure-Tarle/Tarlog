@@ -1,8 +1,8 @@
 /**
- * lib/invoice/number.ts — fortlaufende, lückenlose Nummernkreise (doc 10 §5.6).
+ * lib/invoice/number.ts, fortlaufende, lückenlose Nummernkreise (doc 10 §5.6).
  *
  * Rechnungsnummern RE-{JAHR}-{NNNN} werden ATOMAR erst bei Finalisierung
- * vergeben (Entwürfe haben keine finale Nummer) — so bleibt die Folge lückenlos,
+ * vergeben (Entwürfe haben keine finale Nummer), so bleibt die Folge lückenlos,
  * auch bei verworfenen Entwürfen. Der Zähler liegt in `settings`
  * (scope=account, key je Kreis). Konkurrierende Vergaben werden über einen
  * transaktionalen Advisory-Lock (`pg_advisory_xact_lock`) serialisiert; der Lock

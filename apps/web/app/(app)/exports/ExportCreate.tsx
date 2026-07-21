@@ -1,6 +1,6 @@
 "use client";
 /**
- * ExportCreate — Export erzeugen (doc 11 §2 Nr. 11, doc 10). Format + Variante +
+ * ExportCreate, Export erzeugen (doc 11 §2 Nr. 11, doc 10). Format + Variante +
  * Zeitraum; die Datei erzeugt der Export-Dienst (PDF/CSV/JSON). POST /api/exports.
  */
 import { useState } from "react";

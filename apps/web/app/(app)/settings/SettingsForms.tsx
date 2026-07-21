@@ -1,6 +1,6 @@
 "use client";
 /**
- * SettingsForms — Profil, Rundungsregeln, Nummernkreis (doc 11 §2 Nr. 14).
+ * SettingsForms, Profil, Rundungsregeln, Nummernkreis (doc 11 §2 Nr. 14).
  * Profil → PATCH /api/account; Rundungsregel → POST /api/rounding-rules;
  * Nummernkreis → POST /api/settings/number-range.
  */
@@ -70,7 +70,7 @@ export function RoundingRuleForm(): React.ReactElement {
   const { busy, msg, save } = useSaver();
   const [f, setF] = useState({ name: "", mode: "nearest_interval", interval_minutes: "15", min_duration_seconds: "", scope: "global" });
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((p) => ({ ...p, [k]: v }));
-  const intervalModes = ["always_up", "always_down", "commercial", "nearest_interval", "ceil_started_interval"];
+  const intervalModes = ["always_up", "always_down", "commercial", "nearest_interval", "ceil_started_interval", "min_per_entry"];
   const minModes = ["min_per_entry", "min_per_day", "min_per_project"];
   const usesInterval = intervalModes.includes(f.mode);
   const usesMin = minModes.includes(f.mode);
@@ -88,7 +88,7 @@ export function RoundingRuleForm(): React.ReactElement {
             <option value="always_down">immer ab</option>
             <option value="commercial">kaufmännisch</option>
             <option value="nearest_interval">nächstes Intervall</option>
-            <option value="ceil_started_interval">angefangenes Intervall</option>
+            <option value="ceil_started_interval">angefangene Intervalle aufrunden</option>
             <option value="min_per_entry">Minimum je Eintrag</option>
             <option value="min_per_day">Minimum je Tag</option>
             <option value="min_per_project">Minimum je Projekt</option>
@@ -97,7 +97,7 @@ export function RoundingRuleForm(): React.ReactElement {
       </FormRow>
       <div style={{ height: 12 }} />
       <FormRow>
-        <Field label="Intervall (Minuten)">
+        <Field label={f.mode === "min_per_entry" ? "Rundungsintervall nach Mindestdauer" : "Intervall (Minuten)"}>
           <Select value={f.interval_minutes} onChange={(e) => set("interval_minutes", e.target.value)} disabled={!usesInterval}>
             {[5, 6, 10, 15, 30, 60].map((m) => <option key={m} value={m}>{m}</option>)}
           </Select>

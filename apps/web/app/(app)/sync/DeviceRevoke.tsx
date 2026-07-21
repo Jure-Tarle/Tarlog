@@ -1,6 +1,6 @@
 "use client";
 /**
- * DeviceRevoke — Gerätezugriff widerrufen (doc 04 §2 Nr. 10). Ein widerrufenes
+ * DeviceRevoke, Gerätezugriff widerrufen (doc 04 §2 Nr. 10). Ein widerrufenes
  * Gerät kann keine Events mehr einspielen und verliert den Live-Kanal.
  * DELETE /api/devices/:id (setzt devices.revoked = true, widerruft Tokens).
  */

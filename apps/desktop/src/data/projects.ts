@@ -1,5 +1,5 @@
 /**
- * projects.ts — project CRUD (doc 06 A.2 `projects`). Inserts via the
+ * projects.ts, project CRUD (doc 06 A.2 `projects`). Inserts via the
  * `create_project` bridge command; reads via `list_projects`; updates/archive
  * are local SQL. Validation via @tarlog/core `projectSchema`.
  */
@@ -14,7 +14,7 @@ import { projectSchema, type ProjectInput, type Uuid } from "@tarlog/core";
 
 export type ProjectRow = ProjectInput;
 
-/** Draft for {@link createProject} — id/main_account_id are filled here. */
+/** Draft for {@link createProject}, id/main_account_id are filled here. */
 export type ProjectDraft = Omit<Partial<ProjectInput>, "main_account_id"> & {
   name: string;
   billing_type: ProjectInput["billing_type"];
@@ -97,15 +97,60 @@ export async function updateProject(
   return after!;
 }
 
-/** Soft-delete (archive) a project: set `deleted_at` + status archived. */
+/** Archive a project: status archived, stays listed and restorable. */
 export async function archiveProject(id: Uuid): Promise<void> {
+  const before = await getProject(id);
   const ctx = await getContext();
   const ts = now();
   await execute(
-    `UPDATE projects SET deleted_at = $1, status = 'archived', archived_at = $2, updated_at = $3
-      WHERE id = $4 AND main_account_id = $5`,
-    [ts, ts, ts, id, ctx.mainAccountId],
+    `UPDATE projects SET status = 'archived', archived_at = $1, updated_at = $2
+      WHERE id = $3 AND main_account_id = $4 AND deleted_at IS NULL`,
+    [ts, ts, id, ctx.mainAccountId],
   );
-  await writeAudit({ action: "entry_deleted", entity_type: "project", entity_id: id });
+  await writeAudit({
+    action: "entry_updated",
+    entity_type: "project",
+    entity_id: id,
+    before: before as unknown as Record<string, unknown>,
+    after: (await getProject(id)) as unknown as Record<string, unknown>,
+  });
+  await notifyChange();
+}
+
+/** Bring an archived project back to active. */
+export async function restoreProject(id: Uuid): Promise<void> {
+  const before = await getProject(id);
+  const ctx = await getContext();
+  await execute(
+    `UPDATE projects SET status = 'active', archived_at = NULL, updated_at = $1
+      WHERE id = $2 AND main_account_id = $3 AND deleted_at IS NULL`,
+    [now(), id, ctx.mainAccountId],
+  );
+  await writeAudit({
+    action: "entry_updated",
+    entity_type: "project",
+    entity_id: id,
+    before: before as unknown as Record<string, unknown>,
+    after: (await getProject(id)) as unknown as Record<string, unknown>,
+  });
+  await notifyChange();
+}
+
+/** Soft-delete a project: set `deleted_at`. Recorded time entries keep their reference. */
+export async function deleteProject(id: Uuid): Promise<void> {
+  const before = await getProject(id);
+  const ctx = await getContext();
+  const ts = now();
+  await execute(
+    `UPDATE projects SET deleted_at = $1, updated_at = $2
+      WHERE id = $3 AND main_account_id = $4`,
+    [ts, ts, id, ctx.mainAccountId],
+  );
+  await writeAudit({
+    action: "entry_deleted",
+    entity_type: "project",
+    entity_id: id,
+    before: before as unknown as Record<string, unknown>,
+  });
   await notifyChange();
 }

@@ -1,5 +1,5 @@
 /**
- * time.ts — epoch-ms / timezone helpers (doc 05 §8, doc 07).
+ * time.ts, epoch-ms / timezone helpers (doc 05 §8, doc 07).
  *
  * Conventions enforced app-wide:
  *  - Instants are UTC epoch-milliseconds (`EpochMs`, a plain number).

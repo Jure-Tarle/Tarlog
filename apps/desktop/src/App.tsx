@@ -714,7 +714,7 @@ function Topbar({
   const sidebarToggleLabel = sidebarHidden ? t("Seitenleiste einblenden") : t("Seitenleiste ausblenden");
   return (
     <header className="topbar" data-tauri-drag-region>
-      <div className="topbar__leading">
+      <div className="topbar__leading" data-tauri-drag-region>
         {platform !== "macos" || sidebarHidden ? (
           <button
             className="toolbar-icon-button sidebar-toggle icon-btn"
@@ -855,6 +855,7 @@ function AppContent() {
         <div>
           <p className="boot__title boot__error">{t("Einrichtung konnte nicht geladen werden")}</p>
           <p className="boot__copy">{t("Dein lokaler Arbeitsbereich wurde nicht verändert.")}</p>
+          {onboarding.error ? <code className="boot__detail">{onboarding.error}</code> : null}
           <div className="boot__actions">
             <Button variant="primary" onClick={onboarding.retry}>{t("Erneut versuchen")}</Button>
           </div>

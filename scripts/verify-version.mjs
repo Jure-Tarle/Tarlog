@@ -28,7 +28,7 @@ const cargoVersion = cargoToml.match(/^version\s*=\s*"([^"]+)"/m)?.[1];
 versions.set("apps/desktop/src-tauri/Cargo.toml", cargoVersion);
 
 const cargoLock = await readFile(resolve(root, "apps/desktop/src-tauri/Cargo.lock"), "utf8");
-const cargoLockVersion = cargoLock.match(/\[\[package\]\]\nname = "ptl-desktop"\nversion = "([^"]+)"/)?.[1];
+const cargoLockVersion = cargoLock.match(/\[\[package\]\]\nname = "tarlog-desktop"\nversion = "([^"]+)"/)?.[1];
 versions.set("apps/desktop/src-tauri/Cargo.lock", cargoLockVersion);
 
 const expected = versions.get("package.json");

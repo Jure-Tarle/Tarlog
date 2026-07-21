@@ -4,7 +4,49 @@ Alle nennenswerten Änderungen an Tarlog. Format nach
 [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionierung nach
 [SemVer](https://semver.org/lang/de/).
 
-## [0.0.5] — 2026-07-15
+## [0.0.6], 2026-07-21
+
+Mehrsprachigkeit (Deutsch/Englisch), Apple-getreue Liquid-Glass-Steuerelemente
+und ein entkoppelter Archivieren/Löschen-Fluss für Projekte.
+
+### Sprache
+- Die gesamte Anwendung ist jetzt vollständig übersetzbar; in den
+  Einstellungen lässt sich zwischen Deutsch und Englisch umschalten
+  (Standard bleibt Deutsch). Datums-, Zahlen- und Währungsformate folgen der
+  gewählten Sprache.
+- Das native macOS-Menü und das Menüleisten-Objekt (Tray) übernehmen die
+  gewählte Sprache beim nächsten App-Start.
+
+### Projekte
+- Archivieren, Reaktivieren und endgültiges Löschen von Projekten sind jetzt
+  getrennte Aktionen. Das Löschen wird zweistufig in der Zeile bestätigt, da
+  `window.confirm` in der Tauri-WebView nicht verfügbar ist; erfasste Zeiten
+  bleiben erhalten. Schema v7 macht früher fälschlich soft-gelöschte
+  archivierte Projekte wieder sichtbar.
+
+### macOS
+- Die gesamte obere Leiste ist jetzt ziehbar statt Text zu markieren.
+- Buttons, Selects und der prominente CTA sind auf echtes Liquid Glass
+  umgestellt: transluzentes Material mit Hintergrund-Refraktion
+  (SVG-Displacement) statt reinem Blur, Randlicht statt harter Border und ein
+  Hover, der das Material nur aufhellt statt die Farbe zu wechseln.
+- Der Sidebar-Umschalter kollidiert bei ausgeblendeter Seitenleiste nicht
+  mehr mit den nativen Ampelknöpfen.
+
+### Kunden und Projekte
+- Archivieren eines Kunden war bis Schema v7 mit Soft-Delete gekoppelt
+  (`deleted_at` wurde mitgesetzt), wodurch archivierte Kunden aus jeder
+  Liste verschwanden und sich nicht mehr reaktivieren ließen — derselbe
+  Fehler, der für Projekte bereits in Schema v7 behoben wurde. Schema v8
+  entkoppelt Archivieren und Löschen für Kunden ebenso, mit
+  Reparaturmigration für bereits betroffene Datensätze und einer neuen
+  „Reaktivieren“-Aktion in der Kundenliste.
+- Der Kunde eines Projekts lässt sich jetzt auch direkt auf der
+  Projekt-Detailseite ändern.
+- Kaputtes Platzhalter-Label (", intern ,") in der Projekt-Kundenauswahl
+  und -Tabelle durch einen sauberen Text ersetzt.
+
+## [0.0.5], 2026-07-15
 
 Strukturelle Korrektur der macOS-Fensterarchitektur nach der visuellen Prüfung
 von Onboarding, Dashboard, Timer und Einstellungen.
@@ -25,7 +67,7 @@ von Onboarding, Dashboard, Timer und Einstellungen.
 - Light Mode, Dark Mode, reduzierte Transparenz und erhöhter Kontrast behalten
   die vorhandenen plattformspezifischen Fallbacks.
 
-## [0.0.4] — 2026-07-15
+## [0.0.4], 2026-07-15
 
 Korrektur der nativen macOS-Auslieferung und Fokusdarstellung nach der
 visuellen Abnahme des Onboardings.
@@ -39,7 +81,7 @@ visuellen Abnahme des Onboardings.
   damit macOS den konfigurierten Namen und das gebündelte Tarlog-App-Icon statt
   des generischen `exec`-Symbols einer direkt gestarteten Unix-Datei verwendet.
 
-## [0.0.3] — 2026-07-13
+## [0.0.3], 2026-07-13
 
 Vollständiger Produktdurchgang des Apple-orientierten Redesigns mit geführtem
 Erststart, belastbareren Zuständen und korrigierten Desktop-Datengrenzen.
@@ -82,7 +124,7 @@ Erststart, belastbareren Zuständen und korrigierten Desktop-Datengrenzen.
   Release prüfen Manifest/Tag-Konsistenz, bevor macOS-/Windows-Bundles oder das
   Server-Image erzeugt werden.
 
-## [0.0.2] — 2026-07-13
+## [0.0.2], 2026-07-13
 
 Apple-orientiertes Redesign der Desktop- und Browser-App mit einem neuen,
 plattformübergreifenden Tarlog-Flow-Markenauftritt.
@@ -118,7 +160,7 @@ plattformübergreifenden Tarlog-Flow-Markenauftritt.
   Versionsauflösung; insgesamt 167 bestandene TypeScript-/React-Tests plus
   Rust-Unit- und Integrationstest.
 
-## [0.0.1] — 2026-07-10
+## [0.0.1], 2026-07-10
 
 Erste Release-Version. Lokale-zuerst, revisionsfähige, DSGVO-freundliche
 Zeiterfassung für eine Einzelperson, optional mit selbst gehostetem Server für

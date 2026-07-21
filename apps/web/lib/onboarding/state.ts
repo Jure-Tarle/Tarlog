@@ -27,7 +27,6 @@ export interface OnboardingWorkspaceInput {
   customer: {
     name: string;
     company: string | null;
-    defaultHourlyRateCents: number | null;
     defaultCurrency: string;
   } | null;
   project: {
@@ -316,10 +315,10 @@ export async function createOnboardingWorkspace(
       }>(
         `INSERT INTO customers
            (id, main_account_id, name, company, payment_term_days,
-            default_currency, default_hourly_rate_cents, default_tax_rate,
+            default_currency, default_tax_rate,
             status, reverse_charge_hint, small_business_hint,
             preferred_export_detail, created_at, updated_at)
-         VALUES ($1,$2,$3,$4,14,$5,$6,19,'active',FALSE,FALSE,'detailed',$7,$7)
+         VALUES ($1,$2,$3,$4,14,$5,19,'active',FALSE,FALSE,'detailed',$6,$6)
          RETURNING id, name, company`,
         [
           customerId,
@@ -327,7 +326,6 @@ export async function createOnboardingWorkspace(
           input.customer.name,
           input.customer.company,
           input.customer.defaultCurrency,
-          input.customer.defaultHourlyRateCents,
           now,
         ],
       );

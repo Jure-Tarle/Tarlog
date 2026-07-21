@@ -1,6 +1,6 @@
 "use client";
 /**
- * ProjectForm — Projekt anlegen (doc 10). Abrechnungsart steuert die
+ * ProjectForm, Projekt anlegen (doc 10). Abrechnungsart steuert die
  * relevanten Satzfelder; Stopp-Konfiguration (Beschreibung/Nachtrag) doc 03 §5.
  * POST /api/projects.
  */
@@ -96,7 +96,7 @@ export function ProjectForm({
         <FormRow>
           <Field label="Kunde">
             <Select value={f.customer_id} onChange={(e) => set("customer_id", e.target.value)}>
-              <option value="">— (intern)</option>
+              <option value="">, (intern)</option>
               {customers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </Select>
           </Field>

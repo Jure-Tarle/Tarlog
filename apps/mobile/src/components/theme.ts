@@ -1,5 +1,5 @@
 /**
- * theme.ts — the single design-token source for the iOS app (doc 11 §1).
+ * theme.ts, the single design-token source for the iOS app (doc 11 §1).
  *
  * Ledger direction: neutral warm-paper base, exactly ONE accent (active timer +
  * primary action), compliance traffic-light (green/yellow/red) as the only other
@@ -8,72 +8,75 @@
  *
  * No component hard-codes a color; everything reads from `useTheme()`.
  */
-import { Platform, useColorScheme } from "react-native";
+import { Platform, PlatformColor, type ColorValue, useColorScheme } from "react-native";
 
 /** The resolved color set for one appearance. */
 export interface ThemePalette {
   /** Page background (warm paper / near-black). */
-  bg: string;
+  bg: ColorValue;
   /** Raised surface (cards, rows). */
-  surface: string;
+  surface: ColorValue;
   /** Secondary fill (input wells, alt rows). */
-  surfaceAlt: string;
+  surfaceAlt: ColorValue;
   /** Hairline divider. */
-  border: string;
+  border: ColorValue;
   /** Stronger divider / focused field. */
-  borderStrong: string;
+  borderStrong: ColorValue;
   /** Primary text. */
-  text: string;
+  text: ColorValue;
   /** Secondary text (labels). */
-  textMuted: string;
+  textMuted: ColorValue;
   /** Tertiary text (hints, disabled). */
-  textFaint: string;
-  /** The single accent — active timer + primary action only. */
-  accent: string;
+  textFaint: ColorValue;
+  /** The single accent, active timer + primary action only. */
+  accent: ColorValue;
   /** Text/icon on top of the accent fill. */
-  onAccent: string;
+  onAccent: ColorValue;
   /** Faint accent wash for active backgrounds. */
-  accentSoft: string;
+  accentSoft: ColorValue;
   /** Compliance green. */
-  ok: string;
+  ok: ColorValue;
   /** Compliance yellow. */
-  warn: string;
+  warn: ColorValue;
   /** Compliance / destructive red. */
-  danger: string;
+  danger: ColorValue;
 }
 
+const ios = (name: string, fallback: string): ColorValue =>
+  Platform.OS === "ios" ? PlatformColor(name) : fallback;
+
 const LIGHT: ThemePalette = {
-  bg: "#FBFBF9",
-  surface: "#FFFFFF",
-  surfaceAlt: "#F3F3F0",
-  border: "#E5E4DF",
-  borderStrong: "#CFCEC8",
-  text: "#1A1A17",
-  textMuted: "#6C6B64",
-  textFaint: "#9B9A92",
-  accent: "#0F766E",
+  bg: ios("systemBackgroundColor", "#F2F2F7"),
+  surface: ios("secondarySystemBackgroundColor", "#FFFFFF"),
+  surfaceAlt: ios("tertiarySystemBackgroundColor", "#E5E5EA"),
+  border: ios("separatorColor", "#D1D1D6"),
+  borderStrong: ios("opaqueSeparatorColor", "#C7C7CC"),
+  text: ios("labelColor", "#1C1C1E"),
+  textMuted: ios("secondaryLabelColor", "#636366"),
+  textFaint: ios("tertiaryLabelColor", "#8E8E93"),
+  accent: ios("systemBlueColor", "#007AFF"),
   onAccent: "#FFFFFF",
-  accentSoft: "#E2F1EE",
-  ok: "#15803D",
-  warn: "#B45309",
-  danger: "#B91C1C",
+  accentSoft: "#E5F1FF",
+  ok: ios("systemGreenColor", "#248A3D"),
+  warn: ios("systemOrangeColor", "#C93400"),
+  danger: ios("systemRedColor", "#D70015"),
 };
 
 const DARK: ThemePalette = {
-  bg: "#111110",
-  surface: "#1B1B19",
-  surfaceAlt: "#232320",
-  border: "#2E2E2A",
-  borderStrong: "#3C3B36",
-  text: "#EDECE7",
-  textMuted: "#9E9D95",
-  textFaint: "#6F6E67",
-  accent: "#2DD4BF",
-  onAccent: "#07211D",
-  accentSoft: "#132A26",
-  ok: "#4ADE80",
-  warn: "#FBBF24",
-  danger: "#F87171",
+  bg: ios("systemBackgroundColor", "#000000"),
+  surface: ios("secondarySystemBackgroundColor", "#1C1C1E"),
+  surfaceAlt: ios("tertiarySystemBackgroundColor", "#2C2C2E"),
+  border: ios("separatorColor", "#38383A"),
+  borderStrong: ios("opaqueSeparatorColor", "#48484A"),
+  text: ios("labelColor", "#FFFFFF"),
+  textMuted: ios("secondaryLabelColor", "#AEAEB2"),
+  textFaint: ios("tertiaryLabelColor", "#8E8E93"),
+  accent: ios("systemBlueColor", "#0A84FF"),
+  onAccent: "#FFFFFF",
+  accentSoft: "#102A43",
+  ok: ios("systemGreenColor", "#30D158"),
+  warn: ios("systemOrangeColor", "#FF9F0A"),
+  danger: ios("systemRedColor", "#FF453A"),
 };
 
 /** 4-pt spacing scale (dense ledger rhythm). */
@@ -106,6 +109,15 @@ export const monoFamily = Platform.select({
 
 export interface Theme {
   colors: ThemePalette;
+  /** String colors for navigation libraries whose types don't accept PlatformColor. */
+  navigation: {
+    bg: string;
+    surface: string;
+    border: string;
+    text: string;
+    textMuted: string;
+    accent: string;
+  };
   scheme: "light" | "dark";
   /** Hairline width for the current display. */
   hairline: number;
@@ -114,8 +126,12 @@ export interface Theme {
 /** Resolve the active theme from the OS appearance. */
 export function useTheme(): Theme {
   const scheme = useColorScheme() ?? "light";
+  const navigation = scheme === "dark"
+    ? { bg: "#000000", surface: "#1C1C1E", border: "#38383A", text: "#FFFFFF", textMuted: "#AEAEB2", accent: "#0A84FF" }
+    : { bg: "#F2F2F7", surface: "#FFFFFF", border: "#D1D1D6", text: "#1C1C1E", textMuted: "#636366", accent: "#007AFF" };
   return {
     colors: scheme === "dark" ? DARK : LIGHT,
+    navigation,
     scheme,
     hairline: Platform.OS === "ios" ? 0.5 : 1,
   };

@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 /**
- * Next.js config — Tarlog Web (doc 05 §1 Nr. 1, §9.1).
+ * Next.js config, Tarlog Web (doc 05 §1 Nr. 1, §9.1).
  *
  * `output: 'standalone'` erzeugt ein selbst-enthaltenes Server-Bundle für den
  * Self-Host-Betrieb (Docker). Der Custom-Node-Server `server.mjs` startet den

@@ -18,7 +18,7 @@ import type {
 import { CALCULATION_VERSION } from "../types.js";
 
 // ---------------------------------------------------------------------------
-// Threshold constants (integer seconds) — mirror rules_json (doc 08 §5.2).
+// Threshold constants (integer seconds), mirror rules_json (doc 08 §5.2).
 // ---------------------------------------------------------------------------
 
 /** Break block below this many seconds does not count as a Ruhepause (R3). */
@@ -40,7 +40,7 @@ const EU_WEEKLY_48H_SECONDS: Seconds = 48 * 3600; // 172800
 
 /**
  * Result of the EU weekly average check. Not part of the core contract type
- * set — defined and exported here (doc 08 §4 rule `eu_weekly_48h`).
+ * set, defined and exported here (doc 08 §4 rule `eu_weekly_48h`).
  */
 export interface WeekComplianceResult {
   rule_id: string;
@@ -79,7 +79,7 @@ function result(
 }
 
 // ---------------------------------------------------------------------------
-// Day-level evaluation (doc 08 §2.1) — DE rules R1..R6, R8, R9.
+// Day-level evaluation (doc 08 §2.1), DE rules R1..R6, R8, R9.
 // ---------------------------------------------------------------------------
 
 /**
@@ -189,7 +189,7 @@ export function evaluateDay(day: DayEntrySummary, profile: ComplianceProfile): C
       result(
         "de_night_work",
         "yellow",
-        `ArbZG §2/§6: Nachtarbeit im Zeitfenster 23:00–06:00 ist gesondert markiert.`,
+        `ArbZG §2/§6: Nachtarbeit im Zeitfenster 23:00,06:00 ist gesondert markiert.`,
         date,
       ),
     );
@@ -199,7 +199,7 @@ export function evaluateDay(day: DayEntrySummary, profile: ComplianceProfile): C
 }
 
 // ---------------------------------------------------------------------------
-// Rest-period evaluation (doc 08 §2.1) — DE rule R7 / EU rule eu_rest_11h.
+// Rest-period evaluation (doc 08 §2.1), DE rule R7 / EU rule eu_rest_11h.
 // ---------------------------------------------------------------------------
 
 /**
@@ -228,7 +228,7 @@ export function evaluateRestPeriod(
 }
 
 // ---------------------------------------------------------------------------
-// Week-level evaluation (doc 08 §4) — EU rule eu_weekly_48h.
+// Week-level evaluation (doc 08 §4), EU rule eu_weekly_48h.
 // ---------------------------------------------------------------------------
 
 /**
@@ -305,7 +305,7 @@ export const EU_PROFILE: ComplianceProfile = {
   rules_json: {
     profile: "EU",
     night_window: { start: "23:00", end: "06:00" },
-    // Generic: no fixed break minutes — set by the country profile (doc 08 §4).
+    // Generic: no fixed break minutes, set by the country profile (doc 08 §4).
     weekly: { rule_id: "eu_weekly_48h", max_hours_avg: 48, reference_period_months: 4, severity: "warning" },
     daily_rest: { rule_id: "eu_rest_11h", min_rest_hours: 11, severity: "violation" },
     break: { rule_id: "eu_break_over_6h", over_minutes: 360, severity: "warning" },

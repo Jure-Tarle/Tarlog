@@ -118,7 +118,7 @@ function initials(name: string): string {
 
 function Brand({ compact = false }: { compact?: boolean }): React.ReactElement {
   return (
-    <Link href="/dashboard" className={compact ? "brand brand-compact" : "brand"} aria-label="Tarlog Flow – Übersicht">
+    <Link href="/dashboard" className={compact ? "brand brand-compact" : "brand"} aria-label="Tarlog Flow, Übersicht">
       <BrandMark />
       <span className="brand-copy">
         <strong>Tarlog</strong>
@@ -131,7 +131,7 @@ function Brand({ compact = false }: { compact?: boolean }): React.ReactElement {
 function MiniTimer({ timer, compact = false }: { timer: AppShellTimer | null; compact?: boolean }): React.ReactElement {
   const status = timer?.status ?? "idle";
   const presentation = TIMER_STATUS_PRESENTATION[status];
-  const workLabel = [timer?.projectName, timer?.taskName].filter(Boolean).join(" · ");
+  const workLabel = [timer?.projectName, timer?.taskName].filter(Boolean).join(" | ");
   const label = workLabel || presentation.fallback;
   const classes = [
     "mini-timer",
@@ -157,7 +157,7 @@ function MiniTimer({ timer, compact = false }: { timer: AppShellTimer | null; co
         <span className="mini-timer-copy">
           <span className="mini-timer-label">
             {label}
-            <span className="mini-timer-status">· {presentation.label}</span>
+            <span className="mini-timer-status">| {presentation.label}</span>
           </span>
           <TimerTicker timer={timer} size={19} />
         </span>
@@ -440,7 +440,7 @@ export function AppShell({
           <main ref={mainRef} className="app-main" id="app-content" tabIndex={-1}>
             {!online ? (
               <div className="offline-banner" role="status">
-                Offline – der letzte geladene Stand bleibt sichtbar. Speichern
+                Offline, der letzte geladene Stand bleibt sichtbar. Speichern
                 ist nicht möglich; sichere deine Eingaben und versuche es nach
                 Wiederherstellung der Verbindung erneut.
               </div>

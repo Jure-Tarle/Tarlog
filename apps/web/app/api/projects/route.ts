@@ -1,5 +1,5 @@
 /**
- * /api/projects — Liste + Anlegen (doc 06 §A.2 `projects`, doc 10 §2).
+ * /api/projects, Liste + Anlegen (doc 06 §A.2 `projects`, doc 10 §2).
  *
  * GET  : paginierte, gescopte Liste; Filter `customer_id`, `status`,
  *        `billing_type`, `q` (Name), `include_deleted`.

@@ -1,7 +1,7 @@
 /**
  * Rechnungsnummern-Format RE-{JAHR}-{NNNN} (doc 10 §5.6).
  *
- * Reine Formatierer aus lib/invoice/number.ts — kein Server/DB. Deckt das
+ * Reine Formatierer aus lib/invoice/number.ts, kein Server/DB. Deckt das
  * lückenlose, nullgepolsterte Nummernschema (Rechnung + Export) und den
  * settings-Key eines Jahres-Nummernkreises ab.
  */

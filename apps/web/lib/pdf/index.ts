@@ -1,5 +1,5 @@
 /**
- * lib/pdf — Barrel. pdfmake-Dokumentdefinitionen (reine Funktionen) + der
+ * lib/pdf, Barrel. pdfmake-Dokumentdefinitionen (reine Funktionen) + der
  * einzige unreine Renderer (render.ts). Formatierung in format.ts (doc 10 §6.4).
  */
 export * from "./format.js";

@@ -1,5 +1,5 @@
 /**
- * SPEC-Testfälle 16–19 — Compliance (ArbZG §3/§4/§5, EU RL 2003/88/EG).
+ * SPEC-Testfälle 16,19, Compliance (ArbZG §3/§4/§5, EU RL 2003/88/EG).
  *
  * Testet die REALEN Exporte aus packages/core/src/compliance/index.ts:
  *   - evaluateDay(day: DayEntrySummary, profile: ComplianceProfile): ComplianceRuleResult[]
@@ -56,9 +56,9 @@ function overallStatus(results: ComplianceRuleResult[]): ComplianceStatus {
 }
 
 // ===========================================================================
-// SPEC 16 — Pausenpflicht > 6h (ArbZG §4, Regel R1)
+// SPEC 16, Pausenpflicht > 6h (ArbZG §4, Regel R1)
 // ===========================================================================
-describe("SPEC 16 — ArbZG §4 Pausenpflicht ab 6 Stunden", () => {
+describe("SPEC 16, ArbZG §4 Pausenpflicht ab 6 Stunden", () => {
   it("16a: > 6h netto OHNE Pause → red (de_break_over_6h)", () => {
     // 6h 1min netto, keine Pause.
     const results = evaluateDay(day({ net_seconds: 6 * H + 60, break_blocks: [] }), GERMAN_PROFILE);
@@ -100,9 +100,9 @@ describe("SPEC 16 — ArbZG §4 Pausenpflicht ab 6 Stunden", () => {
 });
 
 // ===========================================================================
-// SPEC 17 — Pausenpflicht > 9h + Tageshöchstarbeitszeit (ArbZG §3/§4, R2/R4/R6)
+// SPEC 17, Pausenpflicht > 9h + Tageshöchstarbeitszeit (ArbZG §3/§4, R2/R4/R6)
 // ===========================================================================
-describe("SPEC 17 — ArbZG §3/§4 ab 9h/8h/10h", () => {
+describe("SPEC 17, ArbZG §3/§4 ab 9h/8h/10h", () => {
   it("17a: > 9h netto mit nur 30min Pause → red (45min nötig, de_break_over_9h)", () => {
     // 9h 30min netto, ein 30-min-Block (zählt, aber < 45min).
     const results = evaluateDay(day({ net_seconds: 9 * H + 30 * MIN, break_blocks: [30 * MIN] }), GERMAN_PROFILE);
@@ -140,9 +140,9 @@ describe("SPEC 17 — ArbZG §3/§4 ab 9h/8h/10h", () => {
 });
 
 // ===========================================================================
-// SPEC 18 — Ruhezeit zwischen Arbeitstagen (ArbZG §5, R7)
+// SPEC 18, Ruhezeit zwischen Arbeitstagen (ArbZG §5, R7)
 // ===========================================================================
-describe("SPEC 18 — ArbZG §5 Ruhezeit ≥ 11h zwischen Tagen", () => {
+describe("SPEC 18, ArbZG §5 Ruhezeit ≥ 11h zwischen Tagen", () => {
   it("18a: Ruhezeit < 11h → red (de_rest_11h)", () => {
     // Vortag Ende 22:00, Folgetag Start 07:00 ⇒ 9h Ruhe < 11h.
     const prevEnd = Date.UTC(2026, 6, 6, 22, 0, 0);
@@ -169,9 +169,9 @@ describe("SPEC 18 — ArbZG §5 Ruhezeit ≥ 11h zwischen Tagen", () => {
 });
 
 // ===========================================================================
-// SPEC 19 — Markierungen (Sonntag, Nachtarbeit) + EU-Woche > 48h
+// SPEC 19, Markierungen (Sonntag, Nachtarbeit) + EU-Woche > 48h
 // ===========================================================================
-describe("SPEC 19 — Sonntag/Nachtarbeit-Markierung + EU-Wochenlimit", () => {
+describe("SPEC 19, Sonntag/Nachtarbeit-Markierung + EU-Wochenlimit", () => {
   it("19a: Sonntagsarbeit → Markierung (de_sunday_holiday, yellow)", () => {
     const results = evaluateDay(day({ net_seconds: 4 * H, is_sunday: true, date: "2026-07-05" }), GERMAN_PROFILE);
     const r = byRule(results, "de_sunday_holiday");

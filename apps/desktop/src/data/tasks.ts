@@ -1,5 +1,5 @@
 /**
- * tasks.ts — task CRUD (doc 06 A.2 `tasks`). No bridge command exists for tasks,
+ * tasks.ts, task CRUD (doc 06 A.2 `tasks`). No bridge command exists for tasks,
  * so all operations are local SQL via {@link ../lib/db}. Validation via @tarlog/core
  * `taskSchema`.
  */
@@ -13,7 +13,7 @@ import { taskSchema, type TaskInput, type Uuid } from "@tarlog/core";
 
 export type TaskRow = TaskInput;
 
-/** Draft for {@link createTask} — id/main_account_id are filled here. */
+/** Draft for {@link createTask}, id/main_account_id are filled here. */
 export type TaskDraft = Omit<Partial<TaskInput>, "main_account_id"> & {
   name: string;
 };

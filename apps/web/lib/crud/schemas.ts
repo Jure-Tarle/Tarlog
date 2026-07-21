@@ -1,5 +1,5 @@
 /**
- * lib/crud/schemas.ts — Zod-Eingabeschemas für die Stammdaten-CRUD-Routen.
+ * lib/crud/schemas.ts, Zod-Eingabeschemas für die Stammdaten-CRUD-Routen.
  *
  * Basis sind die @tarlog/core-Schemas (single source of truth, doc 05 §4). Für die
  * API werden `id` und `main_account_id` entfernt (Server vergibt `id` = uuidv7,
@@ -97,7 +97,7 @@ export const taskQuerySchema = paginationSchema.extend({
 });
 
 // ---------------------------------------------------------------------------
-// tags (doc 06 §A.2) — kein Core-Schema, inline
+// tags (doc 06 §A.2), kein Core-Schema, inline
 // ---------------------------------------------------------------------------
 
 export const tagCreateSchema = z.object({
@@ -113,7 +113,7 @@ export const tagQuerySchema = paginationSchema.extend({
 });
 
 // ---------------------------------------------------------------------------
-// billing_rates (doc 06 §A.4, doc 10 §4.0/§4.1) — historisiert über valid_from
+// billing_rates (doc 06 §A.4, doc 10 §4.0/§4.1), historisiert über valid_from
 // ---------------------------------------------------------------------------
 
 export const rateCreateSchema = billingRateSchema.omit(OMIT_IDS).extend({
@@ -132,7 +132,7 @@ export const rateQuerySchema = paginationSchema.extend({
 });
 
 // ---------------------------------------------------------------------------
-// rounding_rules (doc 06 §A.4, doc 07 §3) — historisiert über valid_from
+// rounding_rules (doc 06 §A.4, doc 07 §3), historisiert über valid_from
 // ---------------------------------------------------------------------------
 
 export const roundingRuleCreateSchema = roundingRuleSchema

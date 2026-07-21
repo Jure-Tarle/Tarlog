@@ -1,10 +1,10 @@
 /**
- * lib/pdf/invoice.ts — reine pdfmake-Dokumentdefinition für die PDF-Rechnung
+ * lib/pdf/invoice.ts, reine pdfmake-Dokumentdefinition für die PDF-Rechnung
  * (doc 10 §5.1 Fn 23, §5.3 §14-UStG-Pflichtangaben, §5.4/§5.5 Hinweise).
  *
  * Reine Funktion: nimmt bereits aufbereitete, formatierte Werte (Snapshots,
  * Beträge als Strings) und liefert die Dokumentdefinition. Keine Steuer-/
- * Betragsrechnung hier — die liegt in lib/invoice/* (Integer-Cents).
+ * Betragsrechnung hier, die liegt in lib/invoice/* (Integer-Cents).
  */
 import type { Content, TDocumentDefinitions } from "pdfmake/interfaces";
 

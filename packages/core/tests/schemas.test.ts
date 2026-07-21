@@ -1,5 +1,5 @@
 /**
- * schemas.test.ts — tests for the REAL zod exports of
+ * schemas.test.ts, tests for the REAL zod exports of
  * packages/core/src/schemas/index.ts.
  *
  * Verifies:
@@ -37,9 +37,9 @@ function validTimeEntry() {
 }
 
 // ---------------------------------------------------------------------------
-// time_entry — valid input passes; defaults applied
+// time_entry, valid input passes; defaults applied
 // ---------------------------------------------------------------------------
-describe("timeEntrySchema — valid time_entry", () => {
+describe("timeEntrySchema, valid time_entry", () => {
   it("accepts a minimally-valid completed entry", () => {
     const parsed = timeEntrySchema.parse(validTimeEntry());
     expect(parsed.id).toBe(UUID);
@@ -83,7 +83,7 @@ describe("timeEntrySchema — valid time_entry", () => {
 // ---------------------------------------------------------------------------
 // actual vs billing are separate, independent fields
 // ---------------------------------------------------------------------------
-describe("timeEntrySchema — actual and billing durations are separate fields", () => {
+describe("timeEntrySchema, actual and billing durations are separate fields", () => {
   it("keeps actual_duration_seconds and billing_duration_seconds distinct", () => {
     const parsed = timeEntrySchema.parse(validTimeEntry());
     expect(parsed.actual_duration_seconds).toBe(16200);
@@ -108,9 +108,9 @@ describe("timeEntrySchema — actual and billing durations are separate fields",
 });
 
 // ---------------------------------------------------------------------------
-// source enum — rejects "manual", accepts "manual_backdated"
+// source enum, rejects "manual", accepts "manual_backdated"
 // ---------------------------------------------------------------------------
-describe("timeEntrySourceEnum — 'manual' rejected, 'manual_backdated' accepted", () => {
+describe("timeEntrySourceEnum, 'manual' rejected, 'manual_backdated' accepted", () => {
   it("accepts the 4 valid sources", () => {
     for (const src of ["live_timer", "manual_backdated", "imported", "api"]) {
       expect(timeEntrySourceEnum.safeParse(src).success).toBe(true);
@@ -142,9 +142,9 @@ describe("timeEntrySourceEnum — 'manual' rejected, 'manual_backdated' accepted
 });
 
 // ---------------------------------------------------------------------------
-// timer_state status enum — exactly 7 values
+// timer_state status enum, exactly 7 values
 // ---------------------------------------------------------------------------
-describe("timerStatusEnum — the 7 timer states", () => {
+describe("timerStatusEnum, the 7 timer states", () => {
   const expected = [
     "idle",
     "running",

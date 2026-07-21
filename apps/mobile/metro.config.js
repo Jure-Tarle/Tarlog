@@ -1,5 +1,5 @@
 /**
- * Metro config — monorepo aware (doc 05 §2.1 pnpm workspace).
+ * Metro config, monorepo aware (doc 05 §2.1 pnpm workspace).
  *
  * `watchFolders` includes the repo root so Metro sees `packages/core`
  * (workspace:*), und `nodeModulesPaths` lässt Metro Abhängigkeiten aus dem
@@ -8,7 +8,7 @@
  * Hierarchische Auflösung bleibt AKTIV: unter pnpm liegen die eigenen
  * Abhängigkeiten von react-native (`invariant`, `nullthrows`, …) als Symlinks
  * neben RN im `.pnpm`-Store. Nur wenn Metro das Verzeichnis nach oben durchläuft,
- * findet es sie — `disableHierarchicalLookup: true` würde genau das verhindern.
+ * findet es sie, `disableHierarchicalLookup: true` würde genau das verhindern.
  */
 const { getDefaultConfig } = require("expo/metro-config");
 const path = require("path");
@@ -24,7 +24,7 @@ config.resolver.nodeModulesPaths = [
   path.resolve(workspaceRoot, "node_modules"),
 ];
 config.resolver.disableHierarchicalLookup = false;
-// pnpm nutzt Symlinks (.pnpm-Store) — Metro muss ihnen folgen.
+// pnpm nutzt Symlinks (.pnpm-Store), Metro muss ihnen folgen.
 config.resolver.unstable_enableSymlinks = true;
 
 // BEKANNTE EINSCHRÄNKUNG (Bundler, nicht App-Code):

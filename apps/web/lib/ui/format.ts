@@ -1,7 +1,7 @@
 /**
- * lib/ui/format.ts — reine Formatierungs-Helfer (doc 11 §1: tabulare Ziffern,
+ * lib/ui/format.ts, reine Formatierungs-Helfer (doc 11 §1: tabulare Ziffern,
  * HH:MM:SS, Integer-Cents). Isomorph (Server + Client), keine I/O, keine
- * Fremd-Deps — nur `Intl`. Zeiten sind epoch-ms UTC + IANA-Zeitzone, Geld
+ * Fremd-Deps, nur `Intl`. Zeiten sind epoch-ms UTC + IANA-Zeitzone, Geld
  * Integer-Cents. Anzeige wird auf Minuten gerundet, der interne Wert bleibt
  * sekundengenau (doc 03 §2 Nr. 34/35).
  */
@@ -81,7 +81,7 @@ export function formatDate(
   tz: string = DEFAULT_TZ,
   locale: string = DEFAULT_LOCALE,
 ): string {
-  if (at == null) return "—";
+  if (at == null) return ",";
   return parts(
     at,
     tz,
@@ -96,7 +96,7 @@ export function formatTime(
   tz: string = DEFAULT_TZ,
   locale: string = DEFAULT_LOCALE,
 ): string {
-  if (at == null) return "—";
+  if (at == null) return ",";
   return parts(at, tz, { hour: "2-digit", minute: "2-digit", hour12: false }, locale);
 }
 
@@ -106,7 +106,7 @@ export function formatDateTime(
   tz: string = DEFAULT_TZ,
   locale: string = DEFAULT_LOCALE,
 ): string {
-  if (at == null) return "—";
+  if (at == null) return ",";
   return `${formatDate(at, tz, locale)} ${formatTime(at, tz, locale)}`;
 }
 
@@ -153,7 +153,7 @@ export function deviceTimezone(): string {
   }
 }
 
-/** ISO-Kalenderwoche (1–53) eines epoch-ms (UTC-basiert, ausreichend für Anzeige). */
+/** ISO-Kalenderwoche (1,53) eines epoch-ms (UTC-basiert, ausreichend für Anzeige). */
 export function isoWeek(at: number): number {
   const d = new Date(at);
   const day = (d.getUTCDay() + 6) % 7;

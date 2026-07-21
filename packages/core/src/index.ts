@@ -1,5 +1,5 @@
 /**
- * @tarlog/core — public barrel. Business logic shared by all apps (doc 05 §4).
+ * @tarlog/core, public barrel. Business logic shared by all apps (doc 05 §4).
  * Framework-free pure functions: time, rounding, compliance, billing + zod schemas.
  */
 export * from "./types.js";

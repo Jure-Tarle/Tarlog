@@ -1,5 +1,5 @@
 /**
- * /api/tasks — Liste + Anlegen (doc 06 §A.2 `tasks`, doc 10 §3).
+ * /api/tasks, Liste + Anlegen (doc 06 §A.2 `tasks`, doc 10 §3).
  *
  * `project_id` NULL = globale Aufgabe. Audit-Pflicht: nein (doc 06 tasks-Meta).
  * GET  : Filter `project_id`, `status`, `q` (Name); sortiert nach `sort_order`.

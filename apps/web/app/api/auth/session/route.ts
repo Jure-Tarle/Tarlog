@@ -1,5 +1,5 @@
 /**
- * GET /api/auth/session — Session-Check (doc 05 §5.1). Weicher Check: 200 mit
+ * GET /api/auth/session, Session-Check (doc 05 §5.1). Weicher Check: 200 mit
  * `{ authenticated: false }` wenn keine gültige Session/kein gültiges Token,
  * damit Clients den Zustand abfragen können, ohne 401 behandeln zu müssen.
  * Deckt Cookie- UND Bearer-Auth ab (über `getAuth`).

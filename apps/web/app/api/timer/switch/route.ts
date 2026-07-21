@@ -1,5 +1,5 @@
 /**
- * POST /api/timer/switch — Projekt/Aufgabe des laufenden Timers wechseln
+ * POST /api/timer/switch, Projekt/Aufgabe des laufenden Timers wechseln
  * (doc 04 §5.2 Nr. 6/7). Aktualisiert Timer + zugehörigen Zeiteintrag
  * (Abrechenbarkeit/Pflichtbeschreibung neu aufgelöst). Compare-and-Set.
  */

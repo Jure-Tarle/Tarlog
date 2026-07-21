@@ -1,6 +1,6 @@
 /**
  * Migrations-Helper (doc 05 §2.1). Wendet die generierten Drizzle-Migrationen
- * an — SQLite (Client, better-sqlite3) und PostgreSQL (Server, node-postgres).
+ * an, SQLite (Client, better-sqlite3) und PostgreSQL (Server, node-postgres).
  *
  * Nur dünne Wrapper um die Drizzle-Migratoren; keine Business-Logik. Die
  * SQL-Migrationsdateien erzeugt `drizzle-kit generate` aus den Schemata

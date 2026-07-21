@@ -1,5 +1,5 @@
 /**
- * lib/sync/hlc.ts — Hybrid Logical Clock (doc 04 §1.1).
+ * lib/sync/hlc.ts, Hybrid Logical Clock (doc 04 §1.1).
  *
  * HLC = (physical_ms, logical_counter, node). Monoton auch bei rückspringender
  * Wall-Clock; liefert eine total geordnete, geräteübergreifend vergleichbare
@@ -30,7 +30,7 @@ export function formatHlc(h: Hlc): string {
 
 /**
  * Parst einen HLC-String. Tolerant: fehlende Teile werden zu 0/"" ergänzt.
- * Der lib/events.ts-Fallback "<hex>:<hex>" wird als Dezimal gelesen — das ist
+ * Der lib/events.ts-Fallback "<hex>:<hex>" wird als Dezimal gelesen, das ist
  * für die Ordnung unkritisch, solange derselbe Parser vergleicht.
  */
 export function parseHlc(s: string): Hlc {

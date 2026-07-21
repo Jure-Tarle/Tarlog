@@ -1,5 +1,5 @@
 /**
- * app/api/invoices/[id] — einzelne Rechnung mit Posten + verknüpften Einträgen
+ * app/api/invoices/[id], einzelne Rechnung mit Posten + verknüpften Einträgen
  * (doc 10 §5). Read-only; Mutationen laufen über /finalize bzw. /cancel.
  */
 import { apiError, json, requireAuth } from "@/lib/api";

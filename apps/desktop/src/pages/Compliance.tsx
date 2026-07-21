@@ -1,5 +1,5 @@
 /**
- * Compliance — Bereich 13 (doc 08). Tagesweise Ampel (grün/gelb/rot) gegen das
+ * Compliance, Bereich 13 (doc 08). Tagesweise Ampel (grün/gelb/rot) gegen das
  * deutsche Arbeitszeitprofil (ArbZG) mit Regel-Erklärung je betroffenem Tag.
  * Auswertung via @tarlog/core (evaluateDay/evaluateRestPeriod) über die
  * aggregates-Schicht; reine Leseansicht.
@@ -10,6 +10,7 @@ import { useAsync } from "../data/hooks";
 import { overallStatus } from "../data/aggregates";
 import { fmtHM, monthRange, fmtDayLong } from "../data/format";
 import { useTimezone, loadRange } from "./shared";
+import { t } from "../i18n";
 
 export default function Compliance() {
   const tz = useTimezone();
@@ -21,17 +22,17 @@ export default function Compliance() {
   const withFindings = days.filter((d) => d.results.length > 0);
 
   return (
-    <Page title="Compliance" hint="Deutsches Arbeitszeitprofil (ArbZG) — keine Rechtsberatung">
+    <Page title={t("Compliance")} hint={t("Deutsches Arbeitszeitprofil (ArbZG), keine Rechtsberatung")}>
       <StatGrid>
-        <StatTile label="Monatsstatus" value={<ComplianceBadge status={status} />} tone={status} />
-        <StatTile label="Tage geprüft" value={String(days.length)} />
-        <StatTile label="Auffällige Tage" value={String(withFindings.filter((d) => d.status !== "green").length)} />
+        <StatTile label={t("Monatsstatus")} value={<ComplianceBadge status={status} />} tone={status} />
+        <StatTile label={t("Tage geprüft")} value={String(days.length)} />
+        <StatTile label={t("Auffällige Tage")} value={String(withFindings.filter((d) => d.status !== "green").length)} />
       </StatGrid>
 
-      <Card title="Tage mit Hinweisen" subtitle="ArbZG §3/§4/§5 — Pausen, Höchstarbeitszeit, Ruhezeit">
+      <Card title={t("Tage mit Hinweisen")} subtitle={t("ArbZG §3/§4/§5, Pausen, Höchstarbeitszeit, Ruhezeit")}>
         <AsyncBody
           state={{ data: withFindings.length ? withFindings : null, error: data.error, loading: data.loading }}
-          empty={<EmptyState title="Keine Compliance-Hinweise">Alle geprüften Tage sind konform.</EmptyState>}
+          empty={<EmptyState title={t("Keine Compliance-Hinweise")}>{t("Alle geprüften Tage sind konform.")}</EmptyState>}
         >
           {(list) => (
             <div className="stack">
@@ -41,7 +42,7 @@ export default function Compliance() {
                     <ComplianceBadge status={d.status} />
                     <strong>{fmtDayLong(d.summary.first_start_at ?? range.from, tz)}</strong>
                     <span className="muted">
-                      Netto {fmtHM(d.summary.net_seconds)} · Pause {fmtHM(d.summary.break_seconds)}
+                      {t("Netto {net} | Pause {pause}", { net: fmtHM(d.summary.net_seconds), pause: fmtHM(d.summary.break_seconds) })}
                     </span>
                   </div>
                   <ul className="rulelist">

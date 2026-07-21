@@ -1,12 +1,12 @@
 /**
- * data/internal.ts — private plumbing for the local store (doc 11 §7).
+ * data/internal.ts, private plumbing for the local store (doc 11 §7).
  *
  * This module owns everything the public `data/index.ts` contract needs but is
  * NOT part of the contract: local bootstrap (a singleton main account + a stable
  * device id), the default rounding rule / rate used by the offline calc, raw
  * SQLite row shapes, and the row→model mappers.
  *
- * Business logic (net/rounding/billing) is NEVER done here — it lives in
+ * Business logic (net/rounding/billing) is NEVER done here, it lives in
  * `@tarlog/core`. This file only opens/reads/writes rows and shuttles them into the
  * pure engine. Conventions mirror ../lib/db: epoch-ms UTC INTEGER, durations
  * `*_seconds` INTEGER, money `*_cents` INTEGER, ids UUIDv7 TEXT, booleans 0/1.
@@ -171,7 +171,7 @@ export interface TaskRow {
 }
 
 // ---------------------------------------------------------------------------
-// Mappers — SQLite row → public contract model
+// Mappers, SQLite row → public contract model
 // ---------------------------------------------------------------------------
 
 const bool = (v: number | null | undefined): boolean => v === 1;

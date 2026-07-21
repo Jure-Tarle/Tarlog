@@ -1,4 +1,4 @@
-# Qualität — Backup, Testplan, Roadmap, Risiken, Implementierungsschritte, Qualitätsanspruch
+# Qualität, Backup, Testplan, Roadmap, Risiken, Implementierungsschritte, Qualitätsanspruch
 
 > Hinweis: Rechtliche Aussagen sind Produkt-Hinweise, keine Rechtsberatung. Stand der Recherche: Juli 2026.
 
@@ -10,7 +10,7 @@ Querverweise: [Datenmodell](06-datenmodell.md), [Zeitberechnung & Rundung](07-ze
 
 ## 1. Backup- und Restore-Konzept (SPEC §30)
 
-Backups sind kein Add-on, sondern Voraussetzung für eine revisionsfähige, DSGVO-freundliche Zeiterfassung. Da im lokalen Desktop-Modus keine Cloud existiert, liegt die Datensicherheit vollständig beim Nutzer — das Produkt muss ihn dabei aktiv unterstützen. Alle 10 geforderten Backup-Funktionen aus SPEC §30:
+Backups sind kein Add-on, sondern Voraussetzung für eine revisionsfähige, DSGVO-freundliche Zeiterfassung. Da im lokalen Desktop-Modus keine Cloud existiert, liegt die Datensicherheit vollständig beim Nutzer, das Produkt muss ihn dabei aktiv unterstützen. Alle 10 geforderten Backup-Funktionen aus SPEC §30:
 
 | Nr. | Funktion | Umsetzung | Modus |
 |---|---|---|---|
@@ -25,7 +25,7 @@ Backups sind kein Add-on, sondern Voraussetzung für eine revisionsfähige, DSGV
 | 9 | Export aller Daten als JSON | Vollständiger DSGVO-tauglicher JSON-Export aller Entitäten (siehe [Datenschutz & Sicherheit](09-datenschutz-sicherheit.md), Art. 20 Portabilität); dient zugleich als menschenlesbares Not-Backup | Desktop + Server |
 | 10 | Export aller PDFs als ZIP | Alle erzeugten Nachweise/Rechnungen/Anhänge als ZIP-Archiv, Verweise auf `export_files` in [Datenmodell](06-datenmodell.md) | Desktop + Server |
 
-### 1.1 Integritätsprüfung — konkrete Kommandos
+### 1.1 Integritätsprüfung, konkrete Kommandos
 
 - **SQLite (Desktop):** `PRAGMA integrity_check;` muss `ok` liefern; ergänzend `PRAGMA foreign_key_check;` (leeres Ergebnis) und ein Testlauf gegen `sync_events`/`audit_logs` (keine Lücken in Revisionsketten). `PRAGMA integrity_check` läuft vor jedem Restore und nach jedem automatischen Backup; ein Fehlschlag markiert das Backup als unbrauchbar und alarmiert den Nutzer.
 - **PostgreSQL (Server):** `pg_dump` erzeugt den Snapshot, ein Probe-`pg_restore` in ein isoliertes Schema verifiziert die Wiederherstellbarkeit. Der Health-Check-Endpunkt (siehe [Architektur](05-architektur.md)) meldet Alter und Ergebnis des letzten Backups.
@@ -38,7 +38,7 @@ Restore ist niemals destruktiv ohne Sicherheitsnetz: Die aktuelle Datenbank wird
 
 ## 2. Testplan (SPEC §34)
 
-Alle 36 Testfälle aus SPEC §34, jeweils mit Ebene (unit / integration / e2e) und erwartetem Ergebnis. Die Kernlogik (Timer, Pausen, Rundung, Compliance, Abrechnung) liegt als reine Funktionen im `packages/core` und ist deterministisch als Unit-Test prüfbar; Persistenz und Sync als Integration; Cross-Device-Flows als e2e. Testfälle 9–11 (Rundung 70 → 75 Minuten, `actual_duration_seconds` bleibt unverändert) sind die Regressionsanker der Rundungsengine und werden zuerst implementiert (siehe [Zeitberechnung & Rundung](07-zeitberechnung-rundung.md)).
+Alle 36 Testfälle aus SPEC §34, jeweils mit Ebene (unit / integration / e2e) und erwartetem Ergebnis. Die Kernlogik (Timer, Pausen, Rundung, Compliance, Abrechnung) liegt als reine Funktionen im `packages/core` und ist deterministisch als Unit-Test prüfbar; Persistenz und Sync als Integration; Cross-Device-Flows als e2e. Testfälle 9,11 (Rundung 70 → 75 Minuten, `actual_duration_seconds` bleibt unverändert) sind die Regressionsanker der Rundungsengine und werden zuerst implementiert (siehe [Zeitberechnung & Rundung](07-zeitberechnung-rundung.md)).
 
 | Nr. | Testfall | Ebene | Erwartetes Ergebnis |
 |---|---|---|---|
@@ -54,7 +54,7 @@ Alle 36 Testfälle aus SPEC §34, jeweils mit Ebene (unit / integration / e2e) u
 | 10 | 70 Minuten werden zu 75 Minuten Abrechnungszeit | unit | Eingabe netto 70 Minuten → Abrechnung 75 Minuten; `rounding_delta_seconds = +300`; entspricht „1 Stunde 10 Minuten → 1 Stunde 15 Minuten" |
 | 11 | tatsächliche Zeit bleibt unverändert | unit | `actual_duration_seconds` bleibt exakt 4200 (70 Minuten), unabhängig von der Rundung; Nachweis zeigt beide Werte getrennt |
 | 12 | über Mitternacht | unit | Eintrag mit Start 23:30 und Ende 00:45 wird korrekt als 75 Minuten berechnet und als „über Mitternacht" markiert; optionaler Tages-Split |
-| 13 | Sommerzeit | unit | DST-Übergang (Frühjahr, Uhr springt +1 h) verkürzt Wanduhr-Differenz nicht die Nettozeit — Berechnung über UTC-Epoch, nicht Lokalzeit |
+| 13 | Sommerzeit | unit | DST-Übergang (Frühjahr, Uhr springt +1 h) verkürzt Wanduhr-Differenz nicht die Nettozeit, Berechnung über UTC-Epoch, nicht Lokalzeit |
 | 14 | Winterzeit | unit | DST-Übergang (Herbst, Uhr springt −1 h) verlängert die reale Dauer korrekt; keine negative oder doppelte Stunde |
 | 15 | Zeitzonen | unit | Eintrag mit `timezone` (IANA) wird korrekt umgerechnet; Anzeige lokal, Speicherung UTC; Reise über Zeitzonen verfälscht Dauer nicht |
 | 16 | mehr als 6 Stunden ohne Pause | unit | Compliance DE meldet Verstoß: `>6 Stunden` → `30 Minuten` Pause fehlen; Ampel rot/gelb, Regelbezug ArbZG §4 |
@@ -79,11 +79,11 @@ Alle 36 Testfälle aus SPEC §34, jeweils mit Ebene (unit / integration / e2e) u
 | 35 | Import | integration | Import-Assistent (CSV/XLSX/JSON) mit Spaltenzuordnung, Duplikaterkennung, Testimport → finaler Import, Audit-Log |
 | 36 | DSGVO Export | integration | Vollständiger JSON-Export aller personenbezogenen Daten (Art. 20), maschinenlesbar und wieder importierbar |
 
-**Testinfrastruktur:** Unit- und Integrationstests mit Vitest im Monorepo; e2e für Web mit Playwright, Cross-Device-Sync über eine Test-Harness mit mehreren simulierten Geräten (jeweils eigene `device_id`). Golden-Master-Tests fixieren die PDF-Ausgabe. Die Rundungs- und Compliance-Kernfälle (9–19) laufen als schnelle Unit-Suite im CI-Gate; kein Merge ohne grüne Kernfälle. Tests werden nie abgeschwächt oder gelöscht, um einen Pass zu erzwingen.
+**Testinfrastruktur:** Unit- und Integrationstests mit Vitest im Monorepo; e2e für Web mit Playwright, Cross-Device-Sync über eine Test-Harness mit mehreren simulierten Geräten (jeweils eigene `device_id`). Golden-Master-Tests fixieren die PDF-Ausgabe. Die Rundungs- und Compliance-Kernfälle (9,19) laufen als schnelle Unit-Suite im CI-Gate; kein Merge ohne grüne Kernfälle. Tests werden nie abgeschwächt oder gelöscht, um einen Pass zu erzwingen.
 
 ---
 
-## 3. Mapping — 32 V1-Akzeptanzkriterien (SPEC §35)
+## 3. Mapping, 32 V1-Akzeptanzkriterien (SPEC §35)
 
 Alle 32 Akzeptanzkriterien für Version 1, jeweils auf das umsetzende Feature/die Architektur und die Dokumentationsdatei abgebildet. Diese Tabelle ist die Rückverfolgbarkeitsmatrix von Version 1.
 
@@ -128,7 +128,7 @@ Alle 32 Akzeptanzkriterien für Version 1, jeweils auf das umsetzende Feature/di
 
 Die Roadmap folgt dem local-first-Prinzip: zuerst ein vollständig lokal nutzbares Fundament, dann Abrechnung und Compliance, danach optionaler Server und Sync, schließlich native Erweiterung und Professional Features. Alle sechs Phasen vollständig:
 
-### Phase 1 — Lokales Fundament
+### Phase 1, Lokales Fundament
 1. Monorepo (pnpm-Workspace)
 2. gemeinsames Core Package (`packages/core`)
 3. lokale Desktop App (Tauri)
@@ -142,7 +142,7 @@ Die Roadmap folgt dem local-first-Prinzip: zuerst ein vollständig lokal nutzbar
 11. Rundung
 12. einfache Reports
 
-### Phase 2 — Exporte und Abrechnung
+### Phase 2, Exporte und Abrechnung
 1. PDF Arbeitszeitnachweis
 2. CSV Export
 3. Rechnungs-PDF
@@ -152,14 +152,14 @@ Die Roadmap folgt dem local-first-Prinzip: zuerst ein vollständig lokal nutzbar
 7. Budget
 8. Rechnungssperre (Finalisierung/Immutability)
 
-### Phase 3 — Deutschland Compliance
+### Phase 3, Deutschland Compliance
 1. Pausenregeln
 2. Ruhezeitregeln
 3. Tageshöchstzeit-Warnungen
 4. Compliance Dashboard
 5. Compliance PDF
 
-### Phase 4 — Selbst gehosteter Server
+### Phase 4, Selbst gehosteter Server
 1. Next.js Web App
 2. PostgreSQL
 3. Docker Compose
@@ -168,7 +168,7 @@ Die Roadmap folgt dem local-first-Prinzip: zuerst ein vollständig lokal nutzbar
 6. Sync API
 7. Live Timer Sync
 
-### Phase 5 — Native Erweiterung
+### Phase 5, Native Erweiterung
 1. macOS Menüleisten-App
 2. Windows System Tray
 3. iOS App mit Expo
@@ -176,7 +176,7 @@ Die Roadmap folgt dem local-first-Prinzip: zuerst ein vollständig lokal nutzbar
 5. Push oder lokale Erinnerungen
 6. Konflikt-UI
 
-### Phase 6 — Professional Features
+### Phase 6, Professional Features
 1. Import aus Konkurrenztools
 2. Integrationen
 3. Webhooks
@@ -192,13 +192,13 @@ Produkt- und Projektrisiken für ein ernsthaftes Produkt, das (zunächst) von we
 
 | Nr. | Risiko | Auswirkung | Mitigation |
 |---|---|---|---|
-| 1 | **Sync-Komplexität** — verteilte Writes über Desktop/Browser/iOS, Feld-Level-Konflikte | Datenverlust oder inkonsistenter Timer-Zustand | Bewusst KEIN voll-CRDT: Event-Log + Feld-Level-LWW mit Hybrid Logical Clock (HLC), Server als kanonische Wahrheit (`server_revision`); Timer-Singleton per partiellem UNIQUE-Index; Textdivergenz → Konfliktdialog statt stillem Merge; 10 Konfliktfälle explizit getestet (Testfälle 27–31). Siehe [Sync](04-sync.md) |
-| 2 | **Rechtsänderungen** — ArbZG-Reform (geplante Pflicht zur elektronischen Zeiterfassung), E-Rechnung EN 16931 | Compliance- und Rechnungslogik veraltet | Versionierte Länder-/Compliance-Profile (`valid_from`/`valid_until`, `calculation_version`); Regeln datengetrieben statt hartcodiert; E-Rechnung ZUGFeRD/XRechnung als V2-Vorbereitung dokumentiert; „Stand Juli 2026" auf jeder Datei. Siehe [Compliance](08-compliance.md) |
-| 3 | **Uhr-Manipulation / falsche Gerätezeit** — Zeiterfassung hängt an Uhrzeiten | falsche Dauern, unglaubwürdige Nachweise | Server- vs. Gerätezeit vergleichen, Warnung bei großer Abweichung, mehrere Zeitstempel (lokal/Server-Empfang/Sync-Empfang), Zeitquelle dokumentieren, verdächtige Einträge markieren (SPEC §6.6). Siehe [Sync](04-sync.md) |
-| 4 | **PDF- und Steuerkorrektheit** — fehlerhafte Rechnung ist ein Rechts- und Reputationsrisiko | ungültige Rechnungen, Steuerprobleme | §14-UStG-Pflichtangaben als Checkliste, Snapshots (Kunde/Projekt/Satz/Rundung), fortlaufender Nummernkreis, Finalisierung → Immutability, Korrektur nur via Storno/neue Version; Golden-Master-Tests der PDF-Ausgabe. Siehe [Abrechnung & Export](10-abrechnung-export.md) |
-| 5 | **Migrationsstabilität** — Schema-Änderungen dürfen bestehende und alte Rechnungen nicht brechen | Datenverlust bei Updates | drizzle-kit-Migrationen versioniert, dual-dialect (SQLite/PostgreSQL) aus einem Schema; `calculation_version`/Snapshots halten alte Rechnungen stabil; Pre-Migration-Backup + `PRAGMA integrity_check`; Update-Migrations im Server-Setup dokumentiert |
-| 6 | **Scope für ein kleines Team** — der Funktionsumfang ist groß | Feature-Überdehnung, keine Auslieferung | Strikte Phasen-Roadmap (Phase 1 = lokal lauffähig zuerst); V1/V2-Trennung je Feature dokumentiert; kleinste kohärente Inkremente (siehe Abschnitt 6); Team/Kundenportal architektonisch nur vorbereitet, nicht V1-Pflicht |
-| 7 | **Datenschutz-Fehltritt** — Arbeitszeitdaten sind personenbezogen | DSGVO-Verstoß, Vertrauensverlust | Datenminimierung, keine Telemetrie/Screenshots/GPS im Standard, lokale Verschlüsselung optional (SQLCipher), JSON-Export + Löschkonzept unter Aufbewahrungs-Sperren. Siehe [Datenschutz & Sicherheit](09-datenschutz-sicherheit.md) |
+| 1 | **Sync-Komplexität**, verteilte Writes über Desktop/Browser/iOS, Feld-Level-Konflikte | Datenverlust oder inkonsistenter Timer-Zustand | Bewusst KEIN voll-CRDT: Event-Log + Feld-Level-LWW mit Hybrid Logical Clock (HLC), Server als kanonische Wahrheit (`server_revision`); Timer-Singleton per partiellem UNIQUE-Index; Textdivergenz → Konfliktdialog statt stillem Merge; 10 Konfliktfälle explizit getestet (Testfälle 27,31). Siehe [Sync](04-sync.md) |
+| 2 | **Rechtsänderungen**, ArbZG-Reform (geplante Pflicht zur elektronischen Zeiterfassung), E-Rechnung EN 16931 | Compliance- und Rechnungslogik veraltet | Versionierte Länder-/Compliance-Profile (`valid_from`/`valid_until`, `calculation_version`); Regeln datengetrieben statt hartcodiert; E-Rechnung ZUGFeRD/XRechnung als V2-Vorbereitung dokumentiert; „Stand Juli 2026" auf jeder Datei. Siehe [Compliance](08-compliance.md) |
+| 3 | **Uhr-Manipulation / falsche Gerätezeit**, Zeiterfassung hängt an Uhrzeiten | falsche Dauern, unglaubwürdige Nachweise | Server- vs. Gerätezeit vergleichen, Warnung bei großer Abweichung, mehrere Zeitstempel (lokal/Server-Empfang/Sync-Empfang), Zeitquelle dokumentieren, verdächtige Einträge markieren (SPEC §6.6). Siehe [Sync](04-sync.md) |
+| 4 | **PDF- und Steuerkorrektheit**, fehlerhafte Rechnung ist ein Rechts- und Reputationsrisiko | ungültige Rechnungen, Steuerprobleme | §14-UStG-Pflichtangaben als Checkliste, Snapshots (Kunde/Projekt/Satz/Rundung), fortlaufender Nummernkreis, Finalisierung → Immutability, Korrektur nur via Storno/neue Version; Golden-Master-Tests der PDF-Ausgabe. Siehe [Abrechnung & Export](10-abrechnung-export.md) |
+| 5 | **Migrationsstabilität**, Schema-Änderungen dürfen bestehende und alte Rechnungen nicht brechen | Datenverlust bei Updates | drizzle-kit-Migrationen versioniert, dual-dialect (SQLite/PostgreSQL) aus einem Schema; `calculation_version`/Snapshots halten alte Rechnungen stabil; Pre-Migration-Backup + `PRAGMA integrity_check`; Update-Migrations im Server-Setup dokumentiert |
+| 6 | **Scope für ein kleines Team**, der Funktionsumfang ist groß | Feature-Überdehnung, keine Auslieferung | Strikte Phasen-Roadmap (Phase 1 = lokal lauffähig zuerst); V1/V2-Trennung je Feature dokumentiert; kleinste kohärente Inkremente (siehe Abschnitt 6); Team/Kundenportal architektonisch nur vorbereitet, nicht V1-Pflicht |
+| 7 | **Datenschutz-Fehltritt**, Arbeitszeitdaten sind personenbezogen | DSGVO-Verstoß, Vertrauensverlust | Datenminimierung, keine Telemetrie/Screenshots/GPS im Standard, lokale Verschlüsselung optional (SQLCipher), JSON-Export + Löschkonzept unter Aufbewahrungs-Sperren. Siehe [Datenschutz & Sicherheit](09-datenschutz-sicherheit.md) |
 | 8 | **Rechtsaussagen als Beratung missverstanden** | Haftungserwartung | Disclaimer „keine Rechtsberatung" auf jeder Datei, Paragraphenbezug, Regeln konfigurierbar (Selbstständige nicht ArbZG-pflichtig, Profil dennoch Standard) |
 
 ---
@@ -207,18 +207,18 @@ Produkt- und Projektrisiken für ein ernsthaftes Produkt, das (zunächst) von we
 
 Geordnete Liste kleinster kohärenter Inkremente. Jeder Schritt ist für sich lauffähig und testbar; die Rundungsengine mit dem 70 → 75-Minuten-Test kommt bewusst früh, weil sie die kritische, geldrelevante Kernlogik ist.
 
-1. **Monorepo-Setup** — pnpm-Workspace mit `packages/core`, `packages/db`, `apps/desktop`, `apps/web`, `apps/mobile`; TypeScript-Config, Vitest, Lint/Format-Gate.
-2. **Drizzle-Schema der Kern-Tabellen** — `main_accounts`, `local_profiles`, `customers`, `projects`, `tasks`, `time_entries`, `time_entry_breaks`, `rounding_rules`, `billing_rates`, `audit_logs` als dual-dialect Drizzle-Schema; drizzle-kit-Migration für SQLite. Siehe [Datenmodell](06-datenmodell.md).
-3. **Core-Rundungsengine + Tests zuerst** — reine Funktionen für Brutto/Netto/Pausen/Rundung im `packages/core`; **Testfall 9–11 zuerst schreiben** (netto 70 Minuten, Intervall `15 Minuten` → `billing_duration_seconds` 75 Minuten, `rounding_delta_seconds = +300`, `actual_duration_seconds` bleibt 70 Minuten). Siehe [Zeitberechnung & Rundung](07-zeitberechnung-rundung.md).
-4. **Lokaler Timer in Tauri** — Timer-State-Machine (`idle`/`running`/`paused`/`stopped`) im Frontend, Persistenz via `tauri-plugin-sql`; Single-Timer-Durchsetzung.
-5. **Stop-Dialog** — Pflichtbeschreibung (`needs_description`), Start-/Endzeit-Korrektur mit Grund, Rundungsvorschau, Speichern/Entwurf.
-6. **Nachtrag** — manueller Eintrag mit Nachtragsgrund, Assistent für vergessenen Start/Stopp, Audit-Log-Eintrag.
-7. **SQLite-Persistenz + Backup** — `VACUUM INTO`-Backup, automatische Rotation, `PRAGMA integrity_check`, Restore-Assistent mit Pre-Restore-Snapshot.
-8. **PDF-Nachweis** — pdfmake-Pipeline, Arbeitszeitnachweis mit tatsächlicher und gerundeter Zeit getrennt, Exportnummer.
-9. **Compliance-DE-Engine** — Pausen-/Ruhezeit-/Tageshöchstzeit-Prüfungen (`30 Minuten`/`45 Minuten`/`8 Stunden`/`10 Stunden`/`11 Stunden`), Ampel-UI. Siehe [Compliance](08-compliance.md).
-10. **CSV-Export** — verlustfreier Export/Re-Import.
-11. **Rechnung** — Rechnung aus Zeiteinträgen, Snapshots, Finalisierung/Sperre, §14-UStG-Pflichtangaben, PDF-Rechnung.
-12. **Server & Sync** — Next.js + PostgreSQL + Docker Compose, Sync-API (Event-Log/HLC), Live-Kanal (WebSocket), Device-Registrierung; danach native Erweiterung (macOS-Menüleiste, Windows-Tray, iOS) gemäß Roadmap-Phase 5.
+1. **Monorepo-Setup**, pnpm-Workspace mit `packages/core`, `packages/db`, `apps/desktop`, `apps/web`, `apps/mobile`; TypeScript-Config, Vitest, Lint/Format-Gate.
+2. **Drizzle-Schema der Kern-Tabellen**, `main_accounts`, `local_profiles`, `customers`, `projects`, `tasks`, `time_entries`, `time_entry_breaks`, `rounding_rules`, `billing_rates`, `audit_logs` als dual-dialect Drizzle-Schema; drizzle-kit-Migration für SQLite. Siehe [Datenmodell](06-datenmodell.md).
+3. **Core-Rundungsengine + Tests zuerst**, reine Funktionen für Brutto/Netto/Pausen/Rundung im `packages/core`; **Testfall 9,11 zuerst schreiben** (netto 70 Minuten, Intervall `15 Minuten` → `billing_duration_seconds` 75 Minuten, `rounding_delta_seconds = +300`, `actual_duration_seconds` bleibt 70 Minuten). Siehe [Zeitberechnung & Rundung](07-zeitberechnung-rundung.md).
+4. **Lokaler Timer in Tauri**, Timer-State-Machine (`idle`/`running`/`paused`/`stopped`) im Frontend, Persistenz via `tauri-plugin-sql`; Single-Timer-Durchsetzung.
+5. **Stop-Dialog**, Pflichtbeschreibung (`needs_description`), Start-/Endzeit-Korrektur mit Grund, Rundungsvorschau, Speichern/Entwurf.
+6. **Nachtrag**, manueller Eintrag mit Nachtragsgrund, Assistent für vergessenen Start/Stopp, Audit-Log-Eintrag.
+7. **SQLite-Persistenz + Backup**, `VACUUM INTO`-Backup, automatische Rotation, `PRAGMA integrity_check`, Restore-Assistent mit Pre-Restore-Snapshot.
+8. **PDF-Nachweis**, pdfmake-Pipeline, Arbeitszeitnachweis mit tatsächlicher und gerundeter Zeit getrennt, Exportnummer.
+9. **Compliance-DE-Engine**, Pausen-/Ruhezeit-/Tageshöchstzeit-Prüfungen (`30 Minuten`/`45 Minuten`/`8 Stunden`/`10 Stunden`/`11 Stunden`), Ampel-UI. Siehe [Compliance](08-compliance.md).
+10. **CSV-Export**, verlustfreier Export/Re-Import.
+11. **Rechnung**, Rechnung aus Zeiteinträgen, Snapshots, Finalisierung/Sperre, §14-UStG-Pflichtangaben, PDF-Rechnung.
+12. **Server & Sync**, Next.js + PostgreSQL + Docker Compose, Sync-API (Event-Log/HLC), Live-Kanal (WebSocket), Device-Registrierung; danach native Erweiterung (macOS-Menüleiste, Windows-Tray, iOS) gemäß Roadmap-Phase 5.
 
 ---
 

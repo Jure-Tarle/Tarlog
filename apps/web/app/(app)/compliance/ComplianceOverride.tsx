@@ -1,6 +1,6 @@
 "use client";
 /**
- * ComplianceOverride — bewusste Übersteuerung eines Compliance-Ergebnisses mit
+ * ComplianceOverride, bewusste Übersteuerung eines Compliance-Ergebnisses mit
  * Pflicht-Begründung (doc 08). POST /api/compliance/:id/override.
  */
 import { useState } from "react";
@@ -17,11 +17,11 @@ export function ComplianceOverride({ id, existing }: { id: string; existing: str
 
   if (existing && !openInput) {
     return (
-      <span style={{ fontSize: 12, color: "var(--color-text-muted)" }}>
+      <span className="compliance-override-summary">
         übersteuert: {existing}{" "}
-        <button onClick={() => setOpenInput(true)} style={{ background: "none", border: "none", color: "var(--color-accent)", cursor: "pointer", fontSize: 12 }}>
+        <Button size="sm" variant="ghost" onClick={() => setOpenInput(true)}>
           ändern
-        </button>
+        </Button>
       </span>
     );
   }
@@ -45,11 +45,17 @@ export function ComplianceOverride({ id, existing }: { id: string; existing: str
   }
 
   return (
-    <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
-      <TextInput value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Begründung" style={{ width: 200 }} />
-      <Button size="sm" variant="primary" onClick={save} disabled={busy || !reason.trim()}>OK</Button>
+    <div className="compliance-override-editor">
+      <TextInput
+        value={reason}
+        onChange={(e) => setReason(e.target.value)}
+        placeholder="Begründung"
+        aria-label="Begründung für Compliance-Übersteuerung"
+        className="compliance-override-input"
+      />
+      <Button size="sm" variant="primary" onClick={save} disabled={busy || !reason.trim()}>Speichern</Button>
       <Button size="sm" variant="ghost" onClick={() => setOpenInput(false)} disabled={busy}>Abbrechen</Button>
-      {err ? <div style={{ flexBasis: "100%" }}><StatusLine kind="error">{err}</StatusLine></div> : null}
+      {err ? <div className="compliance-override-error"><StatusLine kind="error">{err}</StatusLine></div> : null}
     </div>
   );
 }

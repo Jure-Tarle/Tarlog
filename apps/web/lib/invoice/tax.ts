@@ -1,5 +1,5 @@
 /**
- * lib/invoice/tax.ts — reine Steuerlogik der Rechnung (doc 10 §5.3–§5.5).
+ * lib/invoice/tax.ts, reine Steuerlogik der Rechnung (doc 10 §5.3,§5.5).
  *
  * §14 Abs. 4 Nr. 8/9: Entgelt + Steuerbetrag je Steuersatz-Gruppe.
  * §19 UStG (Kleinunternehmer des Ausstellers) und §13b UStG (Reverse Charge
@@ -66,7 +66,7 @@ export interface InvoiceTotals {
 /**
  * Aggregiert Posten zu Steuergruppen und Summen. Der Steuerbetrag wird EINMAL je
  * Gruppe aus dem Netto-Entgelt gerundet (`round(net × rate / 100)`), nicht je
- * Posten — so entsteht kein Rundungs-Drift (doc 10 §4.1 Integer-Cents).
+ * Posten, so entsteht kein Rundungs-Drift (doc 10 §4.1 Integer-Cents).
  */
 export function computeTotals(items: { net_amount_cents: Cents; tax_rate: number }[]): InvoiceTotals {
   const byRate = new Map<number, Cents>();

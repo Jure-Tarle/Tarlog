@@ -1,10 +1,10 @@
 /**
- * sync/conflicts.ts — conflict persistence + UI view building (doc 04 §6).
+ * sync/conflicts.ts, conflict persistence + UI view building (doc 04 §6).
  *
  * A conflict is NEVER auto-discarded. Every one is written to `conflict_records`
  * with both the local and the server version, then surfaced as a
  * {@link ConflictView} for the dialog (local, server, optional merge, field
- * diff — doc 04 §6.1). Resolution is always the user's decision.
+ * diff, doc 04 §6.1). Resolution is always the user's decision.
  *
  * Backed by `src/lib/db.ts`; all access is failure-tolerant so a missing DB
  * never throws into the sync loop.
@@ -182,6 +182,6 @@ export async function resolveConflict(
       [resolution, deviceId, now, conflictId],
     );
   } catch {
-    // ignore — caller can retry; unresolved conflicts remain visible
+    // ignore, caller can retry; unresolved conflicts remain visible
   }
 }

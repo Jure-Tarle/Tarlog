@@ -1,5 +1,5 @@
 /**
- * shared.ts — small helpers reused by the ledger pages. No DB access of its own;
+ * shared.ts, small helpers reused by the ledger pages. No DB access of its own;
  * it only composes the finished `src/data` repositories + @tarlog/core aggregates.
  */
 import { useEffect, useState } from "react";

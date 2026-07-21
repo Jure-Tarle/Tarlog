@@ -1,5 +1,5 @@
 /**
- * db.ts — local SQLite (expo-sqlite) open + migration runner (doc 05 §2.1,
+ * db.ts, local SQLite (expo-sqlite) open + migration runner (doc 05 §2.1,
  * doc 11 §7 iOS local-first).
  *
  * The mobile client persists local-first into `ptl.db`. The schema here is
@@ -14,7 +14,7 @@
  *
  * Any divergence in a field name from `@tarlog/db` sqlite is a data-model bug.
  *
- * Business logic (net/rounding/billing/compliance) is NEVER done in SQL here —
+ * Business logic (net/rounding/billing/compliance) is NEVER done in SQL here ,
  * it comes from `@tarlog/core`. This module only owns storage + schema versioning.
  */
 import * as SQLite from "expo-sqlite";
@@ -44,7 +44,7 @@ export function resetDb(): void {
 
 /**
  * Ordered DDL migrations. Index 0 is applied when `user_version` is 0, index 1
- * when it is 1, and so on. Append new migrations — never edit a shipped one.
+ * when it is 1, and so on. Append new migrations, never edit a shipped one.
  * Column names/types mirror `@tarlog/db` sqlite exactly (see module doc).
  */
 const MIGRATIONS: readonly string[] = [

@@ -1,5 +1,5 @@
 /**
- * GET /api/health — Liveness + DB-Erreichbarkeit (doc 05 §9.4).
+ * GET /api/health, Liveness + DB-Erreichbarkeit (doc 05 §9.4).
  *
  * Leichter `SELECT 1` gegen die Server-DB. Antwortet 200 `{ status: "ok" }`
  * bei erreichbarer DB, sonst 503 `{ status: "degraded" }`. Zusätzlich

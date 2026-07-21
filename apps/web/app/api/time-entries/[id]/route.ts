@@ -1,10 +1,10 @@
 /**
- * /api/time-entries/[id] — einzelner Zeiteintrag (doc 03 §7, doc 04 §6).
- *   GET    — Eintrag lesen (Account-scoped).
- *   PATCH  — Felder ändern; bei Zeit-/Pausenänderung Neuberechnung (@tarlog/core);
+ * /api/time-entries/[id], einzelner Zeiteintrag (doc 03 §7, doc 04 §6).
+ *   GET, Eintrag lesen (Account-scoped).
+ *   PATCH, Felder ändern; bei Zeit-/Pausenänderung Neuberechnung (@tarlog/core);
  *            optimistische Sperre via expected_sync_version (Konfliktfall 6/7,
  *            Edit-auf-gelöscht = Konfliktfall 9 → 409 mit lokaler+Server-Version).
- *   DELETE — Soft-Delete (deleted_at), idempotent.
+ *   DELETE, Soft-Delete (deleted_at), idempotent.
  */
 import { pool } from "@/lib/db";
 import { requireAuth, json, apiError, parseJson } from "@/lib/api";

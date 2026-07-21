@@ -1,5 +1,5 @@
 /**
- * /setup — Erststart-Wizard (doc 05 §9.3, doc 02 §4). Legt GENAU EINEN
+ * /setup, Erststart-Wizard (doc 05 §9.3, doc 02 §4). Legt GENAU EINEN
  * main_account an. Ist das Setup bereits abgeschlossen, existiert der Account
  * schon → weiter zum Login (der Wizard ist dann gesperrt).
  *

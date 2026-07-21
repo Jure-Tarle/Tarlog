@@ -1,6 +1,6 @@
 "use client";
 /**
- * DashboardLive — Dashboard-Elemente 1, 13, 14 (doc 11 §3): laufender Timer
+ * DashboardLive, Dashboard-Elemente 1, 13, 14 (doc 11 §3): laufender Timer
  * (Live-Puls, Ein-Klick Pause/Stopp) sowie Schnellstart aus zuletzt genutzten
  * Projekten. Stopp öffnet den vollständigen Stopp-Dialog auf /timer; hier nur
  * die schnellen Aktionen.
@@ -82,7 +82,7 @@ export function DashboardLive({
     >
       <div>
         <div style={{ fontSize: 12, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-          {active ? `${timer?.projectName ?? "Ohne Projekt"}${timer?.taskName ? " · " + timer.taskName : ""}` : "Kein Timer aktiv"}
+          {active ? `${timer?.projectName ?? "Ohne Projekt"}${timer?.taskName ? " | " + timer.taskName : ""}` : "Kein Timer aktiv"}
         </div>
         <div style={{ marginTop: 8 }}>
           <TimerTicker timer={timer} size={32} />

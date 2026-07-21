@@ -1,5 +1,5 @@
 /**
- * /projects — Projektliste + Anlage (doc 11 §2 Nr. 7). Zeigt Abrechnungsart,
+ * /projects, Projektliste + Anlage (doc 11 §2 Nr. 7). Zeigt Abrechnungsart,
  * Satz, Kunde und Stopp-Konfiguration (Beschreibungspflicht).
  */
 import { PageHeader, LoadError, Table, Th, Td, EmptyState, Badge } from "@/lib/ui/ui";
@@ -19,10 +19,10 @@ const BILLING_LABEL: Record<string, string> = {
 };
 
 function rate(p: { billing_type: string; hourly_rate_cents: number | null; day_rate_cents: number | null; fixed_fee_cents: number | null }, cur: string): string {
-  if (p.billing_type === "day_rate") return p.day_rate_cents != null ? formatMoney(p.day_rate_cents, cur) + " / Tag" : "—";
-  if (p.billing_type === "fixed_fee") return p.fixed_fee_cents != null ? formatMoney(p.fixed_fee_cents, cur) : "—";
-  if (p.billing_type === "non_billable") return "—";
-  return p.hourly_rate_cents != null ? formatMoney(p.hourly_rate_cents, cur) + " / h" : "—";
+  if (p.billing_type === "day_rate") return p.day_rate_cents != null ? formatMoney(p.day_rate_cents, cur) + " / Tag" : ",";
+  if (p.billing_type === "fixed_fee") return p.fixed_fee_cents != null ? formatMoney(p.fixed_fee_cents, cur) : ",";
+  if (p.billing_type === "non_billable") return ",";
+  return p.hourly_rate_cents != null ? formatMoney(p.hourly_rate_cents, cur) + " / h" : ",";
 }
 
 export default async function ProjectsPage(): Promise<React.ReactElement> {

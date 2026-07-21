@@ -1,6 +1,6 @@
 "use client";
 /**
- * LoginForm — Passwort-Login (Client). POSTet an /api/auth/login; bei Erfolg
+ * LoginForm, Passwort-Login (Client). POSTet an /api/auth/login; bei Erfolg
  * harte Navigation zum `next`-Ziel (nur seiteninterne Pfade zugelassen) bzw.
  * /dashboard. E-Mail nur nötig, falls mehrere Konten existieren (i. d. R. nicht).
  */

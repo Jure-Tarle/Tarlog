@@ -1,6 +1,6 @@
 "use client";
 /**
- * lib/ui/RealtimeRefresher.tsx — verbindet den Live-Kanal mit dem Server-Render.
+ * lib/ui/RealtimeRefresher.tsx, verbindet den Live-Kanal mit dem Server-Render.
  *
  * In eine Server-Seite eingehängt, ruft er bei relevanten Live-Events
  * `router.refresh()` auf, sodass serverseitig gelesene Listen/Kacheln aktuell

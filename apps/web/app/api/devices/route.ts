@@ -1,5 +1,5 @@
 /**
- * GET /api/devices — verbundene Geräte des eigenen main_account listen
+ * GET /api/devices, verbundene Geräte des eigenen main_account listen
  * (doc 05 §5 Nr. 9 Geräteübersicht). Nur nicht-sensible Felder; keine Tokens.
  * Main-Account-Scoping erzwungen (doc 05 §5.1).
  */

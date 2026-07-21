@@ -8,6 +8,20 @@
       "when": 1783667226633,
       "tag": "0000_regular_black_widow",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1784217600000,
+      "tag": "0001_normalized_customer_identity",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784368800000,
+      "tag": "0002_rounding_rule_priority",
+      "breakpoints": true
     }
   ]
 }

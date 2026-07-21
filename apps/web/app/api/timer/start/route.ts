@@ -1,5 +1,5 @@
 /**
- * POST /api/timer/start — Timer starten (doc 04 §3, §4). Single-Timer: läuft
+ * POST /api/timer/start, Timer starten (doc 04 §3, §4). Single-Timer: läuft
  * bereits einer (running|paused), antwortet 409 conflict mit der Server-Version
  * (Konfliktfall 1) + conflict_records-Eintrag.
  */

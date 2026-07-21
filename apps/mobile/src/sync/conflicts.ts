@@ -1,11 +1,11 @@
 /**
- * conflicts.ts — the local conflict list (doc 04 §6, §6.1 grundsatz 7).
+ * conflicts.ts, the local conflict list (doc 04 §6, §6.1 grundsatz 7).
  *
  * When the server returns a 409 the diverging change must be SURFACED, never
  * silently dropped. This is an observable in-memory registry the Sync screen
  * subscribes to; each entry is later resolved by the user via the conflict
  * dialog. Resolution itself (choose local / server / merge) is a data-layer +
- * UI concern — this store only holds and exposes the pending conflicts.
+ * UI concern, this store only holds and exposes the pending conflicts.
  *
  * NOTE (open point): entries are in-memory for the session. A durable
  * `conflict_records` table (as on the server) is the follow-up so conflicts

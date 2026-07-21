@@ -1,11 +1,11 @@
 /**
- * lib/invoice/repo.ts — DB-Zugriff des Rechnungsmoduls (doc 10 §5).
+ * lib/invoice/repo.ts, DB-Zugriff des Rechnungsmoduls (doc 10 §5).
  *
  * Bündelt Lesen (Aussteller/Kunde/Projekt/abrechenbare Einträge, Rechnung mit
  * Posten) und die transaktionalen Schreibpfade (Entwurf anlegen, finalisieren,
  * stornieren) hinter einer schmalen API, damit die Route-Handler dünn bleiben.
  * Nutzt den `pg.Pool` aus @/lib/db direkt (parametrisiertes SQL). Wichtig:
- * node-postgres liefert BIGINT als String — epoch-ms/`*_cents` werden beim Lesen
+ * node-postgres liefert BIGINT als String, epoch-ms/`*_cents` werden beim Lesen
  * defensiv per Number() koerciert (doc 05 §8).
  */
 import type { PoolClient } from "pg";
@@ -105,15 +105,6 @@ export async function loadCustomer(
   };
 }
 
-/** Kunden-Standard-Stundensatz (Fallback für Satz-Auflösung). */
-export async function customerDefaultRate(mainAccountId: string, customerId: string): Promise<number | null> {
-  const res = await pool.query(
-    `SELECT default_hourly_rate_cents FROM customers WHERE id = $1 AND main_account_id = $2 LIMIT 1`,
-    [customerId, mainAccountId],
-  );
-  return numOrNull(res.rows[0]?.default_hourly_rate_cents);
-}
-
 /** Projekt-Kerndaten (scoped) für den Projekt-Snapshot. */
 export async function loadProject(
   mainAccountId: string,
@@ -141,7 +132,7 @@ export interface EntrySelector {
 
 /**
  * Lädt abrechenbare, noch nicht fakturierte, abgeschlossene Einträge
- * (doc 10 §5.1 Fn 1). `label` = "Projekt · Aufgabe". Einträge ohne
+ * (doc 10 §5.1 Fn 1). `label` = "Projekt | Aufgabe". Einträge ohne
  * `rate_snapshot` fallen im Aufrufer auf den Kunden-Standardsatz zurück.
  */
 export async function loadBillableEntries(
@@ -196,7 +187,7 @@ export async function loadBillableEntries(
   );
 
   return res.rows.map((r): BillableEntry => {
-    const label = `${r.project_name ?? "Ohne Projekt"}${r.task_name ? ` · ${r.task_name}` : ""}`;
+    const label = `${r.project_name ?? "Ohne Projekt"}${r.task_name ? ` | ${r.task_name}` : ""}`;
     const snap = r.rate_snapshot as { amount_cents?: unknown; currency?: unknown; source?: string } | null;
     return {
       id: r.id,

@@ -1,22 +1,22 @@
 /**
- * lib/pdf/timesheet.ts — reine pdfmake-Dokumentdefinition für den
+ * lib/pdf/timesheet.ts, reine pdfmake-Dokumentdefinition für den
  * Arbeitszeitnachweis (doc 10 §6.2 alle 38 Inhalte, §6.3 die 7 Varianten).
  *
  * Reine Funktion: nimmt fertig aufbereitete Zeilen/Summen und liefert eine
- * TDocumentDefinition — keine DB, kein pdfmake-Aufruf hier (testbar ohne
+ * TDocumentDefinition, keine DB, kein pdfmake-Aufruf hier (testbar ohne
  * Server). Die tatsächliche Arbeitszeit (Nettozeit, Inhalt 14) und die
  * gerundete Abrechnungszeit (Inhalt 15/24) werden bewusst getrennt geführt
  * (doc 07, doc 10 §6.2 Schlussabsatz).
  */
 import type { Column, Content, TDocumentDefinitions } from "pdfmake/interfaces";
 
-/** Eine Eintragszeile der Nachweis-Tabelle (Inhalte 18–35). */
+/** Eine Eintragszeile der Nachweis-Tabelle (Inhalte 18,35). */
 export interface TimesheetRow {
   /** (19) lokales Datum "yyyy-MM-dd". */
   date: string;
   /** (20) Startzeit lokal "HH:mm". */
   start: string;
-  /** (21) Endzeit lokal "HH:mm" (oder "—" wenn laufend). */
+  /** (21) Endzeit lokal "HH:mm" (oder "," wenn laufend). */
   end: string;
   /** (22) Pausen "HH:MM". */
   breakHm: string;
@@ -48,7 +48,7 @@ export interface TimesheetRow {
   compliance: string[];
 }
 
-/** Summenblock (Inhalte 12–17). */
+/** Summenblock (Inhalte 12,17). */
 export interface TimesheetTotals {
   /** (12) tatsächliche Gesamtarbeitszeit "HH:MM" (brutto). */
   actualHm: string;
@@ -152,7 +152,7 @@ export function buildTimesheetDocDefinition(data: TimesheetData): TDocumentDefin
     headerColumns.push({ width: 90, image: data.logoDataUrl, fit: [90, 40], alignment: "right" });
   }
 
-  // Meta-Block (Inhalte 5–11).
+  // Meta-Block (Inhalte 5,11).
   const meta: Content[] = [
     ...(data.customer ? [metaRow("Kunde", data.customer)] : []),
     ...(data.project ? [metaRow("Projekt", data.project)] : []),
@@ -163,7 +163,7 @@ export function buildTimesheetDocDefinition(data: TimesheetData): TDocumentDefin
     metaRow("Filter", data.filterSummary),
   ];
 
-  // Summenblock (Inhalte 12–17).
+  // Summenblock (Inhalte 12,17).
   const totalsRow: Content[] = [
     totalCell("Tatsächlich (brutto)", data.totals.actualHm),
     totalCell("Pausen", data.totals.breakHm),
@@ -175,7 +175,7 @@ export function buildTimesheetDocDefinition(data: TimesheetData): TDocumentDefin
     totalsRow.push(totalCell("Betrag", data.totals.amount));
   }
 
-  // Tabellen-Kopf (Inhalte 19–35, variantenabhängig).
+  // Tabellen-Kopf (Inhalte 19,35, variantenabhängig).
   const head: Content[] = [
     { text: "Datum", style: "th" },
     { text: "Start", style: "th" },
@@ -199,7 +199,7 @@ export function buildTimesheetDocDefinition(data: TimesheetData): TDocumentDefin
   for (const r of data.rows) {
     // Projekt/Aufgabe + optionale interne Notiz + Nachtrag-Markierung.
     const projTaskStack: Content[] = [
-      { text: r.project || "—", fontSize: 7 },
+      { text: r.project || ",", fontSize: 7 },
       { text: r.task || "", fontSize: 6, color: MUTED },
     ];
     if (r.backdated) {
@@ -214,12 +214,12 @@ export function buildTimesheetDocDefinition(data: TimesheetData): TDocumentDefin
       projTaskStack.push({ text: r.tags.join(", "), fontSize: 6, color: ACCENT });
     }
 
-    const descStack: Content[] = [{ text: r.description || "—", fontSize: 7 }];
+    const descStack: Content[] = [{ text: r.description || ",", fontSize: 7 }];
     if (showNotes && r.internalNote) {
       descStack.push({ text: `Intern: ${r.internalNote}`, fontSize: 6, color: MUTED, italics: true });
     }
     if (showCompliance && r.compliance.length > 0) {
-      descStack.push({ text: r.compliance.join(" · "), fontSize: 6, color: "#b91c1c" });
+      descStack.push({ text: r.compliance.join(" | "), fontSize: 6, color: "#b91c1c" });
     }
 
     const row: Content[] = [
@@ -234,8 +234,8 @@ export function buildTimesheetDocDefinition(data: TimesheetData): TDocumentDefin
       { text: r.billable ? "ja" : "nein", style: "td" },
     ];
     if (showAmounts) {
-      row.push({ text: r.rate ?? "—", style: "td" });
-      row.push({ text: r.amount ?? "—", style: "td" });
+      row.push({ text: r.rate ?? ",", style: "td" });
+      row.push({ text: r.amount ?? ",", style: "td" });
     }
     body.push(row);
   }

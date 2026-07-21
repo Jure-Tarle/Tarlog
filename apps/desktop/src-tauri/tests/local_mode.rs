@@ -8,7 +8,7 @@
 //! Ein einziger Test-Body, weil `PTL_DB_PATH` prozessglobal ist und die
 //! Kommandos den DB-Singleton teilen.
 
-use ptl_desktop_lib::{commands, db};
+use tarlog_desktop_lib::{commands, db};
 use serde_json::json;
 
 fn i(v: &serde_json::Value, k: &str) -> i64 {
@@ -21,14 +21,41 @@ fn s(v: &serde_json::Value, k: &str) -> String {
 #[test]
 fn local_mode_end_to_end() {
     // --- Wegwerf-Datenbank -------------------------------------------------
-    let path = std::env::temp_dir().join(format!("ptl-test-{}.db", std::process::id()));
-    let _ = std::fs::remove_file(&path);
+    let test_root = std::env::temp_dir().join(format!("ptl-test-{}", db::new_uuid()));
+    std::fs::create_dir_all(&test_root).expect("create test root");
+    let path = test_root.join("ptl.db");
     std::env::set_var("PTL_DB_PATH", &path);
 
     // --- 1. Migration ------------------------------------------------------
     let init = commands::db_init().expect("db_init");
     assert_eq!(init.get("ok").and_then(|v| v.as_bool()), Some(true));
     assert_eq!(i(&init, "version"), db::SCHEMA_VERSION);
+    let conn = db::open().expect("open migrated database");
+    let no_rounding_count: i64 = conn
+        .query_row(
+            "SELECT COUNT(*) FROM rounding_rules WHERE mode = 'none' AND name = 'Standard, keine Rundung'",
+            [],
+            |row| row.get(0),
+        )
+        .expect("count no-rounding standard");
+    assert_eq!(no_rounding_count, 1, "Standard ohne Rundung muss vorhanden sein");
+    let global_rule_count: i64 = conn
+        .query_row(
+            "SELECT COUNT(*) FROM rounding_rules WHERE scope = 'global' AND deleted_at IS NULL",
+            [],
+            |row| row.get(0),
+        )
+        .expect("count global rounding base");
+    assert_eq!(global_rule_count, 1, "Es darf genau eine globale Basisregel geben");
+    let global_priority: i64 = conn
+        .query_row(
+            "SELECT priority FROM rounding_rules WHERE scope = 'global' AND deleted_at IS NULL LIMIT 1",
+            [],
+            |row| row.get(0),
+        )
+        .expect("read global rounding priority");
+    assert_eq!(global_priority, 0, "Die globale Basis muss unter Ausnahmen liegen");
+    drop(conn);
 
     // Zweiter Lauf ist idempotent (keine weitere Migration).
     let again = commands::db_migrate().expect("db_migrate");
@@ -45,7 +72,10 @@ fn local_mode_end_to_end() {
     let customer_id = s(&cust, "id");
     assert!(!customer_id.is_empty());
     assert_eq!(
-        commands::list_customers(None).expect("list_customers").as_array().map(|a| a.len()),
+        commands::list_customers(None)
+            .expect("list_customers")
+            .as_array()
+            .map(|a| a.len()),
         Some(1)
     );
 
@@ -60,9 +90,22 @@ fn local_mode_end_to_end() {
     let project_id = s(&proj, "id");
     assert!(!project_id.is_empty());
     assert_eq!(
-        commands::list_projects(None, None).expect("list_projects").as_array().map(|a| a.len()),
+        commands::list_projects(None, None)
+            .expect("list_projects")
+            .as_array()
+            .map(|a| a.len()),
         Some(1)
     );
+    let document = commands::project_document_import(
+        "project".into(),
+        project_id.clone(),
+        "pflichtenheft".into(),
+        "Pflichtenheft.pdf".into(),
+        "application/pdf".into(),
+        b"%PDF-1.4 test".to_vec(),
+    )
+    .expect("import project document");
+    let document_id = s(&document, "id");
 
     // --- 3. Timer-Zustandsmaschine ----------------------------------------
     let idle = commands::timer_get_state().expect("timer_get_state");
@@ -93,14 +136,19 @@ fn local_mode_end_to_end() {
     assert_eq!(i(&resumed, "accumulated_pause_seconds"), 60);
 
     // Stopp genau bei `now` → brutto 4200 s, Pause 60 s, netto 4140 s.
-    let stopped = commands::timer_stop(Some("Konzeptarbeit".into()), Some(now)).expect("timer_stop");
+    let stopped =
+        commands::timer_stop(Some("Konzeptarbeit".into()), Some(now)).expect("timer_stop");
     let timer = stopped.get("timer").expect("timer");
     let entry = stopped.get("entry").expect("entry");
     assert_eq!(s(timer, "status"), "idle", "Timer nach Stopp zurückgesetzt");
 
     assert_eq!(i(entry, "actual_duration_seconds"), 4200, "Ist-Zeit brutto");
     assert_eq!(i(entry, "break_duration_seconds"), 60);
-    assert_eq!(i(entry, "net_work_duration_seconds"), 4140, "netto = brutto - Pause");
+    assert_eq!(
+        i(entry, "net_work_duration_seconds"),
+        4140,
+        "netto = brutto - Pause"
+    );
     // Rundung passiert in der TS-Schicht (@tarlog/core); Rust persistiert netto.
     assert_eq!(i(entry, "billing_duration_seconds"), 4140);
     assert_eq!(s(entry, "source"), "live_timer");
@@ -123,7 +171,11 @@ fn local_mode_end_to_end() {
         "timezone": "Europe/Berlin",
         "description": "Vergessener Timer",
         "backdate_reason": "forgot_to_start",
-        "is_billable": true
+        "is_billable": true,
+        "breaks": [{
+            "started_at": bd_start + 1_800_000,
+            "ended_at": bd_start + 2_700_000
+        }]
     }))
     .expect("entry_backdate");
     assert_eq!(s(&backdated, "source"), "manual_backdated");
@@ -132,11 +184,43 @@ fn local_mode_end_to_end() {
         Some(true)
     );
     assert_eq!(i(&backdated, "actual_duration_seconds"), 3600);
+    assert_eq!(i(&backdated, "break_duration_seconds"), 900);
+    assert_eq!(i(&backdated, "net_work_duration_seconds"), 2700);
+
+    let backdated_id = s(&backdated, "id");
+    let corrected_end = bd_start + 5_400_000;
+    let corrected = commands::entry_backdate_update(json!({
+        "id": backdated_id,
+        "project_id": project_id,
+        "started_at": bd_start,
+        "ended_at": corrected_end,
+        "timezone": "Europe/Berlin",
+        "description": "Workshop dokumentiert",
+        "reason": "correction",
+        "is_billable": false,
+        "breaks": [{
+            "started_at": bd_start + 2_400_000,
+            "ended_at": bd_start + 3_000_000
+        }]
+    }))
+    .expect("entry_backdate_update");
+    assert_eq!(s(&corrected, "description"), "Workshop dokumentiert");
+    assert_eq!(i(&corrected, "actual_duration_seconds"), 5400);
+    assert_eq!(i(&corrected, "break_duration_seconds"), 600);
+    assert_eq!(i(&corrected, "net_work_duration_seconds"), 4800);
+    assert_eq!(
+        corrected.get("is_billable").and_then(|v| v.as_bool()),
+        Some(false)
+    );
 
     // --- 5. Abfrage --------------------------------------------------------
-    let list = commands::list_time_entries(None, None, None, None, None, None)
-        .expect("list_time_entries");
-    assert_eq!(list.as_array().map(|a| a.len()), Some(2), "Timer-Eintrag + Nachtrag");
+    let list =
+        commands::list_time_entries(None, None, None, None, None, None).expect("list_time_entries");
+    assert_eq!(
+        list.as_array().map(|a| a.len()),
+        Some(2),
+        "Timer-Eintrag + Nachtrag"
+    );
 
     // --- 6. Backup + Integritätsprüfung -----------------------------------
     let backup = commands::run_backup(Some(true), Some(false)).expect("run_backup");
@@ -147,6 +231,32 @@ fn local_mode_end_to_end() {
         std::path::Path::new(&backup_path).exists(),
         "Backup-Datei muss existieren"
     );
+    let attachment_path = s(&backup, "attachmentPath");
+    assert!(
+        std::path::Path::new(&attachment_path).is_dir(),
+        "Dokument-Begleitordner muss existieren"
+    );
+    assert_eq!(i(&backup, "attachmentFiles"), 1);
+    let backup_conn = rusqlite::Connection::open(&backup_path).expect("open backup db");
+    let portable_document_path: String = backup_conn
+        .query_row("SELECT storage_path FROM attachments LIMIT 1", [], |row| {
+            row.get(0)
+        })
+        .expect("read portable attachment path");
+    assert!(!std::path::Path::new(&portable_document_path).is_absolute());
+    assert!(
+        std::path::Path::new(&attachment_path)
+            .join(portable_document_path)
+            .is_file(),
+        "portable Metadaten müssen auf die gesicherte Dokumentdatei zeigen"
+    );
+    drop(backup_conn);
+    let deleted = commands::project_document_delete(document_id).expect("delete project document");
+    assert_eq!(
+        deleted.get("deleted").and_then(|value| value.as_bool()),
+        Some(true)
+    );
+    assert!(deleted.get("warning").is_some_and(|value| value.is_null()));
 
     // --- 7. Audit-Log ------------------------------------------------------
     let conn = db::open().expect("open");
@@ -179,6 +289,5 @@ fn local_mode_end_to_end() {
 
     // --- Aufräumen ---------------------------------------------------------
     drop(conn);
-    let _ = std::fs::remove_file(&path);
-    let _ = std::fs::remove_file(&backup_path);
+    let _ = std::fs::remove_dir_all(&test_root);
 }

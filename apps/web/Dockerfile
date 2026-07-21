@@ -1,17 +1,17 @@
 # syntax=docker/dockerfile:1.7
 #
-# Dockerfile — Tarlog Web (doc 05 §9.1 Server-Betrieb).
+# Dockerfile, Tarlog Web (doc 05 §9.1 Server-Betrieb).
 #
 # Multi-Stage:
-#   base    — Node 22 (musl/alpine) + pnpm via corepack.
-#   build   — pnpm fetch (Lockfile-Cache) → offline install → Workspace-Packages
+#   base, Node 22 (musl/alpine) + pnpm via corepack.
+#   build, pnpm fetch (Lockfile-Cache) → offline install → Workspace-Packages
 #             bauen → Migrationen generieren → Next-App als `output: 'standalone'`
 #             bauen → schlankes Laufzeit-Verzeichnis /out zusammenstellen.
-#   runtime — node:22-alpine, non-root (`node`), nur das Runtime-Bundle.
+#   runtime, node:22-alpine, non-root (`node`), nur das Runtime-Bundle.
 #
 # Build-Kontext ist das Monorepo-Root (siehe docker-compose.yml `context: .`).
 # Empfehlung: ein `.dockerignore` im Root anlegen (node_modules, .next, .git,
-# .env*) — der Build funktioniert auch ohne, kopierte host-node_modules/.next
+# .env*), der Build funktioniert auch ohne, kopierte host-node_modules/.next
 # werden vor dem Install entfernt.
 
 ########################  base  ########################
@@ -28,7 +28,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 # 1) pnpm fetch: braucht NUR das Lockfile → dieser Layer cached, solange sich
 #    pnpm-lock.yaml nicht ändert. Lädt alle (auch plattformspezifischen)
-#    Pakete in den Store — inkl. der linux-musl-Variante von @node-rs/argon2.
+#    Pakete in den Store, inkl. der linux-musl-Variante von @node-rs/argon2.
 COPY pnpm-lock.yaml ./
 RUN pnpm fetch
 
@@ -40,7 +40,7 @@ COPY apps ./apps
 RUN rm -rf apps/*/node_modules packages/*/node_modules apps/web/.next node_modules
 
 # 3) Offline-Install aus dem gefetchten Store (inkl. devDeps: next, typescript,
-#    drizzle-kit) — kein Netzwerk nötig, reproduzierbar via --frozen-lockfile.
+#    drizzle-kit), kein Netzwerk nötig, reproduzierbar via --frozen-lockfile.
 RUN pnpm install --frozen-lockfile --offline
 
 # 4) Shared-Packages bauen (core/db dist). Die Migrationen werden NICHT im Image

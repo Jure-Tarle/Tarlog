@@ -1,5 +1,5 @@
 /**
- * /api/tags/[id] — Detail, Ändern, Soft-Delete (doc 06 §A.2 `tags`).
+ * /api/tags/[id], Detail, Ändern, Soft-Delete (doc 06 §A.2 `tags`).
  * Namensänderung kann UNIQUE verletzen ⇒ 409. Audit-Pflicht: nein.
  */
 import { and, eq, isNull } from "drizzle-orm";

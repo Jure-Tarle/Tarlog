@@ -111,13 +111,13 @@ Der Katalog wird beim Anlegen des Main Accounts als Vorlage angeboten; jede Aufg
 
 ---
 
-## 4. Abrechnungsmodelle (SPEC §13.1–13.4)
+## 4. Abrechnungsmodelle (SPEC §13.1,13.4)
 
-Alle Berechnungen liegen als pure functions im Core-Package (siehe [Zeitberechnung & Rundung](07-zeitberechnung-rundung.md)) und arbeiten deterministisch mit `calculation_version`. Grundsatz: die abrechenbare Zeit wird aus der gerundeten `billing_duration_seconds` berechnet, nie aus `actual_duration_seconds` — die tatsächliche Arbeitszeit bleibt unverändert erhalten.
+Alle Berechnungen liegen als pure functions im Core-Package (siehe [Zeitberechnung & Rundung](07-zeitberechnung-rundung.md)) und arbeiten deterministisch mit `calculation_version`. Grundsatz: die abrechenbare Zeit wird aus der gerundeten `billing_duration_seconds` berechnet, nie aus `actual_duration_seconds`, die tatsächliche Arbeitszeit bleibt unverändert erhalten.
 
 ### 4.0 Raten-Auflösungsreihenfolge (verbindlich)
 
-Der zur Anwendung kommende Stunden- bzw. Tagessatz wird deterministisch in dieser Reihenfolge aufgelöst — der erste nicht-leere, für das `effective_date` gültige Wert gewinnt:
+Der zur Anwendung kommende Stunden- bzw. Tagessatz wird deterministisch in dieser Reihenfolge aufgelöst, der erste nicht-leere, für das `effective_date` gültige Wert gewinnt:
 
 ```
 Aufgabe > Projekt > Kunde > Default (Main-Account-Setting)
@@ -207,7 +207,7 @@ Jeder Posten trägt Menge, Einzelpreis (`unit_price_cents`), Steuersatz, Netto-,
 
 ### 5.3 §14-UStG-Pflichtangaben
 
-Pflichtangaben nach §14 Abs. 4 UStG — je Feld die Datenquelle:
+Pflichtangaben nach §14 Abs. 4 UStG, je Feld die Datenquelle:
 
 | # | Pflichtangabe (§14 Abs. 4) | Rechnungsfeld / Quelle |
 |---|----------------------------|------------------------|
@@ -232,14 +232,14 @@ Ist `reverse_charge_hint` am Kunden gesetzt (typisch B2B ins EU-Ausland mit gül
 
 ### 5.6 Nummernkreis, Finalisierung, Immutability, Storno
 
-- **Nummernkreis**: `invoice_number_sequences` je konfiguriertem Kreis (z. B. pro Jahr `RE-2026-####`). Die fortlaufende, lückenlose Nummer wird atomar erst im Moment der Finalisierung vergeben — Entwürfe (`draft`) haben keine finale Nummer. Damit bleibt die Nummernfolge lückenlos auch bei verworfenen Entwürfen.
+- **Nummernkreis**: `invoice_number_sequences` je konfiguriertem Kreis (z. B. pro Jahr `RE-2026-####`). Die fortlaufende, lückenlose Nummer wird atomar erst im Moment der Finalisierung vergeben, Entwürfe (`draft`) haben keine finale Nummer. Damit bleibt die Nummernfolge lückenlos auch bei verworfenen Entwürfen.
 - **Finalisierung**: Übergang `draft → finalized` friert Nummer, alle Snapshots (Kunde, Projekt, Stundensatz, Rundungsregel), Beträge und Steuer ein. Audit-Events `Rechnung erstellt` und `Rechnung finalisiert`.
 - **Immutability / Sperre**: nach `finalized` ist die Rechnung schreibgeschützt (DB-Trigger/Constraint gegen UPDATE der Kernfelder + App-Guard). Kein In-Place-Edit.
 - **Storno**: eine finalisierte Rechnung wird nie gelöscht; Korrektur erfolgt über eine Storno-Rechnung (`invoice_type = cancellation`, `cancels_invoice_id`) mit negiertem Betrag oder über eine neue Version. Audit-Event `Rechnung storniert`. So bleibt die Historie revisionsfähig.
 
 ### 5.7 E-Rechnung (V2-Vorbereitung)
 
-Seit 2025 ist der Empfang strukturierter B2B-Rechnungen (EN 16931) Pflicht; Kleinbeträge und Kleinunternehmer sind ausgenommen. V1 liefert PDF und bereitet den Export als **XRechnung** und **ZUGFeRD ≥2.0.1** (ohne MINIMUM/BASIC-WL-Profile) für V2 vor — das Datenmodell hält bereits alle EN-16931-Pflichtfelder (siehe §14-Tabelle). Diese bewusste Entscheidung (E-Rechnung erst V2) ist im [README](README.md) gekennzeichnet.
+Seit 2025 ist der Empfang strukturierter B2B-Rechnungen (EN 16931) Pflicht; Kleinbeträge und Kleinunternehmer sind ausgenommen. V1 liefert PDF und bereitet den Export als **XRechnung** und **ZUGFeRD ≥2.0.1** (ohne MINIMUM/BASIC-WL-Profile) für V2 vor, das Datenmodell hält bereits alle EN-16931-Pflichtfelder (siehe §14-Tabelle). Diese bewusste Entscheidung (E-Rechnung erst V2) ist im [README](README.md) gekennzeichnet.
 
 ---
 
@@ -257,7 +257,7 @@ Seit 2025 ist der Empfang strukturierter B2B-Rechnungen (EN 16931) Pflicht; Klei
 
 Jeder Export erzeugt einen Eintrag in `exports`/`export_files` mit eindeutiger Exportnummer und Audit-Event `Export erstellt`.
 
-### 6.2 Arbeitszeit-PDF — alle 38 Inhalte
+### 6.2 Arbeitszeit-PDF, alle 38 Inhalte
 
 Kopf/Metadaten: (1) Titel, (2) Logo, (3) Name des Nutzers, (4) Unternehmen optional, (5) Kunde, (6) Projekt, (7) Zeitraum, (8) Erstellungsdatum, (9) eindeutige Exportnummer, (10) Zeitzone, (11) Filterkriterien.
 
@@ -267,7 +267,7 @@ Einträge-Tabelle: (18) Tabelle aller Einträge mit Spalten (19) Datum, (20) Sta
 
 Fuß: (36) Seitenzahlen, (37) Prüfsumme optional, (38) Unterschriftsfeld optional.
 
-Der Nachweis führt tatsächliche Arbeitszeit (Nettozeit, Punkt 14) und gerundete Abrechnungszeit (Punkt 15/24) getrennt aus — Details siehe [Zeitberechnung & Rundung](07-zeitberechnung-rundung.md).
+Der Nachweis führt tatsächliche Arbeitszeit (Nettozeit, Punkt 14) und gerundete Abrechnungszeit (Punkt 15/24) getrennt aus, Details siehe [Zeitberechnung & Rundung](07-zeitberechnung-rundung.md).
 
 ### 6.3 PDF-Varianten (7)
 
@@ -276,14 +276,14 @@ Der Nachweis führt tatsächliche Arbeitszeit (Nettozeit, Punkt 14) und gerundet
 | 1 | Interner Arbeitszeitnachweis | sichtbar | ja | ja |
 | 2 | Kundenreport | ausgeblendet | konfigurierbar | nein |
 | 3 | Rechnungsanlage | ausgeblendet | ja (fakturiert) | nein |
-| 4 | Compliance Report | – | nein | ja (Verstöße/Overrides) |
+| 4 | Compliance Report |, | nein | ja (Verstöße/Overrides) |
 | 5 | Steuerberater-Export | ausgeblendet | ja + Kostenstelle | nein |
 | 6 | Detaillierter Tagesbericht | wählbar | ja | ja |
 | 7 | Zusammengefasster Monatsbericht | ausgeblendet | Summen | Zusammenfassung |
 
 ### 6.4 PDF-Pipeline
 
-**Hybrid** gemäß festgelegter Entscheidung: `pdfmake` (JSON-deklarativ) ist der portable Kern und läuft lokal in Tauri ohne Chromium sowie serverseitig — geeignet für strukturierte Nachweise und Rechnungen. `Playwright/Chromium` ist optional serverseitig für pixelgenaue HTML-Templates und Charts. So funktioniert der reine Desktop-Modus offline ohne Chromium, während der Server bei Bedarf hochwertigere Layouts rendert. Details der Stack-Entscheidung in [Architektur](05-architektur.md).
+**Hybrid** gemäß festgelegter Entscheidung: `pdfmake` (JSON-deklarativ) ist der portable Kern und läuft lokal in Tauri ohne Chromium sowie serverseitig, geeignet für strukturierte Nachweise und Rechnungen. `Playwright/Chromium` ist optional serverseitig für pixelgenaue HTML-Templates und Charts. So funktioniert der reine Desktop-Modus offline ohne Chromium, während der Server bei Bedarf hochwertigere Layouts rendert. Details der Stack-Entscheidung in [Architektur](05-architektur.md).
 
 ---
 

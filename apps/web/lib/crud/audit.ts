@@ -1,9 +1,9 @@
 /**
- * lib/crud/audit.ts — Gemeinsamer Audit-Helper für alle CRUD-Stammdaten-Routen
+ * lib/crud/audit.ts, Gemeinsamer Audit-Helper für alle CRUD-Stammdaten-Routen
  * (doc 06 §A.6 `audit_logs`, doc 10 §4.0 "Audit-Eintrag `Stundensatz geändert`").
  *
  * `audit_logs` ist append-only und revisionssicher (doc 06 §A.6). Die `action`
- * ist ein hartes Enum aus 25 Werten — für Stammdaten sind nur die relevanten
+ * ist ein hartes Enum aus 25 Werten, für Stammdaten sind nur die relevanten
  * `rate_changed` (Satz-/Steuer-Änderung an Kunde/Projekt/`billing_rates`) und
  * `rounding_rule_changed` (`rounding_rules`, Projekt-Rundungsregel) zutreffend
  * (doc 06 customers/projects Meta: "Audit-Pflicht: ja (Stundensatz/Steuer- bzw.
@@ -17,7 +17,7 @@
  *     before_json, after_json, reason, source: "api",
  *   });
  *
- * `db` darf die reguläre `Db`-Instanz ODER eine offene Transaktion sein — beide
+ * `db` darf die reguläre `Db`-Instanz ODER eine offene Transaktion sein, beide
  * erfüllen `Pick<Db, "insert">`, sodass der Audit-Insert atomar mit der Mutation
  * committet werden kann.
  */

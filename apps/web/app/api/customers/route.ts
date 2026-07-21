@@ -1,11 +1,11 @@
 /**
- * /api/customers — Liste + Anlegen (doc 06 §A.2 `customers`, doc 10 §1).
+ * /api/customers, Liste + Anlegen (doc 06 §A.2 `customers`, doc 10 §1).
  *
  * GET  : paginierte, `main_account`-gescopte Liste; Filter `status`, `q`
  *        (Name/Firma), `include_deleted`. Standard: nur `deleted_at IS NULL`.
  * POST : legt einen Kunden an (Server vergibt `id`; `main_account_id` aus Auth).
  *        Kein Audit bei Anlage (doc 06: Audit-Pflicht nur bei Satz-/Steuer-
- *        ÄNDERUNG — siehe PATCH in [id]/route.ts).
+ *        ÄNDERUNG, siehe PATCH in [id]/route.ts).
  */
 import { and, eq, ilike, isNull, or, type SQL } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";

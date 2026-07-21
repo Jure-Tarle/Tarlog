@@ -1,4 +1,4 @@
-# docker-compose.yml — Tarlog, selbst gehosteter Server-Modus.
+# docker-compose.yml, Tarlog, selbst gehosteter Server-Modus.
 # doc 05 §9.1 (Docker Compose), §9.2 (Env), §9.4 (Health-Check).
 #
 # Ein Kommando startet den vollständigen Stack:
@@ -6,7 +6,7 @@
 #   docker compose up -d --build
 #
 # Dienste: web (Next.js standalone + WS), postgres:17 (persistent), redis
-# (optional, für Hintergrundjobs — auskommentiert). Zeiten sind epoch-ms UTC,
+# (optional, für Hintergrundjobs, auskommentiert). Zeiten sind epoch-ms UTC,
 # Geld Integer-Cents; keine Secrets in Logs (doc 09).
 
 name: project-time-ledger
@@ -46,7 +46,7 @@ services:
       # Container-interner Host `postgres` (Compose-DNS). doc 05 §9.2.
       DATABASE_URL: ${DATABASE_URL:-postgres://${POSTGRES_USER:-ptl}:${POSTGRES_PASSWORD:-ptl}@postgres:5432/${POSTGRES_DB:-ptl}}
       # Pflicht: langer Zufallswert. Ohne Wert schlägt `up` bewusst fehl.
-      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET erforderlich — in .env setzen}
+      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET erforderlich, in .env setzen}
       PORT: ${PORT:-3000}
       HOST: 0.0.0.0
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}

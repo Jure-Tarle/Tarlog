@@ -1,5 +1,5 @@
 /**
- * Rounding module (doc 07 §3). Integer-second arithmetic only — no floats in
+ * Rounding module (doc 07 §3). Integer-second arithmetic only, no floats in
  * the rounding decision. Produces billing_duration_seconds,
  * rounding_delta_seconds, rounding_reason.
  *
@@ -35,7 +35,7 @@ function reasonInterval(mode: RoundingMode, interval: IntervalSeconds): string {
 
 /**
  * Core integer-second rounding math for interval-based modes (doc 07 §3.4).
- * Uses only integer division/modulo — no float rounding drift.
+ * Uses only integer division/modulo, no float rounding drift.
  */
 function roundToInterval(net: Seconds, mode: RoundingMode, interval: IntervalSeconds): Seconds {
   const full = Math.trunc(net / interval); // whole intervals fully contained
@@ -47,13 +47,13 @@ function roundToInterval(net: Seconds, mode: RoundingMode, interval: IntervalSec
       return full * interval; // floor
     case "always_up":
     case "ceil_started_interval":
-      return (full + 1) * interval; // ceil — every started interval counts full
+      return (full + 1) * interval; // ceil, every started interval counts full
     case "commercial":
     case "nearest_interval":
       // round half up: bump when leftover ≥ half the interval (integer compare)
       return rest * 2 >= interval ? (full + 1) * interval : full * interval;
     default:
-      // unreachable — INTERVAL_MODES guards the caller
+      // unreachable, INTERVAL_MODES guards the caller
       return full * interval;
   }
 }
@@ -115,7 +115,7 @@ export function applyRounding(net_seconds: Seconds, rule: RoundingRule): Roundin
       return result(net, net, "min_per_project:deferred:project");
 
     default: {
-      // Exhaustiveness guard — a new RoundingMode must be handled here.
+      // Exhaustiveness guard, a new RoundingMode must be handled here.
       const exhaustive: never = rule.mode;
       throw new Error(`Unbekannter Rundungsmodus: ${String(exhaustive)}`);
     }
@@ -124,7 +124,7 @@ export function applyRounding(net_seconds: Seconds, rule: RoundingRule): Roundin
 
 /**
  * Non-persisting preview of rounding for the UI. Identical math and identical
- * reason to applyRounding — the preview must match what will be stored.
+ * reason to applyRounding, the preview must match what will be stored.
  */
 export function roundingPreview(net_seconds: Seconds, rule: RoundingRule): RoundingResult {
   return applyRounding(net_seconds, rule);

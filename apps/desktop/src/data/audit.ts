@@ -1,5 +1,5 @@
 /**
- * audit.ts — append-only local audit trail (doc 03 §Audit, doc 06 `audit_logs`).
+ * audit.ts, append-only local audit trail (doc 03 §Audit, doc 06 `audit_logs`).
  * Every mutating repository operation writes one row so timer/backdate/edit
  * actions are traceable. Direct SQL (local bookkeeping) via {@link ../lib/db}.
  */

@@ -1,5 +1,5 @@
 /**
- * lib/invoice/types.ts — gemeinsame Typen für den Rechnungsbau (doc 10 §5).
+ * lib/invoice/types.ts, gemeinsame Typen für den Rechnungsbau (doc 10 §5).
  *
  * Reine Datenformen; keine DB-Kopplung. Geld immer Integer-Cents, Zeiten
  * epoch-ms UTC + IANA-Zeitzone, Dauern ganze Sekunden (doc 05 §8, doc 10
@@ -7,7 +7,7 @@
  */
 import type { Cents, CurrencyCode, EpochMs, IanaTimezone, Seconds } from "@tarlog/core";
 
-/** Aussteller (Leistender) — §14 Abs. 4 Nr. 1/3 (doc 10 §5.3). */
+/** Aussteller (Leistender), §14 Abs. 4 Nr. 1/3 (doc 10 §5.3). */
 export interface IssuerProfile {
   display_name: string;
   company_name: string | null;
@@ -45,7 +45,7 @@ export interface InvoiceCustomer {
 /**
  * Ein abrechenbarer Zeiteintrag, reduziert auf die für den Rechnungsbau
  * relevanten Felder (doc 06 A.3). `label` ist die vom Aufrufer aufgelöste
- * Gruppen-/Postenbezeichnung (z. B. "Projekt · Aufgabe").
+ * Gruppen-/Postenbezeichnung (z. B. "Projekt | Aufgabe").
  */
 export interface BillableEntry {
   id: string;

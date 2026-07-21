@@ -1,8 +1,8 @@
 /**
  * Heute (doc 11 §7 nr. 11): today's entries with net time, breaks and the
- * day total. A quiet ledger list — one row per entry, tabular figures aligned
+ * day total. A quiet ledger list, one row per entry, tabular figures aligned
  * on the right, a summary card on top. Data via `entries.inRange` for the local
- * day window; sums are plain aggregation (no billing/rounding math here — that
+ * day window; sums are plain aggregation (no billing/rounding math here, that
  * stays in @tarlog/core when entries are created).
  */
 import { useMemo } from "react";
@@ -82,9 +82,9 @@ export default function TodayScreen() {
                 <Row
                   key={e.id}
                   primary={e.description ?? "(ohne Beschreibung)"}
-                  secondary={`${clock(e.actual_started_at, e.timezone)}–${
+                  secondary={`${clock(e.actual_started_at, e.timezone)},${
                     e.actual_ended_at != null ? clock(e.actual_ended_at, e.timezone) : "…"
-                  }${e.is_backdated ? " · nachgetragen" : ""}`}
+                  }${e.is_backdated ? " | nachgetragen" : ""}`}
                   figure={formatHms(e.net_work_duration_seconds)}
                   figureSub={e.is_billable ? "abrechenbar" : "intern"}
                 />

@@ -1,5 +1,5 @@
 /**
- * /attachments — Anhänge (doc 11 §2). Belege/Dateien, verknüpft mit Einträgen,
+ * /attachments, Anhänge (doc 11 §2). Belege/Dateien, verknüpft mit Einträgen,
  * Projekten oder Rechnungen. Read-only Übersicht.
  */
 import { PageHeader, LoadError, Table, Th, Td, EmptyState, Badge } from "@/lib/ui/ui";
@@ -40,7 +40,7 @@ export default async function AttachmentsPage(): Promise<React.ReactElement> {
             <tr key={a.id}>
               <Td><span style={{ fontWeight: 500 }}>{a.filename}</span></Td>
               <Td muted><Badge tone="muted">{a.mime_type}</Badge></Td>
-              <Td mono muted>{a.entity_type} · {a.entity_id.slice(0, 8)}…</Td>
+              <Td mono muted>{a.entity_type} | {a.entity_id.slice(0, 8)}…</Td>
               <Td align="right" mono muted>{humanSize(a.size_bytes)}</Td>
               <Td align="right" mono muted>{formatDateTime(a.created_at, account.timezone, account.locale)}</Td>
             </tr>

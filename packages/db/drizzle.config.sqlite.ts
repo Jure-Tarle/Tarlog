@@ -1,5 +1,5 @@
 /**
- * drizzle-kit Config — SQLite-Client-DB (doc 05 §2.1).
+ * drizzle-kit Config, SQLite-Client-DB (doc 05 §2.1).
  *
  * Verwendung:
  *   pnpm drizzle-kit generate --config=drizzle.config.sqlite.ts

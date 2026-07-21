@@ -1,6 +1,6 @@
 "use client";
 /**
- * InvoiceCreate — Rechnung erstellen (doc 10 Rechnungswesen). Wählt Kunde,
+ * InvoiceCreate, Rechnung erstellen (doc 10 Rechnungswesen). Wählt Kunde,
  * Rechnungstyp und Leistungszeitraum; die Positionen/Beträge berechnet der
  * Abrechnungs-Dienst aus offener abrechenbarer Zeit. POST /api/invoices.
  */

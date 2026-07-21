@@ -1,5 +1,5 @@
 /**
- * POST /api/devices/pairing — kurzlebigen Geräte-Pairing-Code erzeugen
+ * POST /api/devices/pairing, kurzlebigen Geräte-Pairing-Code erzeugen
  * (doc 05 §9.3 Schritt 3). Authentifiziert (Admin im Browser). Der Code wird
  * NUR jetzt im Klartext zurückgegeben; das neue Gerät löst ihn an
  * `POST /api/devices/connect` ein.

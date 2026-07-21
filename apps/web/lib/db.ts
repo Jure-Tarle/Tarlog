@@ -1,10 +1,10 @@
 /**
- * lib/db.ts — Server-DB-Zugang (doc 05 §2.1, §9.2).
+ * lib/db.ts, Server-DB-Zugang (doc 05 §2.1, §9.2).
  *
  * Server-Modus = PostgreSQL via drizzle-orm/node-postgres. Ein einziger
  * `pg.Pool` pro Prozess (aus `DATABASE_URL`), plus die getippte Drizzle-Instanz
  * über das aggregierte `pgSchema` aus @tarlog/db. Business-Logik gehört NICHT
- * hierher — nur Verbindung + Schema. Alle Tabellen werden als `schema.<table>`
+ * hierher, nur Verbindung + Schema. Alle Tabellen werden als `schema.<table>`
  * (exakte @tarlog/db-Namen) re-exportiert, damit Modul-Autoren konsistent
  * darauf zugreifen.
  *
@@ -30,7 +30,7 @@ function readDatabaseUrl(): string {
   const url = process.env.DATABASE_URL;
   if (!url) {
     throw new Error(
-      "DATABASE_URL ist nicht gesetzt — Server-Modus benötigt eine PostgreSQL-Verbindung (doc 05 §9.2).",
+      "DATABASE_URL ist nicht gesetzt, Server-Modus benötigt eine PostgreSQL-Verbindung (doc 05 §9.2).",
     );
   }
   return url;
@@ -56,7 +56,7 @@ export function createPool(config?: PoolConfig): Pool {
 
 /**
  * LAZY: Pool + Drizzle werden erst beim ERSTEN Zugriff erzeugt, nicht beim
- * Import. `next build` importiert alle Route-Module zur Metadaten-Sammlung —
+ * Import. `next build` importiert alle Route-Module zur Metadaten-Sammlung ,
  * eine eager Verbindung würde dort ohne `DATABASE_URL` werfen. Die Verbindung
  * (und damit die `DATABASE_URL`-Pflicht) entsteht erst zur Laufzeit beim ersten
  * Query. Contract bleibt exakt: `import { db, pool, schema } from "@/lib/db"`.
@@ -84,13 +84,13 @@ function lazyProxy<T extends object>(resolve: () => T): T {
   });
 }
 
-/** Singleton `pg.Pool` (kanonische Verbindung, doc 05 §9) — lazy initialisiert. */
+/** Singleton `pg.Pool` (kanonische Verbindung, doc 05 §9), lazy initialisiert. */
 export const pool: Pool = lazyProxy(getPool);
 
-/** Singleton Drizzle-Instanz über das aggregierte pgSchema — lazy initialisiert. */
+/** Singleton Drizzle-Instanz über das aggregierte pgSchema, lazy initialisiert. */
 export const db: Db = lazyProxy(getDb);
 
-/** Leichter Liveness-Ping (`SELECT 1`) — für /healthz (doc 05 §9.4). */
+/** Leichter Liveness-Ping (`SELECT 1`), für /healthz (doc 05 §9.4). */
 export async function pingDatabase(): Promise<boolean> {
   const res = await pool.query<{ ok: number }>("SELECT 1 AS ok");
   return res.rows[0]?.ok === 1;

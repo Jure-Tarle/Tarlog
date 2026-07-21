@@ -4,6 +4,7 @@
  * verlässt nichts das Gerät, solange kein Server verbunden ist.
  */
 import { useState } from "react";
+import { useRouter } from "expo-router";
 import { View } from "react-native";
 import {
   Body,
@@ -21,6 +22,7 @@ import { deviceTimezone } from "../../src/lib/time";
 import type { Customer, Project } from "../../src/data";
 
 export default function SettingsScreen() {
+  const router = useRouter();
   const zone = deviceTimezone();
   const lock = useStore<boolean | null>(() => settingsStore.get<boolean>("app_lock_enabled"), []);
   const customers = useStore<Customer[]>(() => customerStore.list(), []);
@@ -43,7 +45,7 @@ export default function SettingsScreen() {
         <Card>
           <Label muted>Profil</Label>
           <View style={{ height: space.sm }} />
-          <Label faint>Lokales Hauptprofil — kein Cloud-Konto erforderlich.</Label>
+          <Label faint>Lokales Hauptprofil, kein Cloud-Konto erforderlich.</Label>
         </Card>
 
         <View>
@@ -52,6 +54,15 @@ export default function SettingsScreen() {
             <Row primary="Zeitzone" figure={zone} />
             <Row primary="Kunden" figure={String(customers.data?.length ?? 0)} />
             <Row primary="Projekte" figure={String(projects.data?.length ?? 0)} />
+          </Card>
+        </View>
+
+        <View>
+          <SectionHeader>Synchronisierung</SectionHeader>
+          <Card>
+            <Label muted>Lokalen Modus, Serververbindung und letzten bestätigten Sync prüfen.</Label>
+            <View style={{ height: space.sm }} />
+            <Button label="Synchronisierung öffnen" onPress={() => router.push("/sync")} grow />
           </Card>
         </View>
 

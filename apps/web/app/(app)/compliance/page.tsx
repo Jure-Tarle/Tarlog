@@ -1,5 +1,5 @@
 /**
- * /compliance — Tagesliste grün/gelb/rot + Regelerklärung + Override (doc 11 §2
+ * /compliance, Tagesliste grün/gelb/rot + Regelerklärung + Override (doc 11 §2
  * Nr. 13, doc 08). Ampel trägt immer Symbol + Text (Farbe nie allein).
  */
 import { PageHeader, LoadError, EmptyState, Card, ComplianceBadge, Badge, type Traffic } from "@/lib/ui/ui";
@@ -23,7 +23,7 @@ export default async function CompliancePage(): Promise<React.ReactElement> {
     // Nach Tag gruppieren, absteigend.
     const byDay = new Map<string, typeof results>();
     for (const r of results) {
-      const d = r.scope_date ?? "—";
+      const d = r.scope_date ?? ",";
       const arr = byDay.get(d) ?? [];
       arr.push(r);
       byDay.set(d, arr);
@@ -73,7 +73,7 @@ export default async function CompliancePage(): Promise<React.ReactElement> {
         <div style={{ fontSize: 13.5, fontWeight: 600, marginBottom: 6 }}>{GERMAN_PROFILE.jurisdiction_name}</div>
         <p style={{ margin: 0, fontSize: 13, color: "var(--color-text-muted)" }}>{GERMAN_PROFILE.user_visible_explanation}</p>
         <p style={{ margin: "8px 0 0", fontSize: 12, color: "var(--color-text-faint)" }}>
-          Richtwerte: Pause 30 Min. ab 6 h / 45 Min. ab 9 h · Höchstarbeitszeit 8 h (bis 10 h) · Ruhezeit 11 h · Quelle: {GERMAN_PROFILE.source_note}
+          Richtwerte: Pause 30 Min. ab 6 h / 45 Min. ab 9 h | Höchstarbeitszeit 8 h (bis 10 h) | Ruhezeit 11 h | Quelle: {GERMAN_PROFILE.source_note}
         </p>
       </Card>
       {body}

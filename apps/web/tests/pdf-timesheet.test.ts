@@ -15,7 +15,7 @@ function baseData(over: Partial<TimesheetData> = {}): TimesheetData {
   return {
     title: "Interner Arbeitszeitnachweis",
     userName: "Test",
-    periodLabel: "2026-01-01 – 2026-01-31",
+    periodLabel: "2026-01-01, 2026-01-31",
     createdAt: "2026-02-01",
     exportNumber: "EX-2026-0001",
     timezone: "Europe/Berlin",
@@ -59,7 +59,7 @@ function baseData(over: Partial<TimesheetData> = {}): TimesheetData {
   };
 }
 
-describe("buildTimesheetDocDefinition — Pflichtinhalte", () => {
+describe("buildTimesheetDocDefinition, Pflichtinhalte", () => {
   it("ist eine A4-Definition mit Content-Array und Seitenfuß", () => {
     const dd = buildTimesheetDocDefinition(baseData());
     expect(dd.pageSize).toBe("A4");
@@ -75,7 +75,7 @@ describe("buildTimesheetDocDefinition — Pflichtinhalte", () => {
   it("trägt den Zeitraum (Label + Wert)", () => {
     const json = JSON.stringify(buildTimesheetDocDefinition(baseData()).content);
     expect(json).toContain("Zeitraum");
-    expect(json).toContain("2026-01-01 – 2026-01-31");
+    expect(json).toContain("2026-01-01, 2026-01-31");
   });
 
   it("führt tatsächliche (netto) UND Abrechnungszeit GETRENNT", () => {

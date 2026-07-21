@@ -1,5 +1,5 @@
 /**
- * core.ts — single re-export of `@tarlog/core` (doc 05 §4).
+ * core.ts, single re-export of `@tarlog/core` (doc 05 §4).
  *
  * ALL business logic (time math, rounding, compliance, billing, zod schemas)
  * lives in the shared `@tarlog/core` package and is consumed unchanged by every

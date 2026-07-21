@@ -1,6 +1,6 @@
 "use client";
 /**
- * TaskForm — Aufgabe/Tätigkeitsart anlegen (doc 11 §2 Nr. 8). Ohne Projekt =
+ * TaskForm, Aufgabe/Tätigkeitsart anlegen (doc 11 §2 Nr. 8). Ohne Projekt =
  * globale Aufgabe. POST /api/tasks.
  */
 import { useState } from "react";

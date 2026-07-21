@@ -1,5 +1,5 @@
 /**
- * GET /api/timer — aktueller Timer-Zustand des Main Accounts (doc 04 §3).
+ * GET /api/timer, aktueller Timer-Zustand des Main Accounts (doc 04 §3).
  * Liefert den aktiven (running|paused) bzw. zuletzt geänderten Timer oder null
  * (= idle). Für die persistente Timer-Kopfleiste (layout.tsx Slot).
  */

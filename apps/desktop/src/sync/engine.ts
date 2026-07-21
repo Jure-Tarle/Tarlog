@@ -1,10 +1,10 @@
 /**
- * sync/engine.ts — orchestrates the optional server sync (doc 04).
+ * sync/engine.ts, orchestrates the optional server sync (doc 04).
  *
  * Responsibilities:
  *   - Pairing + connection lifecycle (delegates HTTP to {@link ServerClient}).
  *   - Push the local outbox (`sync_events`) and pull the server delta.
- *   - Turn a 409 into `conflict_records` + a UI structure — NEVER silent loss
+ *   - Turn a 409 into `conflict_records` + a UI structure, NEVER silent loss
  *     (doc 04 §6).
  *   - Offline queue: when the server is unreachable, existing outbox events
  *     stay pending and are flushed on reconnect.
@@ -12,7 +12,7 @@
  *
  * TRANSPORT: `direct` uses {@link ServerClient} (fetch); `bridge` delegates to
  * the Rust `sync_push` / `sync_pull` commands via `src/lib/bridge.ts`. Both
- * satisfy doc 04 — choose per deployment.
+ * satisfy doc 04, choose per deployment.
  *
  * INERT WITHOUT A SERVER: with no persisted `ServerConfig` every operation
  * returns `{ buffered: true }` and does no network I/O, so the local-first mode
@@ -145,7 +145,7 @@ export class SyncEngine {
     }
   }
 
-  /** True once a server is paired (doc 04 §1 — server is optional). */
+  /** True once a server is paired (doc 04 §1, server is optional). */
   isConfigured(): boolean {
     return this.state.config !== null;
   }
@@ -204,7 +204,7 @@ export class SyncEngine {
 
   /**
    * Disconnect: tear down the live channel and forget the server config. The
-   * local DB and outbox are untouched — the app returns to pure local mode.
+   * local DB and outbox are untouched, the app returns to pure local mode.
    */
   disconnect(): void {
     this.live?.stop();
@@ -254,7 +254,7 @@ export class SyncEngine {
   /**
    * Push the local outbox (doc 04 §1.4). Offline / unconfigured ⇒ buffered
    * no-op (existing outbox rows remain pending). A 409 conflict is
-   * persisted and reported — never dropped.
+   * persisted and reported, never dropped.
    */
   async push(): Promise<SyncOutcome> {
     const config = this.state.config;

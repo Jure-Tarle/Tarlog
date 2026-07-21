@@ -1,10 +1,10 @@
 /**
- * repositories.ts — the data layer the pages consume.
+ * repositories.ts, the data layer the pages consume.
  *
  * READS go through `src/lib/db` (typed SELECTs against the local SQLite DB,
  * doc 05 §2.1). MUTATIONS with business rules go through `src/lib/bridge` Rust
  * commands so invariants (timer state machine, rounding, snapshots, audit,
- * sync events) are never bypassed by raw SQL. Pages import from here only —
+ * sync events) are never bypassed by raw SQL. Pages import from here only ,
  * never `invoke`, never SQL directly.
  */
 import { select } from "../lib/db";
@@ -12,8 +12,12 @@ import {
   createCustomer as cmdCreateCustomer,
   createProject as cmdCreateProject,
   entryBackdate as cmdEntryBackdate,
+  entryBackdateUpdate as cmdEntryBackdateUpdate,
   type BackdateEntryInput,
+  type BackdateEntryUpdateInput,
 } from "../lib/bridge";
+import { recalcEntry } from "./recalc";
+import { notifyChange } from "./backup";
 import { session, newId } from "./session";
 import type {
   CustomerInput,
@@ -67,9 +71,17 @@ export const customers = {
   },
   async create(input: {
     name: string;
+    first_name?: string | null;
+    last_name?: string | null;
     company?: string | null;
     contact_person?: string | null;
     email?: string | null;
+    phone?: string | null;
+    street?: string | null;
+    house_number?: string | null;
+    postal_code?: string | null;
+    city?: string | null;
+    country?: string | null;
     vat_id?: string | null;
     customer_number?: string | null;
     default_hourly_rate_cents?: number | null;
@@ -82,9 +94,17 @@ export const customers = {
       id: newId(),
       main_account_id: mainAccountId,
       name: input.name,
+      first_name: input.first_name ?? null,
+      last_name: input.last_name ?? null,
       company: input.company ?? null,
       contact_person: input.contact_person ?? null,
       email: input.email ?? null,
+      phone: input.phone ?? null,
+      street: input.street ?? null,
+      house_number: input.house_number ?? null,
+      postal_code: input.postal_code ?? null,
+      city: input.city ?? null,
+      country: input.country ?? null,
       vat_id: input.vat_id ?? null,
       customer_number: input.customer_number ?? null,
       payment_term_days: input.payment_term_days ?? 14,
@@ -223,6 +243,15 @@ export const entries = {
       [limit],
     );
   },
+  /** All completed entries assigned to one project, newest first. */
+  async forProject(projectId: Uuid, limit = 500): Promise<TimeEntry[]> {
+    return select<TimeEntry>(
+      `SELECT * FROM time_entries
+       WHERE project_id = $1 AND deleted_at IS NULL AND actual_ended_at IS NOT NULL
+       ORDER BY actual_started_at DESC LIMIT $2`,
+      [projectId, limit],
+    );
+  },
   /** Billable, not yet invoiced (doc 11 §3 element 8). */
   async openBillable(): Promise<TimeEntry[]> {
     return select<TimeEntry>(
@@ -239,8 +268,20 @@ export const entries = {
     );
   },
   /** Create a backdated entry via the Rust assistant command (doc 03 §7). */
-  create(input: BackdateEntryInput): Promise<TimeEntry> {
-    return cmdEntryBackdate(input);
+  async create(input: BackdateEntryInput): Promise<TimeEntry> {
+    const created = await cmdEntryBackdate(input);
+    await recalcEntry(created.id);
+    await notifyChange();
+    const rows = await select<TimeEntry>("SELECT * FROM time_entries WHERE id = $1 LIMIT 1", [created.id]);
+    return rows[0] ?? created;
+  },
+  /** Correct an existing manual backdate, then recompute all billing snapshots. */
+  async updateBackdated(input: BackdateEntryUpdateInput): Promise<TimeEntry> {
+    const updated = await cmdEntryBackdateUpdate(input);
+    await recalcEntry(updated.id);
+    await notifyChange();
+    const rows = await select<TimeEntry>("SELECT * FROM time_entries WHERE id = $1 LIMIT 1", [updated.id]);
+    return rows[0] ?? updated;
   },
 };
 

@@ -1,5 +1,5 @@
 /**
- * outbox.ts — the durable offline queue, backed by the local `sync_events`
+ * outbox.ts, the durable offline queue, backed by the local `sync_events`
  * table (doc 04 §1 grundsatz 2, "Outbox-Muster").
  *
  * Every local mutation writes a row here transactionally with the data change
@@ -9,7 +9,7 @@
  * flushed in HLC order on reconnect. Idempotency is the row `id` (UUIDv7),
  * which the server dedups as `correlation_id`.
  *
- * This module only reads/writes the queue table — it performs NO network I/O
+ * This module only reads/writes the queue table, it performs NO network I/O
  * and NO business logic.
  */
 import type { SQLiteDatabase } from "expo-sqlite";
@@ -90,7 +90,7 @@ export function pending(db: SQLiteDatabase, limit = 500): OutboxRow[] {
   );
 }
 
-/** Count of pending (un-sent) events — for the sync status screen. */
+/** Count of pending (un-sent) events, for the sync status screen. */
 export function pendingCount(db: SQLiteDatabase): number {
   const row = db.getFirstSync<{ n: number }>(
     `SELECT COUNT(*) AS n FROM sync_events WHERE applied = 0`,

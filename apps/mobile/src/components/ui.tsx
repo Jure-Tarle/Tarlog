@@ -1,10 +1,10 @@
 /**
- * ui.tsx — the shared primitive kit for every screen (doc 11 §1 Ledger look).
+ * ui.tsx, the shared primitive kit for every screen (doc 11 §1).
  *
  * These are the ONLY building blocks the screens use, so the design direction
  * (one accent, tabular numerics, hairline borders, no shadows, non-uniform
  * radii) is enforced in one place. Nothing here touches the DB or business
- * logic — pure presentation over `react-native` primitives.
+ * logic, pure presentation over `react-native` primitives.
  */
 import type { ReactNode } from "react";
 import {
@@ -18,20 +18,19 @@ import {
   View,
   type ViewStyle,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { monoFamily, radius, space, useTheme } from "./theme";
 
 // ---------------------------------------------------------------------------
 // Layout
 // ---------------------------------------------------------------------------
 
-/** Full-bleed page background with safe-area top/bottom insets. */
+/** Full-bleed page background. Expo Router's native bars own the safe areas. */
 export function Screen({ children }: { children: ReactNode }): ReactNode {
   const { colors } = useTheme();
   return (
-    <SafeAreaView edges={["top", "bottom"]} style={[styles.flex, { backgroundColor: colors.bg }]}>
+    <View style={[styles.flex, { backgroundColor: colors.bg }]}>
       {children}
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -42,13 +41,15 @@ export function Body({ children }: { children: ReactNode }): ReactNode {
       style={styles.flex}
       contentContainerStyle={styles.bodyContent}
       keyboardDismissMode="interactive"
+      contentInsetAdjustmentBehavior="automatic"
+      automaticallyAdjustKeyboardInsets
     >
       {children}
     </ScrollView>
   );
 }
 
-/** A hairline-bordered surface card (no shadow — doc 11 §1). */
+/** A hairline-bordered surface card (no shadow, doc 11 §1). */
 export function Card({
   children,
   active = false,
@@ -81,7 +82,7 @@ export function Card({
 /** Uppercase section label above a group. */
 export function SectionHeader({ children }: { children: ReactNode }): ReactNode {
   const { colors } = useTheme();
-  return <Text style={[styles.section, { color: colors.textFaint }]}>{children}</Text>;
+  return <Text accessibilityRole="header" style={[styles.section, { color: colors.textFaint }]}>{children}</Text>;
 }
 
 // ---------------------------------------------------------------------------
@@ -104,7 +105,7 @@ export function Label({
 }
 
 /**
- * Tabular numeric text — times and money. Always aligns in columns.
+ * Tabular numeric text, times and money. Always aligns in columns.
  * `size` scales the running-timer hero vs. inline figures.
  */
 export function Mono({
@@ -122,6 +123,8 @@ export function Mono({
     tone === "accent" ? colors.accent : tone === "muted" ? colors.textMuted : colors.text;
   return (
     <Text
+      allowFontScaling
+      maxFontSizeMultiplier={size === "hero" ? 1.5 : 2}
       style={{
         fontFamily: monoFamily,
         fontVariant: ["tabular-nums"],
@@ -148,6 +151,7 @@ export interface ButtonProps {
   disabled?: boolean;
   /** Grow to fill a row. */
   grow?: boolean;
+  accessibilityHint?: string;
 }
 
 /** Tap target. One accent for `primary`; motion is a quiet opacity press. */
@@ -157,6 +161,7 @@ export function Button({
   variant = "secondary",
   disabled = false,
   grow = false,
+  accessibilityHint,
 }: ButtonProps): ReactNode {
   const { colors, hairline } = useTheme();
   const isPrimary = variant === "primary";
@@ -167,6 +172,9 @@ export function Button({
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={{ disabled }}
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [
@@ -209,6 +217,7 @@ export function Field({
     <View style={styles.fieldWrap}>
       <Text style={[styles.fieldLabel, { color: colors.textMuted }]}>{label}</Text>
       <TextInput
+        accessibilityLabel={label}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
@@ -245,10 +254,18 @@ export function Segmented<T extends string>({
   onChange: (v: T) => void;
 }): ReactNode {
   const { colors, hairline } = useTheme();
+  const useList = options.length > 3 || options.some((option) => option.label.length > 18);
+
+  if (useList) {
+    return <ChoiceGroup label={label} options={options} value={value} onChange={onChange} />;
+  }
+
   return (
     <View style={styles.fieldWrap}>
       {label ? <Text style={[styles.fieldLabel, { color: colors.textMuted }]}>{label}</Text> : null}
       <View
+        accessibilityRole="radiogroup"
+        accessibilityLabel={label}
         style={[
           styles.segment,
           { borderColor: colors.border, borderWidth: hairline, backgroundColor: colors.surfaceAlt },
@@ -259,10 +276,15 @@ export function Segmented<T extends string>({
           return (
             <Pressable
               key={opt.value}
+              accessibilityRole="radio"
+              accessibilityLabel={opt.label}
+              accessibilityState={{ checked: on, selected: on }}
               onPress={() => onChange(opt.value)}
               style={[styles.segmentItem, on && { backgroundColor: colors.accent }]}
             >
               <Text
+                allowFontScaling
+                maxFontSizeMultiplier={1.6}
                 style={{
                   color: on ? colors.onAccent : colors.textMuted,
                   fontSize: 13,
@@ -270,6 +292,58 @@ export function Segmented<T extends string>({
                 }}
               >
                 {opt.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+/** Accessible vertical single-choice list for long labels or larger option sets. */
+export function ChoiceGroup<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label?: string;
+  options: { value: T; label: string }[];
+  value: T | null;
+  onChange: (v: T) => void;
+}): ReactNode {
+  const { colors, hairline } = useTheme();
+  return (
+    <View style={styles.fieldWrap}>
+      {label ? <Text style={[styles.fieldLabel, { color: colors.textMuted }]}>{label}</Text> : null}
+      <View accessibilityRole="radiogroup" accessibilityLabel={label} style={styles.choiceGroup}>
+        {options.map((option) => {
+          const selected = option.value === value;
+          return (
+            <Pressable
+              key={option.value}
+              accessibilityRole="radio"
+              accessibilityLabel={option.label}
+              accessibilityState={{ checked: selected, selected }}
+              onPress={() => onChange(option.value)}
+              style={({ pressed }) => [
+                styles.choiceItem,
+                {
+                  backgroundColor: selected ? colors.accentSoft : colors.surfaceAlt,
+                  borderColor: selected ? colors.accent : colors.border,
+                  borderWidth: hairline,
+                  opacity: pressed ? 0.7 : 1,
+                },
+              ]}
+            >
+              <Text style={[styles.choiceLabel, { color: colors.text }]}>{option.label}</Text>
+              <Text
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+                style={[styles.choiceMark, { color: selected ? colors.accent : colors.textFaint }]}
+              >
+                {selected ? "✓" : ""}
               </Text>
             </Pressable>
           );
@@ -304,11 +378,11 @@ export function Row({
   const inner = (
     <View style={[styles.row, { borderColor: colors.border, borderBottomWidth: hairline }]}>
       <View style={styles.flex}>
-        <Text style={[styles.rowPrimary, { color: colors.text }]} numberOfLines={1}>
+        <Text style={[styles.rowPrimary, { color: colors.text }]}>
           {primary}
         </Text>
         {secondary ? (
-          <Text style={[styles.rowSecondary, { color: colors.textMuted }]} numberOfLines={1}>
+          <Text style={[styles.rowSecondary, { color: colors.textMuted }]}>
             {secondary}
           </Text>
         ) : null}
@@ -326,8 +400,15 @@ export function Row({
     </View>
   );
   if (!onPress) return inner;
+  const accessibilityLabel = [primary, secondary, figure, figureSub].filter(Boolean).join(", ");
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ selected: accent }}
+      onPress={onPress}
+      style={({ pressed }) => ({ minHeight: 44, opacity: pressed ? 0.6 : 1 })}
+    >
       {inner}
     </Pressable>
   );
@@ -351,8 +432,14 @@ export function StatusDot({
           ? colors.danger
           : colors.textFaint;
   return (
-    <View style={styles.statusWrap}>
-      <View style={[styles.dot, { backgroundColor: dot }]} />
+    <View
+      accessible
+      accessibilityRole="text"
+      accessibilityLabel={typeof children === "string" ? `Status: ${children}` : undefined}
+      accessibilityLiveRegion="polite"
+      style={styles.statusWrap}
+    >
+      <View accessibilityElementsHidden style={[styles.dot, { backgroundColor: dot }]} />
       <Text style={[styles.label, { color: colors.textMuted }]}>{children}</Text>
     </View>
   );
@@ -370,7 +457,13 @@ export function Placeholder({
 }): ReactNode {
   const { colors } = useTheme();
   return (
-    <View style={styles.placeholder}>
+    <View
+      style={styles.placeholder}
+      accessible
+      accessibilityRole={loading ? "progressbar" : "text"}
+      accessibilityLabel={[title, detail].filter(Boolean).join(". ")}
+      accessibilityLiveRegion="polite"
+    >
       {loading ? <ActivityIndicator color={colors.textMuted} /> : null}
       <Text style={[styles.placeholderTitle, { color: colors.textMuted }]}>{title}</Text>
       {detail ? (
@@ -392,7 +485,7 @@ const styles = StyleSheet.create({
   },
   label: { fontSize: 15 },
   button: {
-    height: 46,
+    minHeight: 46,
     borderRadius: radius.md,
     alignItems: "center",
     justifyContent: "center",
@@ -410,19 +503,34 @@ const styles = StyleSheet.create({
   segment: { flexDirection: "row", borderRadius: radius.md, padding: 3, gap: 3 },
   segmentItem: {
     flex: 1,
+    minHeight: 44,
     paddingVertical: space.sm,
     borderRadius: radius.sm,
     alignItems: "center",
   },
   row: {
     flexDirection: "row",
+    flexWrap: "wrap",
     alignItems: "center",
+    minHeight: 44,
     paddingVertical: space.md,
     gap: space.md,
   },
-  rowPrimary: { fontSize: 15, fontWeight: "500" },
-  rowSecondary: { fontSize: 12, marginTop: 2 },
-  rowFigure: { alignItems: "flex-end" },
+  rowPrimary: { flexShrink: 1, fontSize: 15, fontWeight: "500" },
+  rowSecondary: { flexShrink: 1, fontSize: 12, marginTop: 2 },
+  rowFigure: { alignItems: "flex-end", marginLeft: "auto" },
+  choiceGroup: { gap: space.sm },
+  choiceItem: {
+    minHeight: 44,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: space.md,
+    borderRadius: radius.md,
+    paddingHorizontal: space.md,
+    paddingVertical: space.sm,
+  },
+  choiceLabel: { flex: 1, flexShrink: 1, fontSize: 15, lineHeight: 20 },
+  choiceMark: { width: 20, fontSize: 17, fontWeight: "700", textAlign: "center" },
   statusWrap: { flexDirection: "row", alignItems: "center", gap: space.sm },
   dot: { width: 9, height: 9, borderRadius: radius.pill },
   placeholder: { alignItems: "center", justifyContent: "center", paddingVertical: space.xxl, gap: space.sm },

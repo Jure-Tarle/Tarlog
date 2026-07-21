@@ -1,5 +1,5 @@
 /**
- * /api/projects/[id] — Detail, Ändern (mit Audit), Soft-Delete
+ * /api/projects/[id], Detail, Ändern (mit Audit), Soft-Delete
  * (doc 06 §A.2 `projects`).
  *
  * PATCH schreibt Audit `rate_changed` bei Änderung von

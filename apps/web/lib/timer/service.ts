@@ -1,5 +1,5 @@
 /**
- * lib/timer/service.ts — Timer-State-Machine-Orchestrierung (doc 04 §3/§4).
+ * lib/timer/service.ts, Timer-State-Machine-Orchestrierung (doc 04 §3/§4).
  *
  * start (Single-Timer, 409 bei laufendem Timer via Compare-and-Set +
  * conflict_records), pause, resume (Pause → time_entry_breaks +
@@ -719,10 +719,8 @@ export async function stopTimer(
         mainAccountId,
         taskId: entry.task_id,
         projectId: entry.project_id,
-        customerId: customer?.id ?? entry.customer_id,
         taskRateCents: task?.default_hourly_rate_cents,
         projectRateCents: project?.hourly_rate_cents,
-        customerRateCents: customer?.default_hourly_rate_cents,
         customerCurrency: customer?.default_currency,
         defaultCurrency: acct.default_currency,
         onDate,

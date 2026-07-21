@@ -1,6 +1,6 @@
 "use client";
 /**
- * TimerConsole — Live-Erfassung (doc 03 §2/§3/§4).
+ * TimerConsole, Live-Erfassung (doc 03 §2/§3/§4).
  *
  * Start / Pause / Fortsetzen / Stopp + verpflichtender Stopp-Dialog (22
  * Elemente, doc 03 §4). Rundungsvorschau + Abrechnungsbetrag werden
@@ -125,7 +125,7 @@ export function TimerConsole({ initialTimer, projects, tasks, rules, currency }:
           <div>
             <div style={{ fontSize: 12, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
               {timer?.projectName ?? "Ohne Projekt"}
-              {timer?.taskName ? ` · ${timer.taskName}` : ""}
+              {timer?.taskName ? ` | ${timer.taskName}` : ""}
             </div>
             <div style={{ marginTop: 8 }}>
               <TimerTicker timer={timer} size={34} />
@@ -168,7 +168,7 @@ export function TimerConsole({ initialTimer, projects, tasks, rules, currency }:
             </Field>
             <Field label="Aufgabe">
               <Select value={taskId} onChange={(e) => setTaskId(e.target.value)}>
-                <option value="">—</option>
+                <option value="">,</option>
                 {projectTasks.map((t) => (
                   <option key={t.id} value={t.id}>{t.name}</option>
                 ))}

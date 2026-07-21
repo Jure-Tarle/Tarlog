@@ -2,7 +2,7 @@
 
 > Hinweis: Rechtliche Aussagen sind Produkt-Hinweise, keine Rechtsberatung. Stand der Recherche: Juli 2026.
 
-Dieses Kapitel beschreibt die Benutzeroberfläche von Tarlog (SPEC §26), die Kalender-/Timesheet-Ansichten (SPEC §21), die Desktop-App für macOS und Windows (SPEC §27) sowie die iOS-App (SPEC §28). Die Oberfläche muss schnell, klar und professionell sein — sie ist der tägliche Arbeitsplatz einer Einzelperson, die minutengenau erfasst, nachträgt und abrechnet. Die Timer-Logik steht in [Zeiterfassung](03-zeiterfassung.md), die geräteübergreifende Zustandssynchronisierung in [Synchronisierung](04-sync.md), die technische Plattformstrategie in [Architektur](05-architektur.md), das Datenmodell in [Datenmodell](06-datenmodell.md), Rundung/Berechnung in [Zeitberechnung und Rundung](07-zeitberechnung-rundung.md), die Prüfregeln in [Compliance](08-compliance.md), Sicherheit/App-Sperre in [Datenschutz und Sicherheit](09-datenschutz-sicherheit.md) sowie Rechnungen/Exporte in [Abrechnung und Export](10-abrechnung-export.md).
+Dieses Kapitel beschreibt die Benutzeroberfläche von Tarlog (SPEC §26), die Kalender-/Timesheet-Ansichten (SPEC §21), die Desktop-App für macOS und Windows (SPEC §27) sowie die iOS-App (SPEC §28). Die Oberfläche muss schnell, klar und professionell sein, sie ist der tägliche Arbeitsplatz einer Einzelperson, die minutengenau erfasst, nachträgt und abrechnet. Die Timer-Logik steht in [Zeiterfassung](03-zeiterfassung.md), die geräteübergreifende Zustandssynchronisierung in [Synchronisierung](04-sync.md), die technische Plattformstrategie in [Architektur](05-architektur.md), das Datenmodell in [Datenmodell](06-datenmodell.md), Rundung/Berechnung in [Zeitberechnung und Rundung](07-zeitberechnung-rundung.md), die Prüfregeln in [Compliance](08-compliance.md), Sicherheit/App-Sperre in [Datenschutz und Sicherheit](09-datenschutz-sicherheit.md) sowie Rechnungen/Exporte in [Abrechnung und Export](10-abrechnung-export.md).
 
 ## 1. Design-Direktion (verbindlich)
 
@@ -31,10 +31,10 @@ Rahmen ihrer Plattformlizenz eingesetzt.
 
 Desktop und Web setzen Tarlog Flow gemeinsam um. iOS übernimmt dieselben
 semantischen Rollen und Informationsgruppen, verwendet dafür jedoch native
-iOS-Navigation und -Materialien (siehe Abschnitte 5–7). Konkreter UI-Code
+iOS-Navigation und -Materialien (siehe Abschnitte 5,7). Konkreter UI-Code
 gehört nicht in dieses Dokument.
 
-## 2. Hauptbereiche (SPEC §26 — alle 15 Bereiche)
+## 2. Hauptbereiche (SPEC §26, alle 15 Bereiche)
 
 Die App hat 15 Hauptbereiche, erreichbar über eine persistente Seitennavigation (Desktop/Web) bzw. Tab-Bar + Mehr-Menü (iOS).
 
@@ -58,7 +58,7 @@ Die App hat 15 Hauptbereiche, erreichbar über eine persistente Seitennavigation
 
 Die Navigation ist überall gleich strukturiert, damit der Wechsel zwischen Desktop, Web und iOS ohne Umlernen gelingt. Der laufende Timer bleibt als persistente Kopf-/Menüleisten-Komponente in jedem Bereich sichtbar und steuerbar.
 
-## 3. Dashboard (SPEC §26 — alle 15 Elemente)
+## 3. Dashboard (SPEC §26, alle 15 Elemente)
 
 Das Dashboard ist der Einstieg und zeigt genau 15 Elemente. Es ist als kompaktes Kachel-Raster mit tabularen Ziffern gestaltet; die einzige Akzentfarbe markiert den aktiven Timer und die primäre Schnellstart-Aktion.
 
@@ -117,9 +117,9 @@ Der Kalender-/Timesheet-Bereich ist das visuelle Werkzeug zum Erfassen, Nachtrag
 | 11 | Rundungsvorschau anzeigen | Live-Vorschau der `billing_duration_seconds` gemäß Rundungsregel; siehe [Zeitberechnung und Rundung](07-zeitberechnung-rundung.md) |
 | 12 | Warnungen anzeigen | Inline-Compliance-Warnungen (z. B. `6 Stunden` ohne Pause) am betroffenen Block |
 
-Beim Aufziehen/Ändern eines Blocks öffnet sich ein leichtgewichtiges Inline-Formular (Projekt, Aufgabe, Beschreibung, Pause, Rundungsvorschau, Compliance-Ergebnis, Speichern) — konsistent mit dem Nachtragen aus der Kalenderansicht in [Zeiterfassung](03-zeiterfassung.md). Blöcke folgen dem Zeiger direkt, übernehmen beim Loslassen dessen Geschwindigkeit und rasten mit einer gedämpften, unterbrechbaren Spring-Bewegung ein. Ein leichter Overshoot ist ausschließlich nach einer momentumgetragenen Geste erlaubt.
+Beim Aufziehen/Ändern eines Blocks öffnet sich ein leichtgewichtiges Inline-Formular (Projekt, Aufgabe, Beschreibung, Pause, Rundungsvorschau, Compliance-Ergebnis, Speichern), konsistent mit dem Nachtragen aus der Kalenderansicht in [Zeiterfassung](03-zeiterfassung.md). Blöcke folgen dem Zeiger direkt, übernehmen beim Loslassen dessen Geschwindigkeit und rasten mit einer gedämpften, unterbrechbaren Spring-Bewegung ein. Ein leichter Overshoot ist ausschließlich nach einer momentumgetragenen Geste erlaubt.
 
-## 5. Desktop-App macOS (SPEC §27 — alle 17 Funktionen, priorisiert)
+## 5. Desktop-App macOS (SPEC §27, alle 17 Funktionen, priorisiert)
 
 macOS hat Priorität. Die Desktop-App ist eine **Tauri 2.x**-App (siehe [Architektur](05-architektur.md)); der Menüleisten-Timer wird über das Tauri **`tray-icon`** realisiert. Die lokale Datenbank ist SQLite (Drizzle via `tauri-plugin-sql`).
 
@@ -162,9 +162,9 @@ Architekturarbeit.
 | 16 | Crash-sichere Wiederherstellung | Timer-Zustand persistent; Wiederherstellung nach Absturz/Neustart |
 | 17 | Code Signing vorbereiten | Apple Developer Account (99 $/J), Notarisierung; Signaturkette vorbereitet |
 
-**macOS App-Sperre:** Face ID / Touch ID ist nur eingeschränkt möglich — das Tauri-Biometric-Plugin unterstützt **nur iOS/Android**, nicht macOS. Die App-Sperre auf macOS wird daher über einen eigenen Rust-Command mit `LocalAuthentication` (Touch ID) oder alternativ ein App-Passwort umgesetzt. Details in [Datenschutz und Sicherheit](09-datenschutz-sicherheit.md).
+**macOS App-Sperre:** Face ID / Touch ID ist nur eingeschränkt möglich, das Tauri-Biometric-Plugin unterstützt **nur iOS/Android**, nicht macOS. Die App-Sperre auf macOS wird daher über einen eigenen Rust-Command mit `LocalAuthentication` (Touch ID) oder alternativ ein App-Passwort umgesetzt. Details in [Datenschutz und Sicherheit](09-datenschutz-sicherheit.md).
 
-## 6. Desktop-App Windows (SPEC §27 — alle 8 Funktionen)
+## 6. Desktop-App Windows (SPEC §27, alle 8 Funktionen)
 
 Windows wird von derselben Tauri-Codebasis bedient; statt Menüleiste kommt der System-Tray zum Einsatz.
 Die Informationshierarchie, konzentrischen Radien, System/Hell/Dunkel-Tokens,
@@ -185,7 +185,7 @@ Icons, Windows-Systemschrift und WebView-/Windows-gerechte Material-Fallbacks.
 
 Crash-sichere Wiederherstellung und lokale Backups gelten plattformübergreifend identisch zur macOS-Variante (gemeinsamer Tauri-Kern).
 
-## 7. iOS-App (SPEC §28 — alle 19 Funktionen)
+## 7. iOS-App (SPEC §28, alle 19 Funktionen)
 
 Die iOS-App wird mit **Expo / React Native** gebaut (siehe [Architektur](05-architektur.md)). Local-first-Persistenz erfolgt über **`expo-sqlite`**; die App arbeitet offline und synchronisiert bei Serververbindung. Sie teilt das gemeinsame Core-Package (Zeitberechnung, Rundung, Compliance, Zod-Schemas) mit Web und Desktop.
 

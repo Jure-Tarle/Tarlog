@@ -1,5 +1,5 @@
 /**
- * POST /api/auth/login — Session-Login am eigenen Server (doc 05 §5.1).
+ * POST /api/auth/login, Session-Login am eigenen Server (doc 05 §5.1).
  *
  * Prüft das Passwort gegen `main_accounts.password_hash` (Argon2id), legt eine
  * Cookie-Session an und heilt das Setup-Gate-Cookie. Rate-Limit pro IP gegen

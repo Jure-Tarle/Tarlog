@@ -38,10 +38,14 @@ import {
 import { createCustomer, listCustomers } from "../data/customers";
 import { useAsync } from "../data/hooks";
 import { createProject, listProjects } from "../data/projects";
+import { t } from "../i18n";
 import type { NativeSystemSymbolKey } from "../lib/bridge";
 import {
   completedWorkspaceProgress,
+  onboardingProjectRates,
+  resolveOnboardingCustomerSetup,
   resolveOnboardingProjectId,
+  type OnboardingBillingType,
 } from "./projectSelection";
 import brandMarkUrl from "../../../../assets/brand/tarlog-flow-mark.svg?url";
 
@@ -56,6 +60,7 @@ interface StepMeta {
   fallback: LucideIcon;
 }
 
+// Strings bleiben deutsch (Wörterbuch-Schlüssel); t() erst beim Rendern.
 const STEP_META: Record<OnboardingStep, StepMeta> = {
   welcome: {
     label: "Willkommen",
@@ -69,7 +74,7 @@ const STEP_META: Record<OnboardingStep, StepMeta> = {
     label: "Arbeitsbereich",
     eyebrow: "Kunde & Projekt",
     title: "Ersten Arbeitsbereich einrichten",
-    summary: "Ein Projekt bündelt Zeiten, Beschreibungen und Abrechnungsregeln. Ein Kunde ist optional – interne Projekte funktionieren genauso.",
+    summary: "Lege dein erstes Projekt an. Wenn du für einen Kunden arbeitest, kannst du ihn direkt mit anlegen; für interne Arbeit bleibt das Kundenfeld leer.",
     symbol: "projects",
     fallback: FolderKanban,
   },
@@ -232,7 +237,7 @@ export function DesktopOnboarding({
     <section
       className="onboarding"
       aria-busy={pending || undefined}
-      aria-label={required ? "Tarlog Ersteinrichtung" : "Tarlog Einführung"}
+      aria-label={required ? t("Tarlog Ersteinrichtung") : t("Tarlog Einführung")}
     >
       <header className="onboarding__toolbar" data-tauri-drag-region>
         <div className="onboarding__brand" data-tauri-drag-region>
@@ -241,7 +246,7 @@ export function DesktopOnboarding({
           </span>
           <span data-tauri-drag-region>
             <strong>Tarlog</strong>
-            <small>{required ? "Ersteinrichtung" : "Einführung"}</small>
+            <small>{required ? t("Ersteinrichtung") : t("Einführung")}</small>
           </span>
         </div>
         <div className="onboarding__toolbar-actions">
@@ -252,8 +257,8 @@ export function DesktopOnboarding({
               className="toolbar-icon-button"
               disabled={pending}
               onClick={requestDismiss}
-              aria-label="Einführung schließen"
-              title="Einführung schließen"
+              aria-label={t("Einführung schließen")}
+              title={t("Einführung schließen")}
             >
               <X size={16} aria-hidden />
             </button>
@@ -262,10 +267,10 @@ export function DesktopOnboarding({
       </header>
 
       <div className="onboarding__layout">
-        <nav className="onboarding__rail" aria-label="Einführungsschritte">
+        <nav className="onboarding__rail" aria-label={t("Einführungsschritte")}>
           <div className="onboarding__rail-heading">
-            <span>Einführung</span>
-            <strong>{currentIndex + 1} von {ONBOARDING_STEPS.length}</strong>
+            <span>{t("Einführung")}</span>
+            <strong>{t("{current} von {total}", { current: currentIndex + 1, total: ONBOARDING_STEPS.length })}</strong>
           </div>
           <ol className="onboarding__steps">
             {ONBOARDING_STEPS.map((step, index) => {
@@ -284,7 +289,7 @@ export function DesktopOnboarding({
                     <span className="onboarding-step__icon" aria-hidden>
                       {visited ? <Check size={14} strokeWidth={2.25} /> : <StepSymbol step={step} size={15} />}
                     </span>
-                    <span>{STEP_META[step].label}</span>
+                    <span>{t(STEP_META[step].label)}</span>
                   </button>
                 </li>
               );
@@ -292,7 +297,7 @@ export function DesktopOnboarding({
           </ol>
           <div className="onboarding__rail-note">
             <Laptop size={16} aria-hidden />
-            <span>Deine Daten bleiben standardmäßig auf diesem Gerät.</span>
+            <span>{t("Deine Daten bleiben standardmäßig auf diesem Gerät.")}</span>
           </div>
         </nav>
 
@@ -315,9 +320,9 @@ export function DesktopOnboarding({
                     <StepSymbol step={progress.step} size={26} />
                   )}
                 </div>
-                <p className="onboarding__eyebrow">{meta.eyebrow}</p>
-                <h1 className="onboarding__title" ref={titleRef} tabIndex={-1}>{meta.title}</h1>
-                <p className="onboarding__summary">{meta.summary}</p>
+                <p className="onboarding__eyebrow">{t(meta.eyebrow)}</p>
+                <h1 className="onboarding__title" ref={titleRef} tabIndex={-1}>{t(meta.title)}</h1>
+                <p className="onboarding__summary">{t(meta.summary)}</p>
 
                 <div className="onboarding__step-body">
                   {progress.step === "welcome" ? <WelcomeStep /> : null}
@@ -343,27 +348,27 @@ export function DesktopOnboarding({
 
           <footer className="onboarding__footer">
             <div className="onboarding__footer-status" role="status">
-              {error ? <ErrorNote error={error} /> : pending ? <Loading label="Wird gesichert …" /> : null}
+              {error ? <ErrorNote error={error} /> : pending ? <Loading label={t("Wird gesichert …")} /> : null}
             </div>
             <div className="onboarding__footer-actions">
               {currentIndex > 0 ? (
                 <Button variant="ghost" disabled={pending} onClick={() => void goBack()}>
-                  <ChevronLeft size={15} aria-hidden /> Zurück
+                  <ChevronLeft size={15} aria-hidden /> {t("Zurück")}
                 </Button>
               ) : !required ? (
-                <Button variant="ghost" disabled={pending} onClick={requestDismiss}>Schließen</Button>
+                <Button variant="ghost" disabled={pending} onClick={requestDismiss}>{t("Schließen")}</Button>
               ) : <span />}
 
               {progress.step === "workspace" ? null : progress.step === "ready" ? (
                 <>
-                  <Button disabled={pending} onClick={() => void finish("dashboard")}>Zum Dashboard</Button>
+                  <Button disabled={pending} onClick={() => void finish("dashboard")}>{t("Zum Dashboard")}</Button>
                   <Button variant="primary" disabled={pending} onClick={() => void finish("timer")}>
-                    Timer öffnen <ChevronRight size={15} aria-hidden />
+                    {t("Timer öffnen")} <ChevronRight size={15} aria-hidden />
                   </Button>
                 </>
               ) : (
                 <Button variant="primary" disabled={pending} onClick={() => void goNext()}>
-                  Weiter <ChevronRight size={15} aria-hidden />
+                  {t("Weiter")} <ChevronRight size={15} aria-hidden />
                 </Button>
               )}
             </div>
@@ -377,9 +382,9 @@ export function DesktopOnboarding({
 function WelcomeStep() {
   return (
     <div className="onboarding-feature-grid">
-      <Feature title="Lokal auf deinem Mac" copy="Ohne Anmeldung, Cloud-Zwang oder dauerhafte Internetverbindung." icon={Laptop} />
-      <Feature title="Nachvollziehbare Zeiten" copy="Ist-Zeit und gerundete Abrechnungszeit bleiben sauber getrennt." icon={RotateCcw} />
-      <Feature title="Timer und Nachträge" copy="Erfasse laufende Arbeit direkt und Vergangenes mit einer Begründung." icon={History} />
+      <Feature title={t("Lokal auf deinem Mac")} copy={t("Ohne Anmeldung, Cloud-Zwang oder dauerhafte Internetverbindung.")} icon={Laptop} />
+      <Feature title={t("Nachvollziehbare Zeiten")} copy={t("Ist-Zeit und gerundete Abrechnungszeit bleiben sauber getrennt.")} icon={RotateCcw} />
+      <Feature title={t("Timer und Nachträge")} copy={t("Erfasse laufende Arbeit direkt und Vergangenes mit einer Begründung.")} icon={History} />
     </div>
   );
 }
@@ -410,11 +415,17 @@ function WorkspaceStep({
   const [selectedCustomerId, setSelectedCustomerId] = useState(progress.customerId ?? "");
   const [customerName, setCustomerName] = useState("");
   const [projectName, setProjectName] = useState("");
-  const [billingType, setBillingType] = useState<"hourly" | "non_billable">("hourly");
+  const [billingType, setBillingType] = useState<OnboardingBillingType>("hourly");
   const [hourlyRate, setHourlyRate] = useState("");
+  const [fixedFee, setFixedFee] = useState("");
   const projectSelectionResolved = useRef(false);
   const submittingRef = useRef(false);
   const availableProjects = projects.data ?? [];
+  const availableCustomers = customers.data ?? [];
+  const customerSetup = resolveOnboardingCustomerSetup(
+    availableCustomers.length,
+    progress.customerId,
+  );
 
   useEffect(() => {
     if (projectSelectionResolved.current || availableProjects.length === 0) return;
@@ -431,14 +442,14 @@ function WorkspaceStep({
   );
 
   if ((projects.loading && projects.data == null) || (customers.loading && customers.data == null)) {
-    return <div className="onboarding-form"><Loading label="Projekte werden geladen …" /></div>;
+    return <div className="onboarding-form"><Loading label={t("Projekte werden geladen …")} /></div>;
   }
 
   async function continueExisting() {
     if (pending) return;
     const project = projectById.get(selectedProjectId);
     if (!project) {
-      onError("Bitte wähle ein bestehendes Projekt aus.");
+      onError(t("Bitte wähle ein bestehendes Projekt aus."));
       return;
     }
     await onContinue({ projectId: project.id, customerId: project.customer_id ?? null });
@@ -448,12 +459,14 @@ function WorkspaceStep({
     if (pending || submittingRef.current) return;
     onError(null);
     if (!projectName.trim()) {
-      onError("Projektname ist erforderlich.");
+      onError(t("Projektname ist erforderlich."));
       return;
     }
-    const hourlyRateCents = billingType === "hourly" ? toCents(hourlyRate) : null;
-    if (hourlyRateCents === undefined) {
-      onError("Bitte gib den Stundensatz als Zahl mit höchstens zwei Nachkommastellen ein.");
+    const amount = billingType === "hourly" ? hourlyRate : billingType === "fixed_fee" ? fixedFee : "";
+    const amountCents = billingType === "non_billable" ? null : toCents(amount);
+    if (amountCents === undefined) {
+      const label = billingType === "fixed_fee" ? "Festpreis" : "Stundensatz";
+      onError(t("Bitte gib den {label} als Zahl mit höchstens zwei Nachkommastellen ein.", { label: t(label) }));
       return;
     }
     submittingRef.current = true;
@@ -475,7 +488,7 @@ function WorkspaceStep({
         name: projectName.trim(),
         customer_id: customerId,
         billing_type: billingType,
-        hourly_rate_cents: hourlyRateCents,
+        ...onboardingProjectRates(billingType, amountCents),
       });
       setSelectedProjectId(project.id);
       setMode("existing");
@@ -495,7 +508,7 @@ function WorkspaceStep({
   return (
     <div className="onboarding-workspace">
       {availableProjects.length > 0 ? (
-        <div className="onboarding-choice" role="group" aria-label="Projektquelle">
+        <div className="onboarding-choice" role="group" aria-label={t("Projektquelle")}>
           <button
             type="button"
             className={mode === "existing" ? "is-active" : ""}
@@ -503,7 +516,7 @@ function WorkspaceStep({
             disabled={pending}
             onClick={() => setMode("existing")}
           >
-            Bestehendes Projekt
+            {t("Bestehendes Projekt")}
           </button>
           <button
             type="button"
@@ -512,7 +525,7 @@ function WorkspaceStep({
             disabled={pending}
             onClick={() => setMode("new")}
           >
-            Neues Projekt
+            {t("Neues Projekt")}
           </button>
         </div>
       ) : null}
@@ -527,15 +540,15 @@ function WorkspaceStep({
             void continueExisting();
           }}
         >
-          <Field label="Projekt" required>
+          <Field label={t("Projekt")} required>
             <Select value={selectedProjectId} onChange={(event) => setSelectedProjectId(event.currentTarget.value)} autoFocus>
-              <option value="">Projekt auswählen …</option>
+              <option value="">{t("Projekt auswählen …")}</option>
               {availableProjects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
             </Select>
           </Field>
-          <p className="onboarding-form__hint">Die Einführung verändert das ausgewählte Projekt nicht.</p>
+          <p className="onboarding-form__hint">{t("Die Einführung verändert das ausgewählte Projekt nicht.")}</p>
           <Button type="submit" variant="primary" disabled={pending || !selectedProjectId}>
-            Projekt verwenden <ChevronRight size={15} aria-hidden />
+            {t("Projekt verwenden")} <ChevronRight size={15} aria-hidden />
           </Button>
         </form>
       ) : (
@@ -546,44 +559,67 @@ function WorkspaceStep({
             void createWorkspace();
           }}
         >
-          {progress.customerId ? (
-            <div className="onboarding-success-line" role="status"><Check size={15} aria-hidden /> Kunde wurde angelegt und wird weiterverwendet.</div>
+          {customerSetup === "created" ? (
+            <div className="onboarding-success-line" role="status"><Check size={15} aria-hidden /> {t("Kunde wurde angelegt und wird weiterverwendet.")}</div>
+          ) : customerSetup === "first" ? (
+            <Field label={t("Kunde")} hint={t("Optional | Für interne Projekte leer lassen.")}>
+              <TextInput
+                value={customerName}
+                onChange={(event) => setCustomerName(event.currentTarget.value)}
+                placeholder={t("Name oder Unternehmen")}
+              />
+            </Field>
           ) : (
             <FormRow>
-              <Field label="Bestehender Kunde" hint="optional">
+              <Field label={t("Kundenzuordnung")} hint={t("Optional")}>
                 <Select value={selectedCustomerId} onChange={(event) => setSelectedCustomerId(event.currentTarget.value)}>
-                  <option value="">Kein Kunde · internes Projekt</option>
-                  {(customers.data ?? []).map((customer) => <option key={customer.id} value={customer.id}>{customer.name}</option>)}
+                  <option value="">{t("Kein Kunde | internes Projekt")}</option>
+                  {availableCustomers.map((customer) => <option key={customer.id} value={customer.id}>{customer.name}</option>)}
                 </Select>
               </Field>
-              <Field label="Oder neuer Kunde" hint="optional">
-                <TextInput value={customerName} onChange={(event) => setCustomerName(event.currentTarget.value)} placeholder="z. B. Muster GmbH" disabled={Boolean(selectedCustomerId)} />
+              <Field label={t("Neuen Kunden anlegen")} hint={t("Optional")}>
+                <TextInput value={customerName} onChange={(event) => setCustomerName(event.currentTarget.value)} placeholder={t("z. B. Muster GmbH")} disabled={Boolean(selectedCustomerId)} />
               </Field>
             </FormRow>
           )}
 
-          <Field label="Projektname" required>
-            <TextInput value={projectName} onChange={(event) => setProjectName(event.currentTarget.value)} placeholder="z. B. Website-Relaunch" autoFocus />
+          <Field label={t("Projektname")} required>
+            <TextInput value={projectName} onChange={(event) => setProjectName(event.currentTarget.value)} placeholder={t("z. B. Website-Relaunch")} autoFocus />
           </Field>
           <FormRow>
-            <Field label="Abrechnung">
-              <Select value={billingType} onChange={(event) => setBillingType(event.currentTarget.value as "hourly" | "non_billable")}>
-                <option value="hourly">Stundensatz</option>
-                <option value="non_billable">Nicht abrechenbar</option>
+            <Field label={t("Abrechnung")}>
+              <Select value={billingType} onChange={(event) => setBillingType(event.currentTarget.value as OnboardingBillingType)}>
+                <option value="hourly">{t("Stundensatz")}</option>
+                <option value="fixed_fee">{t("Festpreis")}</option>
+                <option value="non_billable">{t("Nicht abrechenbar")}</option>
               </Select>
             </Field>
-            <Field label="Stundensatz (€)" hint="optional">
-              <TextInput
-                inputMode="decimal"
-                value={hourlyRate}
-                onChange={(event) => setHourlyRate(event.currentTarget.value)}
-                placeholder="0,00"
-                disabled={billingType !== "hourly"}
-              />
-            </Field>
+            {billingType === "hourly" ? (
+              <Field label={t("Stundensatz (€)")} hint={t("optional")}>
+                <TextInput
+                  inputMode="decimal"
+                  value={hourlyRate}
+                  onChange={(event) => setHourlyRate(event.currentTarget.value)}
+                  placeholder={t("0,00")}
+                />
+              </Field>
+            ) : billingType === "fixed_fee" ? (
+              <Field label={t("Festpreis (€)")} hint={t("optional")}>
+                <TextInput
+                  inputMode="decimal"
+                  value={fixedFee}
+                  onChange={(event) => setFixedFee(event.currentTarget.value)}
+                  placeholder={t("0,00")}
+                />
+              </Field>
+            ) : (
+              <div className="onboarding-billing-note" role="status">
+                {t("Für dieses Projekt wird kein Preis erfasst.")}
+              </div>
+            )}
           </FormRow>
           <Button type="submit" variant="primary" disabled={pending || !projectName.trim()}>
-            Projekt anlegen <ChevronRight size={15} aria-hidden />
+            {t("Projekt anlegen")} <ChevronRight size={15} aria-hidden />
           </Button>
         </form>
       )}
@@ -593,13 +629,13 @@ function WorkspaceStep({
 
 function LiveTrackingStep() {
   return (
-    <div className="onboarding-demo" aria-label="Ablauf eines Live-Timers">
-      <ProcessItem number="1" title="Projekt wählen" copy="Ordne die Bearbeitung deinem Projekt zu und ergänze, woran du arbeitest." symbol="timerPlay" fallback={Play} />
-      <ProcessItem number="2" title="Pausieren & fortsetzen" copy="Pausen werden getrennt erfasst und von der Nettozeit abgezogen." symbol="timerPause" fallback={Pause} />
-      <ProcessItem number="3" title="Stoppen & speichern" copy="Beim Abschluss prüfst du Beschreibung, Endzeit und die Rundungsvorschau." symbol="timerStop" fallback={Square} />
+    <div className="onboarding-demo" aria-label={t("Ablauf eines Live-Timers")}>
+      <ProcessItem number="1" title={t("Projekt wählen")} copy={t("Ordne die Bearbeitung deinem Projekt zu und ergänze, woran du arbeitest.")} symbol="timerPlay" fallback={Play} />
+      <ProcessItem number="2" title={t("Pausieren & fortsetzen")} copy={t("Pausen werden getrennt erfasst und von der Nettozeit abgezogen.")} symbol="timerPause" fallback={Pause} />
+      <ProcessItem number="3" title={t("Stoppen & speichern")} copy={t("Beim Abschluss prüfst du Beschreibung, Endzeit und die Rundungsvorschau.")} symbol="timerStop" fallback={Square} />
       <div className="onboarding-callout">
         <span className="onboarding-callout__pulse" aria-hidden />
-        <div><strong>Immer erreichbar</strong><p>Der kompakte Timer oben in der App zeigt Status und Laufzeit in jedem Bereich.</p></div>
+        <div><strong>{t("Immer erreichbar")}</strong><p>{t("Der kompakte Timer oben in der App zeigt Status und Laufzeit in jedem Bereich.")}</p></div>
       </div>
     </div>
   );
@@ -607,17 +643,25 @@ function LiveTrackingStep() {
 
 function BackdatingStep() {
   return (
-    <div className="onboarding-demo">
-      <div className="onboarding-timeline" aria-hidden>
-        <span>09:00</span><i /><strong>Konzeptarbeit</strong><i /><span>11:30</span>
-      </div>
-      <div className="onboarding-detail-list">
-        <div><strong>Zeitraum</strong><span>Datum, Start, Ende und Pausen</span></div>
-        <div><strong>Begründung</strong><span>z. B. Timer vergessen, Meeting oder Offline-Arbeit</span></div>
-        <div><strong>Vorschau</strong><span>Nettozeit und Abrechnungsrundung vor dem Speichern</span></div>
-      </div>
-      <p className="onboarding-caption">Nachträge werden als solche markiert und bleiben im Audit-Verlauf nachvollziehbar.</p>
-    </div>
+    <section className="onboarding-backdating-card" aria-label={t("Beispiel eines Nachtrags")}>
+      <header className="onboarding-backdating-card__header">
+        <div>
+          <span>{t("Beispielnachtrag")}</span>
+          <strong>{t("Konzeptarbeit")}</strong>
+        </div>
+        <time>09:00,11:30</time>
+      </header>
+      <div className="onboarding-backdating-card__track" aria-hidden><span /></div>
+      <dl className="onboarding-backdating-card__details">
+        <div><dt>{t("Zeitraum")}</dt><dd>{t("Heute | 09:00,11:30")}</dd></div>
+        <div><dt>{t("Begründung")}</dt><dd>{t("Timer vergessen, Meeting oder Offline-Arbeit")}</dd></div>
+        <div><dt>{t("Vorschau")}</dt><dd>{t("Nettozeit und Abrechnungsrundung vor dem Speichern")}</dd></div>
+      </dl>
+      <footer className="onboarding-backdating-card__footer">
+        <History size={14} strokeWidth={1.8} aria-hidden />
+        <span>{t("Als Nachtrag markiert und im Audit-Verlauf nachvollziehbar")}</span>
+      </footer>
+    </section>
   );
 }
 
@@ -626,17 +670,17 @@ function SyncStep() {
     <div className="onboarding-sync-options">
       <article className="onboarding-sync-card is-supported">
         <span className="onboarding-sync-card__icon"><CloudOff size={20} aria-hidden /></span>
-        <div><span className="tag tag--accent">Standard</span><h2>Nur auf diesem Gerät</h2></div>
-        <p>Voll unterstützt. Kunden, Projekte und Zeiten liegen in deiner lokalen SQLite-Datenbank; Backups kannst du in den Einstellungen erstellen.</p>
-        <ul><li>Kein Server erforderlich</li><li>Keine Anmeldung</li><li>Offline vollständig nutzbar</li></ul>
+        <div><span className="tag tag--accent">{t("Standard")}</span><h2>{t("Nur auf diesem Gerät")}</h2></div>
+        <p>{t("Voll unterstützt. Kunden, Projekte und Zeiten liegen in deiner lokalen SQLite-Datenbank; Backups kannst du in den Einstellungen erstellen.")}</p>
+        <ul><li>{t("Kein Server erforderlich")}</li><li>{t("Keine Anmeldung")}</li><li>{t("Offline vollständig nutzbar")}</li></ul>
       </article>
       <article className="onboarding-sync-card">
         <span className="onboarding-sync-card__icon"><RotateCcw size={20} aria-hidden /></span>
-        <div><span className="tag tag--muted">Experimentell</span><h2>Eigener Tarlog-Server</h2></div>
-        <p>Die Webanwendung kann selbst gehostet werden. Der native Desktop-Abgleich über Pairing, Event-Log und Live-Kanal befindet sich noch in Erprobung.</p>
-        <ul><li>Server bleibt unter deiner Kontrolle</li><li>WebSocket mit Polling-Fallback vorgesehen</li><li>Keine Verbindung wird jetzt automatisch hergestellt</li></ul>
+        <div><span className="tag tag--muted">{t("Experimentell")}</span><h2>{t("Eigener Tarlog-Server")}</h2></div>
+        <p>{t("Die Webanwendung kann selbst gehostet werden. Der native Desktop-Abgleich über Pairing, Event-Log und Live-Kanal befindet sich noch in Erprobung.")}</p>
+        <ul><li>{t("Server bleibt unter deiner Kontrolle")}</li><li>{t("WebSocket mit Polling-Fallback vorgesehen")}</li><li>{t("Keine Verbindung wird jetzt automatisch hergestellt")}</li></ul>
       </article>
-      <p className="onboarding-caption">Du kannst den Betriebsmodus später jederzeit im Bereich „Sync“ prüfen. Lokal erfasste Daten bleiben dabei erhalten.</p>
+      <p className="onboarding-caption">{t("Du kannst den Betriebsmodus später jederzeit im Bereich „Sync“ prüfen. Lokal erfasste Daten bleiben dabei erhalten.")}</p>
     </div>
   );
 }
@@ -646,13 +690,13 @@ function ReadyStep({ progress }: { progress: OnboardingProgress }) {
     <div className="onboarding-ready">
       <div className="onboarding-ready__check" aria-hidden><Check size={32} strokeWidth={2.2} /></div>
       <div>
-        <h2>Projekt vorbereitet</h2>
-        <p>{progress.customerId ? "Kunde und Projekt sind angelegt." : "Dein Projekt ist angelegt und kann sofort verwendet werden."}</p>
+        <h2>{t("Projekt vorbereitet")}</h2>
+        <p>{progress.customerId ? t("Kunde und Projekt sind angelegt.") : t("Dein Projekt ist angelegt und kann sofort verwendet werden.")}</p>
       </div>
       <div className="onboarding-detail-list">
-        <div><strong>Live arbeiten</strong><span>Timer öffnen, Projekt wählen und starten</span></div>
-        <div><strong>Vergangenes erfassen</strong><span>„Nachträge“ in der Seitenleiste öffnen</span></div>
-        <div><strong>Einführung wiederholen</strong><span>Über „Einführung“ unten in der Seitenleiste</span></div>
+        <div><strong>{t("Live arbeiten")}</strong><span>{t("Timer öffnen, Projekt wählen und starten")}</span></div>
+        <div><strong>{t("Vergangenes erfassen")}</strong><span>{t("„Nachträge“ in der Seitenleiste öffnen")}</span></div>
+        <div><strong>{t("Einführung wiederholen")}</strong><span>{t("Über „Einführung“ unten in der Seitenleiste")}</span></div>
       </div>
     </div>
   );

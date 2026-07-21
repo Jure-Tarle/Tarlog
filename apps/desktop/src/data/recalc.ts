@@ -1,11 +1,11 @@
 /**
- * recalc.ts — the billing writeback (doc 07 §3.1, doc 10 §4). After a timer stop
+ * recalc.ts, the billing writeback (doc 07 §3.1, doc 10 §4). After a timer stop
  * or a backdate the raw entry exists, but the abrechenbaren Felder must be
  * (re)derived from @tarlog/core: resolve the rounding rule (Projekt > Kunde >
  * Default) and rate (task > project > customer > default), run `calculateEntry`,
  * and persist the 12 rounding/snapshot fields back into `time_entries`.
  *
- * This is the ONLY place billing numbers are computed — never in SQL, never in
+ * This is the ONLY place billing numbers are computed, never in SQL, never in
  * the UI. `actual_duration_seconds` stays BRUTTO (never altered by rounding).
  */
 import { execute, select } from "../lib/db";
@@ -40,7 +40,7 @@ interface BreakRow {
 /**
  * Recompute + persist the billing fields for one finalized entry. Returns the
  * full {@link CalcResult}. Throws if the entry is missing or still running
- * (`actual_ended_at` NULL) — a running entry has no billable duration yet.
+ * (`actual_ended_at` NULL), a running entry has no billable duration yet.
  */
 export async function recalcEntry(entryId: Uuid): Promise<CalcResult> {
   const ctx = await getContext();
@@ -74,7 +74,6 @@ export async function recalcEntry(entryId: Uuid): Promise<CalcResult> {
   const rate = await resolveEntryRate({
     taskId: entry.task_id,
     projectId: entry.project_id,
-    customerId: entry.customer_id,
     onDate,
   });
 

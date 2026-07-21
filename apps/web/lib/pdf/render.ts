@@ -1,10 +1,10 @@
 /**
- * lib/pdf/render.ts — der einzige unreine Teil von lib/pdf: rendert eine reine
+ * lib/pdf/render.ts, der einzige unreine Teil von lib/pdf: rendert eine reine
  * pdfmake-Dokumentdefinition zu einem PDF-Buffer (doc 10 §6.4 Hybrid-Pipeline,
  * pdfmake als portabler Kern).
  *
  * Die eingebettete Roboto-Schrift wird über das Virtual File System (`vfs_fonts`)
- * geladen — kein Chromium, kein Dateisystem-Font nötig, läuft lokal (Tauri) und
+ * geladen, kein Chromium, kein Dateisystem-Font nötig, läuft lokal (Tauri) und
  * serverseitig gleich. Import ist lazy (dynamic import), damit die schwere
  * pdfmake-Browser-Build nicht in Edge-Bundles landet und nur bei echter
  * PDF-Erzeugung geladen wird. Dokument-Layouts liegen als reine Funktionen in

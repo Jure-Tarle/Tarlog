@@ -1,5 +1,5 @@
 /**
- * app/api/invoices/[id]/finalize — Entwurf finalisieren (doc 10 §5.6).
+ * app/api/invoices/[id]/finalize, Entwurf finalisieren (doc 10 §5.6).
  *
  * draft → finalized: fortlaufende Nummer atomar vergeben, Snapshots einfrieren,
  * verknüpfte Einträge als fakturiert sperren (Immutability). Audit

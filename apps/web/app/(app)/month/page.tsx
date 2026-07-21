@@ -1,5 +1,5 @@
 /**
- * /month — Monatsübersicht (doc 11 §2 Nr. 5, §4.1 Nr. 3): Monatsraster mit
+ * /month, Monatsübersicht (doc 11 §2 Nr. 5, §4.1 Nr. 3): Monatsraster mit
  * Tagessummen und Compliance-Markern. Jede Zelle verlinkt in die Tagesansicht.
  */
 import { PageHeader, LoadError, Grid, StatTile, type Traffic } from "@/lib/ui/ui";

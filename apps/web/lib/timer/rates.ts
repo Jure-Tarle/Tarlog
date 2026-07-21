@@ -1,9 +1,9 @@
 /**
- * lib/timer/rates.ts — Rundungsregel- + Rate-Auflösung für den Stop-/Nachtrag-
+ * lib/timer/rates.ts, Rundungsregel- + Rate-Auflösung für den Stop-/Nachtrag-
  * Pfad (doc 07 §5, doc 10 §4.0). Reihenfolge Rundung: Projekt > Kunde > Default
  * (global). Reihenfolge Rate: Task > Projekt > Kunde > Default. Baut die
  * `RoundingRule`/`RateSnapshot`-Eingaben für @tarlog/core (`applyRounding`,
- * `resolveRate`, `calculateEntry`). Keine Mutation — reine Leseauflösung.
+ * `resolveRate`, `calculateEntry`). Keine Mutation, reine Leseauflösung.
  */
 import type { PoolClient } from "pg";
 import type {
@@ -19,6 +19,12 @@ interface RoundingRuleRow {
   mode: RoundingRule["mode"];
   interval_minutes: number | null;
   min_duration_seconds: number | null;
+  priority: number;
+}
+
+interface RankedRounding {
+  rule: RoundingRule;
+  priority: number;
 }
 
 /** Ergebnis der Rundungsauflösung inkl. FK (NULL wenn keine Regel existiert). */
@@ -46,9 +52,9 @@ async function roundingRuleById(
   mainAccountId: string,
   id: string,
   onDate: string,
-): Promise<RoundingRule | null> {
+): Promise<RankedRounding | null> {
   const res = await client.query<RoundingRuleRow>(
-    `SELECT id, mode, interval_minutes, min_duration_seconds
+    `SELECT id, mode, interval_minutes, min_duration_seconds, priority
        FROM rounding_rules
       WHERE id = $1 AND main_account_id = $2 AND deleted_at IS NULL
         AND valid_from <= $3 AND (valid_until IS NULL OR valid_until >= $3)
@@ -56,25 +62,25 @@ async function roundingRuleById(
     [id, mainAccountId, onDate],
   );
   const row = res.rows[0];
-  return row ? mapRoundingRule(row) : null;
+  return row ? { rule: mapRoundingRule(row), priority: row.priority } : null;
 }
 
 async function defaultRoundingRule(
   client: PoolClient,
   mainAccountId: string,
   onDate: string,
-): Promise<RoundingRule | null> {
+): Promise<RankedRounding | null> {
   const res = await client.query<RoundingRuleRow>(
-    `SELECT id, mode, interval_minutes, min_duration_seconds
+    `SELECT id, mode, interval_minutes, min_duration_seconds, priority
        FROM rounding_rules
       WHERE main_account_id = $1 AND deleted_at IS NULL AND scope = 'global'
         AND valid_from <= $2 AND (valid_until IS NULL OR valid_until >= $2)
-      ORDER BY valid_from DESC
+      ORDER BY priority DESC, valid_from DESC
       LIMIT 1`,
     [mainAccountId, onDate],
   );
   const row = res.rows[0];
-  return row ? mapRoundingRule(row) : null;
+  return row ? { rule: mapRoundingRule(row), priority: row.priority } : null;
 }
 
 /**
@@ -91,6 +97,7 @@ export async function resolveRoundingRule(
     onDate: string;
   },
 ): Promise<ResolvedRounding> {
+  const candidates: RankedRounding[] = [];
   if (params.projectRoundingRuleId) {
     const r = await roundingRuleById(
       client,
@@ -98,7 +105,7 @@ export async function resolveRoundingRule(
       params.projectRoundingRuleId,
       params.onDate,
     );
-    if (r) return { rule: r, rule_id: r.id };
+    if (r) candidates.push(r);
   }
   if (params.customerRoundingRuleId) {
     const r = await roundingRuleById(
@@ -107,10 +114,12 @@ export async function resolveRoundingRule(
       params.customerRoundingRuleId,
       params.onDate,
     );
-    if (r) return { rule: r, rule_id: r.id };
+    if (r) candidates.push(r);
   }
   const def = await defaultRoundingRule(client, params.mainAccountId, params.onDate);
-  if (def) return { rule: def, rule_id: def.id };
+  if (def) candidates.push(def);
+  const selected = candidates.sort((a, b) => b.priority - a.priority)[0];
+  if (selected) return { rule: selected.rule, rule_id: selected.rule.id };
   // Kein Regelwerk → Pass-Through ohne FK.
   return { rule: { id: "", mode: "none" }, rule_id: null };
 }
@@ -158,7 +167,7 @@ async function billingRate(
 }
 
 /**
- * Löst den effektiven Stundensatz Task > Projekt > Kunde > Default auf und
+ * Löst den effektiven Stundensatz Task > Projekt > Account-Default auf und
  * liefert einen eingefrorenen `RateSnapshot` (doc 07 §5). Quelle je Ebene:
  * `billing_rates` (historisiert) mit Fallback auf die `*_hourly_rate_cents`-
  * Stammdaten. Existiert kein Satz, wird 0 in der Account-Default-Währung
@@ -170,10 +179,8 @@ export async function resolveEntryRate(
     mainAccountId: string;
     taskId?: string | null;
     projectId?: string | null;
-    customerId?: string | null;
     taskRateCents?: number | null;
     projectRateCents?: number | null;
-    customerRateCents?: number | null;
     customerCurrency?: string | null;
     defaultCurrency: string;
     onDate: string;
@@ -204,17 +211,6 @@ export async function resolveEntryRate(
       ? { amount_cents: params.projectRateCents, currency }
       : null);
 
-  const customerRate =
-    (await billingRate(client, {
-      mainAccountId: params.mainAccountId,
-      scope: "customer",
-      scopeId: params.customerId,
-      onDate: params.onDate,
-    })) ??
-    (params.customerRateCents != null
-      ? { amount_cents: params.customerRateCents, currency: params.customerCurrency ?? currency }
-      : null);
-
   const defaultRate =
     (await billingRate(client, {
       mainAccountId: params.mainAccountId,
@@ -228,9 +224,6 @@ export async function resolveEntryRate(
       : undefined,
     project: projectRate
       ? { amount_cents: projectRate.amount_cents, currency: projectRate.currency, source: "project" }
-      : undefined,
-    customer: customerRate
-      ? { amount_cents: customerRate.amount_cents, currency: customerRate.currency, source: "customer" }
       : undefined,
     default: {
       amount_cents: defaultRate.amount_cents,

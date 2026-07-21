@@ -1,11 +1,11 @@
 /**
- * context.ts — resolve the local Single-User identity (doc 06: `main_account_id`
+ * context.ts, resolve the local Single-User identity (doc 06: `main_account_id`
  * Single-User-Isolation, `organization_id` NULL). The desktop app owns exactly
  * one `main_accounts` row and one `devices` row (this machine); every repository
  * write stamps those ids. The values are seeded by `db_init`/`db_migrate`
  * (bridge) before any repository call runs.
  *
- * Resolution is memoized per process — the singleton never changes at runtime.
+ * Resolution is memoized per process, the singleton never changes at runtime.
  */
 import { select } from "../lib/db";
 import type { Uuid } from "@tarlog/core";
@@ -24,7 +24,7 @@ let cached: Promise<LocalContext> | null = null;
 
 /**
  * Load (and memoize) the local identity. Throws a clear error if the DB has not
- * been initialized/seeded yet — callers must run `bridge.dbInit()` +
+ * been initialized/seeded yet, callers must run `bridge.dbInit()` +
  * `bridge.dbMigrate()` first.
  */
 export function getContext(): Promise<LocalContext> {
@@ -48,7 +48,7 @@ async function load(): Promise<LocalContext> {
   const account = accounts[0];
   if (!account) {
     throw new Error(
-      "LocalContext: kein main_accounts-Datensatz — db_init/db_migrate zuerst ausführen",
+      "LocalContext: kein main_accounts-Datensatz, db_init/db_migrate zuerst ausführen",
     );
   }
 
@@ -58,7 +58,7 @@ async function load(): Promise<LocalContext> {
   const device = devices[0];
   if (!device) {
     throw new Error(
-      "LocalContext: kein devices-Datensatz — db_init/db_migrate zuerst ausführen",
+      "LocalContext: kein devices-Datensatz, db_init/db_migrate zuerst ausführen",
     );
   }
 

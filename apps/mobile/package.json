@@ -1,6 +1,6 @@
 {
   "name": "@tarlog/mobile",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "private": true,
   "main": "index.ts",
   "scripts": {
@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.29.7",
+    "@expo/vector-icons": "~14.0.4",
     "@expo/metro-runtime": "~4.0.1",
     "@tarlog/core": "workspace:*",
     "@react-native-async-storage/async-storage": "1.23.1",

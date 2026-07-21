@@ -1,5 +1,5 @@
 /**
- * data/index.ts — THE STORE CONTRACT for the iOS app (doc 02 §4.5, doc 11 §7).
+ * data/index.ts, THE STORE CONTRACT for the iOS app (doc 02 §4.5, doc 11 §7).
  *
  * This file defines the FULL set of store functions the screen author and sync
  * author code against, implemented over expo-sqlite (see ../lib/db). Business
@@ -50,7 +50,7 @@ import {
 } from "./internal";
 
 // ---------------------------------------------------------------------------
-// Row shapes (read models) — strukturgleich to ../lib/db tables. Kept minimal;
+// Row shapes (read models), strukturgleich to ../lib/db tables. Kept minimal;
 // authors widen as screens need more columns.
 // ---------------------------------------------------------------------------
 
@@ -69,7 +69,7 @@ export interface TimerState {
   description_required: boolean;
 }
 
-/** A time entry row (doc 06 time_entries) — the 12 calc fields plus context. */
+/** A time entry row (doc 06 time_entries), the 12 calc fields plus context. */
 export interface TimeEntry {
   id: Uuid;
   main_account_id: Uuid;
@@ -194,7 +194,7 @@ export interface RoundingRuleRef {
 }
 
 // ===========================================================================
-// timer — the single-timer state machine (doc 04 §3, doc 11 §7 nr. 1–5)
+// timer, the single-timer state machine (doc 04 §3, doc 11 §7 nr. 1,5)
 // Exactly ONE active timer per main account. Transitions call `@tarlog/core` for
 // any duration math; this layer only persists state + emits sync events.
 // ===========================================================================
@@ -225,7 +225,7 @@ function loadEntryRow(entryId: Uuid): TimeEntryRow {
 
 /**
  * Insert a fresh `running` time entry (live-timer path). The 12 calc fields are
- * zeroed — they are computed by `@tarlog/core` at stop time, never here.
+ * zeroed, they are computed by `@tarlog/core` at stop time, never here.
  */
 function insertRunningEntry(input: CreateEntryInput): Uuid {
   const conn = db();
@@ -467,7 +467,7 @@ export const timer = {
 } as const;
 
 // ===========================================================================
-// entries — time entries (doc 11 §7 nr. 6, nr. 11–13)
+// entries, time entries (doc 11 §7 nr. 6, nr. 11,13)
 // ===========================================================================
 
 function loadEntry(id: Uuid): TimeEntryRow {
@@ -577,7 +577,7 @@ export const entries = {
 } as const;
 
 // ===========================================================================
-// customers / projects / tasks — master data (doc 11 §7 nr. 7, nr. 8)
+// customers / projects / tasks, master data (doc 11 §7 nr. 7, nr. 8)
 // ===========================================================================
 
 export const customers = {
@@ -676,7 +676,7 @@ export const tasks = {
 } as const;
 
 // ===========================================================================
-// settings — account-scoped key/value (doc 06 settings)
+// settings, account-scoped key/value (doc 06 settings)
 // ===========================================================================
 
 export const settings = {

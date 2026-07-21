@@ -1,5 +1,5 @@
 /**
- * /today — Tagesübersicht (doc 11 §2 Nr. 3, doc 03 §7.5, alle 10 Elemente):
+ * /today, Tagesübersicht (doc 11 §2 Nr. 3, doc 03 §7.5, alle 10 Elemente):
  * erfasste Zeiten, Lücken, mögliche vergessene Arbeit, Pausen, Überlappungen,
  * Tagesgesamtzeit, Compliance-Status + Buttons Nachtragen / Lücke / Pause.
  */
@@ -120,9 +120,9 @@ export default async function TodayPage({
               if (r.kind === "gap") {
                 return (
                   <tr key={`gap-${idx}`} style={{ background: "var(--color-surface-sunken)" }}>
-                    <Td mono muted>{formatTime(r.start, tz)}–{formatTime(r.end, tz)}</Td>
+                    <Td mono muted>{formatTime(r.start, tz)},{formatTime(r.end, tz)}</Td>
                     <Td muted>
-                      Lücke ({secondsToHM((r.end - r.start) / 1000)} h) — mögliche vergessene Arbeit
+                      Lücke ({secondsToHM((r.end - r.start) / 1000)} h), mögliche vergessene Arbeit
                     </Td>
                     <Td /><Td />
                     <Td align="center">
@@ -134,7 +134,7 @@ export default async function TodayPage({
               if (r.kind === "overlap") {
                 return (
                   <tr key={`ov-${idx}`}>
-                    <Td mono muted>{formatTime(r.start, tz)}–{formatTime(r.end, tz)}</Td>
+                    <Td mono muted>{formatTime(r.start, tz)},{formatTime(r.end, tz)}</Td>
                     <Td><ComplianceBadge status="yellow" label="Überschneidung" /></Td>
                     <Td /><Td /><Td />
                   </tr>
@@ -144,12 +144,12 @@ export default async function TodayPage({
               return (
                 <tr key={e.id}>
                   <Td mono>
-                    {formatTime(e.actual_started_at, tz)}–{e.actual_ended_at ? formatTime(e.actual_ended_at, tz) : "…"}
+                    {formatTime(e.actual_started_at, tz)},{e.actual_ended_at ? formatTime(e.actual_ended_at, tz) : "…"}
                     {e.crosses_midnight ? <div style={{ fontSize: 10, color: "var(--color-warn)" }}>Mitternacht</div> : null}
                   </Td>
                   <Td>
                     <div style={{ fontWeight: 500 }}>{e.projectName ?? "Ohne Projekt"}</div>
-                    <div style={{ fontSize: 12.5, color: "var(--color-text-muted)" }}>{e.description ?? "—"}</div>
+                    <div style={{ fontSize: 12.5, color: "var(--color-text-muted)" }}>{e.description ?? ","}</div>
                     <div style={{ marginTop: 4, display: "flex", gap: 6, flexWrap: "wrap" }}>
                       {e.status === "draft" ? <Badge tone="muted">Entwurf</Badge> : null}
                       {e.is_backdated ? <Badge tone="muted">nachgetragen</Badge> : null}
@@ -157,7 +157,7 @@ export default async function TodayPage({
                     </div>
                   </Td>
                   <Td align="right" mono>{secondsToHMS(e.net_work_duration_seconds)}</Td>
-                  <Td align="right" mono>{e.is_billable ? secondsToHMS(e.billing_duration_seconds) : "—"}</Td>
+                  <Td align="right" mono>{e.is_billable ? secondsToHMS(e.billing_duration_seconds) : ","}</Td>
                   <Td align="center">{e.is_billable ? <Badge tone="accent">abrechenbar</Badge> : <Badge tone="muted">intern</Badge>}</Td>
                 </tr>
               );

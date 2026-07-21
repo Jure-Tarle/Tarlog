@@ -79,7 +79,7 @@ export default function WeekScreen() {
     <Screen>
       <Body>
         <Card>
-          <Label muted>{`${days[0]} – ${days[6]}`}</Label>
+          <Label muted>{`${days[0]}, ${days[6]}`}</Label>
           <View style={{ height: space.sm }} />
           <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
             <View>
@@ -116,9 +116,9 @@ export default function WeekScreen() {
                     secondary={
                       b.count === 0
                         ? "keine Einträge"
-                        : `${b.count} Einträge · Pause ${formatHms(b.brk)}`
+                        : `${b.count} Einträge | Pause ${formatHms(b.brk)}`
                     }
-                    figure={b.count === 0 ? "—" : formatHms(b.net)}
+                    figure={b.count === 0 ? "," : formatHms(b.net)}
                     figureSub={b.count === 0 ? undefined : formatHms(b.billing)}
                   />
                 );

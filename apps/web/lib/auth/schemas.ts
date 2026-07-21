@@ -1,5 +1,5 @@
 /**
- * lib/auth/schemas.ts — Zod-Eingabeschemas für die Auth-/Geräte-/Token-Routen.
+ * lib/auth/schemas.ts, Zod-Eingabeschemas für die Auth-/Geräte-/Token-Routen.
  *
  * Auth-Inputs sind NICHT im @tarlog/core-Schemapaket (das deckt fachliche Kern-
  * entitäten ab), daher hier lokal. Feld-Konventionen wie im Rest des Projekts:
@@ -7,7 +7,7 @@
  */
 import { z } from "zod";
 
-/** Passwort-Policy (doc 09 §5 Nr. 3 — Mindestlänge). */
+/** Passwort-Policy (doc 09 §5 Nr. 3, Mindestlänge). */
 const password = z.string().min(10, "Passwort muss mindestens 10 Zeichen haben.").max(1024);
 
 /** Erststart: den EINEN main_account + Setup-Gerät anlegen (doc 05 §9.3). */

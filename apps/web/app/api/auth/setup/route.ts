@@ -1,5 +1,5 @@
 /**
- * POST /api/auth/setup — Erststart-Wizard: legt GENAU EINEN main_account +
+ * POST /api/auth/setup, Erststart-Wizard: legt GENAU EINEN main_account +
  * Setup-Gerät + local_profile an und meldet den Admin sofort an (doc 05 §9.3,
  * doc 02 §4). Danach gesperrt: ein zweiter Aufruf liefert 409.
  *
@@ -117,10 +117,22 @@ export const POST = publicRoute(async (req: NextRequest) => {
     await tx.insert(schema.roundingRules).values({
       id: uuidv7(),
       main_account_id: mainAccountId,
-      name: "Standard — 15 Minuten aufrunden",
+      name: "Standard, 15 Minuten aufrunden",
       mode: "ceil_started_interval",
       interval_minutes: 15,
       scope: "global",
+      valid_from: "1970-01-01",
+      calculation_version: 1,
+      created_at: now,
+      updated_at: now,
+    });
+    await tx.insert(schema.roundingRules).values({
+      id: uuidv7(),
+      main_account_id: mainAccountId,
+      name: "Standard, keine Rundung",
+      mode: "none",
+      interval_minutes: null,
+      scope: "project",
       valid_from: "1970-01-01",
       calculation_version: 1,
       created_at: now,

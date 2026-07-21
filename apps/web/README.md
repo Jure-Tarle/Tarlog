@@ -1,4 +1,4 @@
-# Tarlog Web – Self-Hosting, Browser-Sync und Onboarding
+# Tarlog Web, Self-Hosting, Browser-Sync und Onboarding
 
 Die Webanwendung ist der selbst gehostete Tarlog-Server und zugleich die
 Browser-Oberfläche. Sie läuft als Next.js-Anwendung mit PostgreSQL und einem
@@ -146,18 +146,18 @@ Einrichtungen werden am gespeicherten Schritt fortgesetzt.
 
 Der Assistent führt durch:
 
-1. **Willkommen** – Unterschied zwischen lokaler App und selbst gehostetem
+1. **Willkommen**, Unterschied zwischen lokaler App und selbst gehostetem
    Browserbetrieb verstehen.
-2. **Arbeitsbereich** – optional einen Kunden und verpflichtend das erste
+2. **Arbeitsbereich**, optional einen Kunden und verpflichtend das erste
    Projekt anlegen. Das Projekt bildet den Kontext für Timer und Nachträge.
-3. **Aktive Erfassung** – Projekt auswählen und Start, Pause, Fortsetzen und
+3. **Aktive Erfassung**, Projekt auswählen und Start, Pause, Fortsetzen und
    Stoppen einer laufenden Bearbeitung kennenlernen.
-4. **Vergangene Zeit** – einen früheren Zeitraum mit Beschreibung und Grund
+4. **Vergangene Zeit**, einen früheren Zeitraum mit Beschreibung und Grund
    nachtragen.
-5. **Sync** – verstehen, dass Browser derselben Server-URL unmittelbar dieselbe
+5. **Sync**, verstehen, dass Browser derselben Server-URL unmittelbar dieselbe
    PostgreSQL-Wahrheit sehen; die native Desktop-Replikation bleibt optional
    und experimentell.
-6. **Bereit** – Einrichtung abschließen und zum regulären Arbeitsbereich
+6. **Bereit**, Einrichtung abschließen und zum regulären Arbeitsbereich
    wechseln.
 
 Das Onboarding erzeugt keine Beispieldaten, die der Nutzer nicht bestätigt.
@@ -197,8 +197,8 @@ widerrufen, werden seine API-Tokens und Browser-Sitzungen gemeinsam ungültig.
 | `GET /api/realtime/token` | kurzlebiges, einmal verwendbares, browser- und gerätegebundenes Ticket für den Live-Kanal |
 | `GET /api/ws?token=<token>` | WebSocket-Livekanal für ein Realtime-Ticket oder passend berechtigte Device-/API-Token |
 
-Mutationen, die den Server-Sync-Pfad nutzen – insbesondere Timer und
-Zeiteinträge – werden in `sync_events` geschrieben. Der Server serialisiert
+Mutationen, die den Server-Sync-Pfad nutzen, insbesondere Timer und
+Zeiteinträge, werden in `sync_events` geschrieben. Der Server serialisiert
 diese kritischen Änderungen pro Main Account, vergibt monotone
 `server_revision`-Werte und schreibt Fachmutation, Audit und Sync-Ereignis in
 derselben Datenbanktransaktion. Erst nach dem Commit wird der Live-Hinweis über
@@ -363,19 +363,19 @@ nicht durch Löschen des Volumes umgehen.
 
 ## 9. Diagnose
 
-- **`SESSION_SECRET erforderlich`** – `.env` liegt im Monorepo-Root und enthält
+- **`SESSION_SECRET erforderlich`**, `.env` liegt im Monorepo-Root und enthält
   einen nicht leeren Wert.
-- **Healthcheck meldet `db: down`** – `docker compose ps`, PostgreSQL-Logs und
+- **Healthcheck meldet `db: down`**, `docker compose ps`, PostgreSQL-Logs und
   die zusammengesetzte `DATABASE_URL` prüfen.
-- **Login funktioniert nur lokal** – öffentliche URL auf HTTPS umstellen,
+- **Login funktioniert nur lokal**, öffentliche URL auf HTTPS umstellen,
   `NEXT_PUBLIC_APP_URL` korrigieren und `Host` am Proxy erhalten.
-- **Live-Anzeige bleibt auf Polling** – das ist aktuell der unterstützte
+- **Live-Anzeige bleibt auf Polling**, das ist aktuell der unterstützte
   Browser-Fallback. Proxy-Timeout und `/api/sync/poll` prüfen.
-- **WebSocket liefert 401** – Token ungültig, abgelaufen oder widerrufen; keine
+- **WebSocket liefert 401**, Token ungültig, abgelaufen oder widerrufen; keine
   Session-Cookies als WebSocket-Token verwenden.
-- **Pairing-Code verschwindet** – Codes sind prozesslokal und überleben keinen
+- **Pairing-Code verschwindet**, Codes sind prozesslokal und überleben keinen
   Neustart. Nur eine `web`-Instanz betreiben.
-- **Desktop zeigt eine Server-URL, aber keine Daten erscheinen** – native
+- **Desktop zeigt eine Server-URL, aber keine Daten erscheinen**, native
   Desktop-Synchronisierung ist noch experimentell; Browserbetrieb verwenden.
 
 ## 10. Verifikation für Änderungen am Serverbetrieb

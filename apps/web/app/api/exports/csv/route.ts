@@ -1,5 +1,5 @@
 /**
- * app/api/exports/csv — CSV-Export der Zeiteinträge (doc 10 §6.1, doc 12
+ * app/api/exports/csv, CSV-Export der Zeiteinträge (doc 10 §6.1, doc 12
  * Testfall 24: Spalten vollständig, korrekt escaped, UTF-8, verlustfrei
  * re-importierbar). GET mit from,to (epoch-ms), project_id?, customer_id?.
  * Rohzeiten als epoch-ms (verlustfrei), Beträge als Integer-Cents.

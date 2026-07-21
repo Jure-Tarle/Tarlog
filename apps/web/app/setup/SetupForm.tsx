@@ -1,6 +1,6 @@
 "use client";
 /**
- * SetupForm — Erststart-Formular (Client). POSTet an /api/auth/setup; bei Erfolg
+ * SetupForm, Erststart-Formular (Client). POSTet an /api/auth/setup; bei Erfolg
  * ist der Admin sofort angemeldet (Session-Cookie gesetzt) → harte Navigation
  * nach /onboarding, damit die Middleware die neuen Cookies liest und der
  * fachliche First-Run-Assistent den ersten Arbeitsbereich einrichtet.
@@ -76,7 +76,7 @@ export function SetupForm(): React.ReactElement {
         />
       </Field>
 
-      <Field label="E-Mail" hint="Optional — für Login und Rechnungen.">
+      <Field label="E-Mail" hint="Optional, für Login und Rechnungen.">
         <TextInput
           type="email"
           value={email}

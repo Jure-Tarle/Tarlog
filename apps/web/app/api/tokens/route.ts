@@ -1,5 +1,5 @@
 /**
- * /api/tokens — API-Tokens verwalten (doc 05 §9.3 Schritt 4, doc 09 §5 Nr. 18).
+ * /api/tokens, API-Tokens verwalten (doc 05 §9.3 Schritt 4, doc 09 §5 Nr. 18).
  *
  *  GET  → Tokens des eigenen main_account listen (nie Hash/Klartext, nur Prefix).
  *  POST → neues Token erstellen; Klartext GENAU EINMAL in der Antwort.

@@ -8,6 +8,7 @@
     "core:window:allow-close",
     "core:window:allow-hide",
     "core:window:allow-show",
+    "core:window:allow-start-dragging",
     "core:window:allow-set-theme",
     "sql:default",
     "sql:allow-load",

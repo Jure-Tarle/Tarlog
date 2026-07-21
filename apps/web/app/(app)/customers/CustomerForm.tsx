@@ -1,6 +1,6 @@
 "use client";
 /**
- * CustomerForm — Kunde anlegen (doc 10 Kundenverwaltung). Kernfelder; Beträge
+ * CustomerForm, Kunde anlegen (doc 10 Kundenverwaltung). Kernfelder; Beträge
  * werden als Integer-Cents gesendet (doc 05 §8). POST /api/customers.
  */
 import { useState } from "react";
@@ -8,11 +8,6 @@ import { useRouter } from "next/navigation";
 import { API, ApiClientError, api } from "@/lib/ui/api";
 import { Button, Checkbox, Field, FormRow, Select, StatusLine, TextInput } from "@/lib/ui/controls";
 import { Modal } from "@/lib/ui/Modal";
-
-function eurToCents(v: string): number | null {
-  const n = Number(v.replace(",", "."));
-  return v.trim() === "" || Number.isNaN(n) ? null : Math.round(n * 100);
-}
 
 export function CustomerForm(): React.ReactElement {
   const router = useRouter();
@@ -26,7 +21,6 @@ export function CustomerForm(): React.ReactElement {
     email: "",
     phone: "",
     vat_id: "",
-    hourly: "",
     payment_term_days: "14",
     default_currency: "EUR",
     default_tax_rate: "19",
@@ -47,7 +41,6 @@ export function CustomerForm(): React.ReactElement {
         email: f.email || null,
         phone: f.phone || null,
         vat_id: f.vat_id || null,
-        default_hourly_rate_cents: eurToCents(f.hourly),
         payment_term_days: Number(f.payment_term_days) || 14,
         default_currency: f.default_currency.toUpperCase(),
         default_tax_rate: Number(f.default_tax_rate) || 0,
@@ -92,7 +85,6 @@ export function CustomerForm(): React.ReactElement {
           <Field label="Telefon"><TextInput value={f.phone} onChange={(e) => set("phone", e.target.value)} /></Field>
         </FormRow>
         <FormRow>
-          <Field label="Standard-Stundensatz (€)"><TextInput inputMode="decimal" value={f.hourly} onChange={(e) => set("hourly", e.target.value)} placeholder="z. B. 95,00" /></Field>
           <Field label="Zahlungsziel (Tage)"><TextInput type="number" min={0} value={f.payment_term_days} onChange={(e) => set("payment_term_days", e.target.value)} /></Field>
         </FormRow>
         <FormRow>

@@ -1,6 +1,6 @@
 // @ts-nocheck
 /**
- * server.mjs — Custom-Node-Server für Tarlog Web (doc 05 §7, §9.1).
+ * server.mjs, Custom-Node-Server für Tarlog Web (doc 05 §7, §9.1).
  *
  * Startet den Next.js-Handler UND den WebSocket-Live-Kanal in EINEM Prozess.
  * Plain JavaScript ohne Build-Schritt (start = `node server.mjs`), damit der
@@ -9,7 +9,7 @@
  * Architektur des Live-Kanals (bewusst entkoppelt von den Next-Routen):
  *  1) WS-Endpoint unter Pfad `/api/ws`. Client verbindet mit `?token=<device
  *     token>`. Der Server validiert den Token DIREKT gegen die DB (pg-Pool):
- *     SELECT auf api_tokens JOIN devices — gültig nur wenn Token nicht
+ *     SELECT auf api_tokens JOIN devices, gültig nur wenn Token nicht
  *     abgelaufen/widerrufen UND das Gerät nicht `revoked` ist (doc 04 §2 Nr.10).
  *     Dieselbe Regel wie lib/session.ts::verifyDeviceToken (dort in TS, hier
  *     als reines SQL gespiegelt, da server.mjs kein TS importieren kann).
@@ -51,7 +51,7 @@ process.env.TARLOG_REALTIME_WS_ENABLED = "1";
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
   console.error(
-    "[server] DATABASE_URL nicht gesetzt — Server-Modus benötigt PostgreSQL (doc 05 §9.2).",
+    "[server] DATABASE_URL nicht gesetzt, Server-Modus benötigt PostgreSQL (doc 05 §9.2).",
   );
   process.exit(1);
 }
@@ -65,7 +65,7 @@ function hashToken(token) {
  * Next-Handler beschaffen.
  *
  * Im Dev-Modus die übliche `next()`-Factory. In der Produktion läuft die App als
- * `output: 'standalone'`-Bundle — dort ist die Factory nicht benutzbar, weil sie
+ * `output: 'standalone'`-Bundle, dort ist die Factory nicht benutzbar, weil sie
  * den (getrimmten) Build-Pfad `next/dist/compiled/webpack/webpack` lädt. Wie
  * Nexts eigenes `server.js` instanziieren wir deshalb direkt `NextServer` mit der
  * gebauten Konfiguration aus `.next/required-server-files.json`.
@@ -148,7 +148,7 @@ async function createNextHandler() {
   const requiredServerFiles = join(appDir, ".next", "required-server-files.json");
   if (!existsSync(requiredServerFiles)) {
     throw new Error(
-      `[server] ${requiredServerFiles} fehlt — die App wurde nicht mit output: 'standalone' gebaut.`,
+      `[server] ${requiredServerFiles} fehlt, die App wurde nicht mit output: 'standalone' gebaut.`,
     );
   }
   const { config } = JSON.parse(readFileSync(requiredServerFiles, "utf8"));

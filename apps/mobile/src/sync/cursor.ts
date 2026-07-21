@@ -1,5 +1,5 @@
 /**
- * cursor.ts — non-secret sync bookkeeping in AsyncStorage (doc 04 §1.2).
+ * cursor.ts, non-secret sync bookkeeping in AsyncStorage (doc 04 §1.2).
  *
  * Two per-device counters live here (neither is a credential, so they stay out
  * of secure-store):
@@ -21,7 +21,7 @@ export async function getHighWater(): Promise<number> {
   return Number.isFinite(n) && n >= 0 ? n : 0;
 }
 
-/** Advance the high-water mark (monotonic — never moves backwards). */
+/** Advance the high-water mark (monotonic, never moves backwards). */
 export async function setHighWater(serverRevision: number): Promise<void> {
   const current = await getHighWater();
   if (serverRevision > current) {

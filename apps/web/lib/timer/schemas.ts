@@ -1,5 +1,5 @@
 /**
- * lib/timer/schemas.ts — Request-Validierung (zod) für Timer- und Zeiteintrag-
+ * lib/timer/schemas.ts, Request-Validierung (zod) für Timer- und Zeiteintrag-
  * Routen. NUR die client-gesendeten Felder; abgeleitete Werte (Netto, Rundung,
  * Rate-Snapshot, Beträge) berechnet der Server via @tarlog/core. Enum-Wiederver-
  * wendung aus @tarlog/core (`backdateReasonEnum`, `timeEntrySourceEnum`), damit die

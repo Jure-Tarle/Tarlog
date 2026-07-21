@@ -1,5 +1,5 @@
 /**
- * hooks.ts — small async data hooks shared by the pages.
+ * hooks.ts, small async data hooks shared by the pages.
  */
 import { useCallback, useEffect, useState } from "react";
 

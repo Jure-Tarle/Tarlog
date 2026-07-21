@@ -1,0 +1,4 @@
+- generic [ref=e6]:
+  - paragraph [ref=e7]: Tarlog konnte nicht gestartet werden
+  - paragraph [ref=e8]: Die lokale Datenbank ist momentan nicht verfügbar. Beende Tarlog vollständig und versuche es erneut; deine vorhandenen Daten wurden nicht verändert.
+  - button "Erneut versuchen" [ref=e10] [cursor=pointer]

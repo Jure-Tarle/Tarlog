@@ -1,6 +1,6 @@
 /**
- * POST /api/auth/logout — Session serverseitig widerrufen + Cookie löschen
- * (doc 09 §5 Nr. 17 — Server-seitige Invalidierung, nicht nur Client-Löschung).
+ * POST /api/auth/logout, Session serverseitig widerrufen + Cookie löschen
+ * (doc 09 §5 Nr. 17, Server-seitige Invalidierung, nicht nur Client-Löschung).
  */
 import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";

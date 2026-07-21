@@ -1,10 +1,10 @@
 /**
- * hlc.ts — Hybrid Logical Clock for sync ordering (doc 04 §1.1).
+ * hlc.ts, Hybrid Logical Clock for sync ordering (doc 04 §1.1).
  *
  * An HLC combines wall-clock ms with a logical counter and the device id:
  * `physical_ms:logical:device_id`. It is monotonic even when the wall clock
  * jumps backwards, giving a total, cross-device order for field-level LWW. This
- * is transport metadata for the sync layer — NOT business logic; the server
+ * is transport metadata for the sync layer, NOT business logic; the server
  * remains the canonical clock and may normalize a device HLC on large skew.
  *
  * State is in-memory per app run (last physical + logical). Persistence across

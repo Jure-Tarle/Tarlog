@@ -1,6 +1,6 @@
 // @ts-nocheck
 /**
- * scripts/migrate.mjs — wendet die PostgreSQL-Migrationen an (doc 05 §9.5).
+ * scripts/migrate.mjs, wendet die PostgreSQL-Migrationen an (doc 05 §9.5).
  *
  * Bewusst abhängigkeitsarm: das Skript nutzt AUSSCHLIESSLICH `pg`. Es ist nicht
  * Teil des Next-Trace, deshalb steht im `output: 'standalone'`-Bundle weder

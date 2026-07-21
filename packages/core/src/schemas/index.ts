@@ -1,8 +1,8 @@
 /**
- * Zod schemas — single source of truth for input validation + TS types + OpenAPI
+ * Zod schemas, single source of truth for input validation + TS types + OpenAPI
  * (doc 05 §4, doc 06 TEIL A core tables). CORE entities only, not all 40 tables:
  * customer, project, task, time_entry, rounding_rule, billing_rate, timer_state.
- * Field names match docs/project-time-ledger/06-datenmodell.md EXACTLY —
+ * Field names match docs/project-time-ledger/06-datenmodell.md EXACTLY ,
  * any divergence is a data-model bug. These are real (non-stub) schemas so edge
  * validation works from day one. Pure: no I/O, no side effects.
  */
@@ -16,7 +16,7 @@ import { z } from "zod";
 const currency = z.string().length(3).toUpperCase();
 /**
  * UUID string. `z.string().uuid()` accepts UUIDv7 (it validates the RFC-4122
- * shape, not a version pin) — correct for our UUIDv7 primary keys.
+ * shape, not a version pin), correct for our UUIDv7 primary keys.
  */
 const uuid = z.string().uuid();
 /** IANA timezone (non-empty; resolution deferred to luxon at runtime). */
@@ -66,7 +66,7 @@ export const timeEntrySourceEnum = z.enum([
 ]);
 
 /**
- * 11 predefined backdate reasons (doc 03 §7.2). Stable machine keys — labels are
+ * 11 predefined backdate reasons (doc 03 §7.2). Stable machine keys, labels are
  * localised in the UI. Required when a project enforces backdating_reason_required.
  */
 export const backdateReasonEnum = z.enum([
@@ -95,17 +95,24 @@ export const timerStatusEnum = z.enum([
 ]);
 
 // ---------------------------------------------------------------------------
-// customers (doc 06 A.2 `customers`) — core fields
+// customers (doc 06 A.2 `customers`), core fields
 // ---------------------------------------------------------------------------
 
 export const customerSchema = z.object({
   id: uuid,
   main_account_id: uuid,
   name: z.string().min(1, "Name ist erforderlich"),
+  first_name: z.string().nullish(),
+  last_name: z.string().nullish(),
   company: z.string().nullish(),
   contact_person: z.string().nullish(),
   email: z.string().email().nullish(),
   phone: z.string().nullish(),
+  street: z.string().nullish(),
+  house_number: z.string().nullish(),
+  postal_code: z.string().nullish(),
+  city: z.string().nullish(),
+  country: z.string().nullish(),
   vat_id: z.string().nullish(),
   customer_number: z.string().nullish(),
   payment_term_days: z.number().int().nonnegative().default(14),
@@ -124,7 +131,7 @@ export const customerSchema = z.object({
 export type CustomerInput = z.infer<typeof customerSchema>;
 
 // ---------------------------------------------------------------------------
-// projects (doc 06 A.2 `projects`) — core fields
+// projects (doc 06 A.2 `projects`), core fields
 // ---------------------------------------------------------------------------
 
 export const projectSchema = z.object({
@@ -159,7 +166,7 @@ export const projectSchema = z.object({
 export type ProjectInput = z.infer<typeof projectSchema>;
 
 // ---------------------------------------------------------------------------
-// tasks (doc 06 A.2 `tasks`) — 10 fields
+// tasks (doc 06 A.2 `tasks`), 10 fields
 // ---------------------------------------------------------------------------
 
 export const taskSchema = z.object({
@@ -179,7 +186,7 @@ export const taskSchema = z.object({
 export type TaskInput = z.infer<typeof taskSchema>;
 
 // ---------------------------------------------------------------------------
-// rounding_rules (doc 06 A.4 `rounding_rules`) — 9 modes / 6 intervals
+// rounding_rules (doc 06 A.4 `rounding_rules`), 9 modes / 6 intervals
 // ---------------------------------------------------------------------------
 
 export const roundingRuleSchema = z.object({
@@ -190,6 +197,7 @@ export const roundingRuleSchema = z.object({
   interval_minutes: roundingIntervalMinutes.nullish(),
   min_duration_seconds: seconds.nullish(),
   scope: z.enum(["global", "customer", "project", "task"]).default("global"),
+  priority: z.number().int().min(0).default(0),
   valid_from: z.string().date(),
   valid_until: z.string().date().nullish(),
   calculation_version: calculationVersion,
@@ -197,7 +205,7 @@ export const roundingRuleSchema = z.object({
 export type RoundingRuleInput = z.infer<typeof roundingRuleSchema>;
 
 // ---------------------------------------------------------------------------
-// billing_rates (doc 06 A.4 `billing_rates`) — historised hourly rates
+// billing_rates (doc 06 A.4 `billing_rates`), historised hourly rates
 // ---------------------------------------------------------------------------
 
 export const billingRateSchema = z.object({
@@ -214,12 +222,12 @@ export const billingRateSchema = z.object({
 });
 export type BillingRateInput = z.infer<typeof billingRateSchema>;
 
-/** Alias — the entity is `billing_rates`; `rate*` kept for existing callers. */
+/** Alias, the entity is `billing_rates`; `rate*` kept for existing callers. */
 export const rateSchema = billingRateSchema;
 export type RateInput = BillingRateInput;
 
 // ---------------------------------------------------------------------------
-// time_entries (doc 06 A.3 `time_entries`) — core + all 12 rounding/snapshot
+// time_entries (doc 06 A.3 `time_entries`), core + all 12 rounding/snapshot
 // fields + source enum + optional backdate_reason
 // ---------------------------------------------------------------------------
 
@@ -240,13 +248,13 @@ export const timeEntrySchema = z.object({
   timezone,
   // --- 12 rounding/snapshot fields (doc 06 §A.3, doc 07 §3.1) ---
   actual_started_at: epochMs, // 1
-  actual_ended_at: epochMs.nullable(), // 2 — NULL while running
-  actual_duration_seconds: seconds, // 3 — gross, never altered by rounding
+  actual_ended_at: epochMs.nullable(), // 2, NULL while running
+  actual_duration_seconds: seconds, // 3, gross, never altered by rounding
   break_duration_seconds: seconds.default(0), // 4
-  net_work_duration_seconds: seconds, // 5 — actual − break
-  billing_duration_seconds: seconds, // 6 — rounded
+  net_work_duration_seconds: seconds, // 5, actual − break
+  billing_duration_seconds: seconds, // 6, rounded
   rounding_rule_id: uuid.nullish(), // 7
-  rounding_delta_seconds: z.number().int().default(0), // 8 — signed (billing − net)
+  rounding_delta_seconds: z.number().int().default(0), // 8, signed (billing − net)
   rounding_reason: z.string().nullish(), // 9
   calculation_version: calculationVersion, // 10
   rate_snapshot: z.record(z.unknown()).nullish(), // 11
@@ -264,25 +272,25 @@ export const timeEntrySchema = z.object({
 export type TimeEntryInput = z.infer<typeof timeEntrySchema>;
 
 // ---------------------------------------------------------------------------
-// timer_states (doc 06 A.1 `timer_states`, SPEC §6.3) — 7-status machine, 18
+// timer_states (doc 06 A.1 `timer_states`, SPEC §6.3), 7-status machine, 18
 // fields. Compare-and-Set singleton per main_account via server_revision.
 // ---------------------------------------------------------------------------
 
 export const timerStateSchema = z.object({
-  timer_id: uuid, // 1 — PK
+  timer_id: uuid, // 1, PK
   main_account_id: uuid, // 2
   current_time_entry_id: uuid.nullish(), // 3
   status: timerStatusEnum.default("idle"), // 4
   project_id: uuid.nullish(), // 5
   task_id: uuid.nullish(), // 6
-  started_at: epochMs.nullish(), // 7 — set from `running`
+  started_at: epochMs.nullish(), // 7, set from `running`
   paused_at: epochMs.nullish(), // 8
   accumulated_pause_seconds: seconds.default(0), // 9
   active_pause_started_at: epochMs.nullish(), // 10
   device_started_on: uuid, // 11
   last_modified_by_device: uuid, // 12
   sync_version: z.number().int().nonnegative().default(0), // 13
-  server_revision: z.number().int().nullish(), // 14 — Compare-and-Set anchor
+  server_revision: z.number().int().nullish(), // 14, Compare-and-Set anchor
   local_revision: z.number().int().nonnegative().default(0), // 15
   description_required: z.boolean().default(false), // 16
   billing_status: z

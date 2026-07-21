@@ -2,7 +2,7 @@
 
 > Hinweis: Rechtliche Aussagen sind Produkt-Hinweise, keine Rechtsberatung. Stand der Recherche: Juli 2026.
 
-Dieses Kapitel beschreibt das Herzstück von Tarlog: die Live-Zeiterfassung, den Stopp-Dialog, das vollständige Nachtragen-Konzept (SPEC §7), das Pausenkonzept sowie die Erinnerungen. Die Zeiterfassung muss extrem zuverlässig sein — ein verlorener Timer-Zustand oder eine falsch berechnete Dauer untergräbt das gesamte Produkt. Deshalb gilt durchgängig: die tatsächliche Arbeitszeit wird sekundengenau gespeichert (`actual_duration_seconds`), die Anzeige erfolgt gerundet auf Minuten, und die Abrechnungszeit (`billing_duration_seconds`) wird separat berechnet. Die Rundungs- und Berechnungsdetails stehen in [Zeitberechnung und Rundung](07-zeitberechnung-rundung.md), die Zustandssynchronisierung über Geräte in [Synchronisierung](04-sync.md), das Datenmodell der Einträge in [Datenmodell](06-datenmodell.md) und die Prüfregeln in [Compliance](08-compliance.md).
+Dieses Kapitel beschreibt das Herzstück von Tarlog: die Live-Zeiterfassung, den Stopp-Dialog, das vollständige Nachtragen-Konzept (SPEC §7), das Pausenkonzept sowie die Erinnerungen. Die Zeiterfassung muss extrem zuverlässig sein, ein verlorener Timer-Zustand oder eine falsch berechnete Dauer untergräbt das gesamte Produkt. Deshalb gilt durchgängig: die tatsächliche Arbeitszeit wird sekundengenau gespeichert (`actual_duration_seconds`), die Anzeige erfolgt gerundet auf Minuten, und die Abrechnungszeit (`billing_duration_seconds`) wird separat berechnet. Die Rundungs- und Berechnungsdetails stehen in [Zeitberechnung und Rundung](07-zeitberechnung-rundung.md), die Zustandssynchronisierung über Geräte in [Synchronisierung](04-sync.md), das Datenmodell der Einträge in [Datenmodell](06-datenmodell.md) und die Prüfregeln in [Compliance](08-compliance.md).
 
 ## 1. Timer-Grundmodell und Zustände
 
@@ -10,7 +10,7 @@ Pro `main_account` läuft in Version 1 standardmäßig genau ein aktiver Timer. 
 
 Der Timer kennt die Zustände `idle`, `running`, `paused`, `stopped`, `needs_description`, `sync_pending` und `conflict`. Die vollständige State-Machine mit allen 17 Timer-State-Feldern liegt in [Synchronisierung](04-sync.md). Für die Zeiterfassung relevant: Beim Stoppen wechselt ein Timer nach `needs_description`, wenn die Projektkonfiguration eine Pflichtbeschreibung verlangt; erst nach Erfassung der Beschreibung wird der Eintrag `stopped` und abschließbar.
 
-## 2. Timer-Funktionen (SPEC §8 — alle 38 Funktionen)
+## 2. Timer-Funktionen (SPEC §8, alle 38 Funktionen)
 
 Die folgende Tabelle listet alle 38 geforderten Timer-Funktionen mit Verhalten und Bezug.
 
@@ -30,7 +30,7 @@ Die folgende Tabelle listet alle 38 geforderten Timer-Funktionen mit Verhalten u
 | 12 | Timer ohne Projekt starten (optional) | Erlaubt, sofern kein Projekt Pflicht ist; Eintrag später zuordenbar. |
 | 13 | Timer ohne Beschreibung starten | Immer erlaubt; Beschreibungspflicht greift erst beim Stoppen. |
 | 14 | Beschreibung beim Stoppen verlangen | Pflichtbeschreibung beim Stoppen (siehe Projektkonfiguration Abschnitt 5). |
-| 15 | Eintrag als Entwurf speichern | Zustand „Entwurf" — Eintrag unvollständig, blockiert Abrechnung. |
+| 15 | Eintrag als Entwurf speichern | Zustand „Entwurf", Eintrag unvollständig, blockiert Abrechnung. |
 | 16 | Eintrag nachträglich vervollständigen | Entwürfe erscheinen in „unvollständige Einträge" und in [Reports](10-abrechnung-export.md). |
 | 17 | Zeiteintrag duplizieren | Kopiert Projekt/Aufgabe/Tags/Beschreibung; neue Zeiten leer. |
 | 18 | alten Eintrag fortsetzen | Startet neuen Timer mit Kontext eines früheren Eintrags. |
@@ -119,7 +119,7 @@ Pausen sind eigenständige Datensätze (`time_entry_breaks`) und keine bloße Ze
 
 Das Nachtragen ist ein zentrales Feature, keine Nebensache. Jeder Nachtrag wird als Quelle „manuell nachgetragen" markiert, erzeugt einen Audit-Log-Eintrag und wird in Reports und PDF-Nachweisen als Nachtrag ausgewiesen.
 
-### 7.1 Nachtrag erstellen — Pflichtfelder je nach Konfiguration (14 Felder)
+### 7.1 Nachtrag erstellen, Pflichtfelder je nach Konfiguration (14 Felder)
 
 | # | Feld | Hinweis |
 |---|---|---|
@@ -233,7 +233,7 @@ Trägt der Nutzer eine vergessene Arbeitszeit nach, ist der Dialog speziell auf 
 7. Warum wurde der Timer nicht live gestartet?
 8. Soll ein ähnlicher Eintrag als Vorlage gespeichert werden?
 
-## 8. Erinnerungen (SPEC §22 — alle 15)
+## 8. Erinnerungen (SPEC §22, alle 15)
 
 Erinnerungen sind lokale Benachrichtigungen (Desktop-Notifications, iOS local reminders) und stützen sich auf die Compliance-Schwellen aus [Compliance](08-compliance.md). Sie sind konfigurierbar und im Standard datenschutzfreundlich (keine externe Zustellung).
 
@@ -257,7 +257,7 @@ Erinnerungen sind lokale Benachrichtigungen (Desktop-Notifications, iOS local re
 
 ## 9. Zusammenspiel und Verweise
 
-- **Audit**: Timer gestartet/pausiert/fortgesetzt/gestoppt, Nachtrag, Start-/Endzeit-Korrektur, Pausen-, Beschreibungs-, Abrechenbarkeits-, Projekt- und Aufgabenänderung werden protokolliert — Eventliste und Felder in [Datenmodell](06-datenmodell.md).
+- **Audit**: Timer gestartet/pausiert/fortgesetzt/gestoppt, Nachtrag, Start-/Endzeit-Korrektur, Pausen-, Beschreibungs-, Abrechenbarkeits-, Projekt- und Aufgabenänderung werden protokolliert, Eventliste und Felder in [Datenmodell](06-datenmodell.md).
 - **Sync**: Jede Timer-Aktion erzeugt ein Sync-Event; die Zustände `sync_pending` und `conflict` sowie die geräteübergreifende Live-Anzeige sind in [Synchronisierung](04-sync.md) beschrieben.
 - **Berechnung**: Netto-, Rundungs- und Abrechnungslogik samt getrennter Speicherung von `actual_duration_seconds` und `billing_duration_seconds` in [Zeitberechnung und Rundung](07-zeitberechnung-rundung.md).
 - **Prüfung**: Pausen-, Höchstzeit- und Ruhezeitregeln (`30 Minuten`, `45 Minuten`, `15 Minuten`, `8 Stunden`, `10 Stunden`, `11 Stunden`) in [Compliance](08-compliance.md).

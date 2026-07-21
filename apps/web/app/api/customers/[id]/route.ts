@@ -1,5 +1,5 @@
 /**
- * /api/customers/[id] — Detail, Ändern (mit Audit), Soft-Delete
+ * /api/customers/[id], Detail, Ändern (mit Audit), Soft-Delete
  * (doc 06 §A.2 `customers`).
  *
  * GET    : einzelner Kunde (gescoped, nicht soft-gelöscht) → 404 sonst.

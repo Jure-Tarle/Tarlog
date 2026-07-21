@@ -1,9 +1,9 @@
 /**
- * /api/time-entries — Zeiteinträge auflisten + anlegen/nachtragen (doc 03 §7,
+ * /api/time-entries, Zeiteinträge auflisten + anlegen/nachtragen (doc 03 §7,
  * doc 04 §5).
- *   GET  ?from=&to=&project_id=&status=&limit=  — gefilterte Liste (Account-scoped,
+ *   GET  ?from=&to=&project_id=&status=&limit=, gefilterte Liste (Account-scoped,
  *        ohne soft-gelöschte), absteigend nach actual_started_at.
- *   POST — Nachtrag/manueller Eintrag (source, backdate_reason, breaks) mit
+ *   POST, Nachtrag/manueller Eintrag (source, backdate_reason, breaks) mit
  *        Server-Berechnung (@tarlog/core calculateEntry).
  */
 import type { NextRequest } from "next/server";

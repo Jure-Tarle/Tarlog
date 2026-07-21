@@ -1,4 +1,4 @@
-//! db.rs — local SQLite lifecycle + shared helpers (doc 05 §2.1, doc 06).
+//! db.rs, local SQLite lifecycle + shared helpers (doc 05 §2.1, doc 06).
 //!
 //! The frontend reads the same database through `tauri-plugin-sql`
 //! (`Database.load("sqlite:ptl.db")`). That plugin resolves the file relative to
@@ -17,12 +17,12 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use rusqlite::{Connection, Row};
 use serde_json::{json, Value};
 
-/// Bundle identifier — must match `tauri.conf.json` `identifier`.
+/// Bundle identifier, must match `tauri.conf.json` `identifier`.
 const APP_IDENTIFIER: &str = "com.tarlog.desktop";
-/// Local DB filename — must match `db.ts` `DB_URL = "sqlite:ptl.db"`.
+/// Local DB filename, must match `db.ts` `DB_URL = "sqlite:ptl.db"`.
 const DB_FILE: &str = "ptl.db";
 /// Current local schema version (stored in `PRAGMA user_version`).
-pub const SCHEMA_VERSION: i64 = 2;
+pub const SCHEMA_VERSION: i64 = 8;
 
 // Fixed singletons for the local single-user profile (doc 02 §3.1 local-first).
 // Valid UUIDv7-shaped constants; FK enforcement is off so no external rows are
@@ -125,9 +125,93 @@ pub fn run_migrations(conn: &Connection) -> Result<i64, String> {
             .map_err(|e| format!("ddl v2: {e}"))?;
         applied += 1;
     }
+    if current < 3 {
+        conn.execute_batch(DDL_V3)
+            .map_err(|e| format!("ddl v3: {e}"))?;
+        applied += 1;
+    }
+    if current < 4 {
+        conn.execute_batch(DDL_V4)
+            .map_err(|e| format!("ddl v4: {e}"))?;
+        applied += 1;
+    }
+    if current < 5 {
+        if table_exists(conn, "rounding_rules")? {
+            seed_no_rounding_standard(conn)?;
+        }
+        applied += 1;
+    }
+    if current < 6 {
+        if table_exists(conn, "rounding_rules")? {
+            if !column_exists(conn, "rounding_rules", "priority")? {
+                conn.execute_batch("ALTER TABLE rounding_rules ADD COLUMN priority INTEGER NOT NULL DEFAULT 0;")
+                    .map_err(|e| format!("ddl v6 priority column: {e}"))?;
+            }
+            conn.execute_batch(DDL_V6_NORMALIZE)
+                .map_err(|e| format!("ddl v6 priorities: {e}"))?;
+        }
+        applied += 1;
+    }
+    if current < 7 {
+        // v7: Archivieren war bis v6 mit Soft-Delete gekoppelt (deleted_at
+        // gesetzt), wodurch archivierte Projekte aus allen Listen verschwanden.
+        // Einen echten Projekt-Löschpfad gab es bis dahin nicht, daher können
+        // solche Zeilen gefahrlos wieder sichtbar gemacht werden.
+        if table_exists(conn, "projects")? {
+            conn.execute_batch(
+                "UPDATE projects SET deleted_at = NULL \
+                  WHERE status='archived' AND deleted_at IS NOT NULL;",
+            )
+            .map_err(|e| format!("ddl v7 restore archived projects: {e}"))?;
+        }
+        applied += 1;
+    }
+    if current < 8 {
+        // v8: same soft-delete/archive coupling as v7, but for `customers`.
+        // `archiveCustomer` set `deleted_at` alongside `status='archived'`,
+        // which hid archived customers from every list regardless of the
+        // requested status filter and left no restore path. No hard-delete
+        // path for customers exists, so these rows can be made visible again
+        // without risk.
+        if table_exists(conn, "customers")?
+            && column_exists(conn, "customers", "status")?
+            && column_exists(conn, "customers", "deleted_at")?
+        {
+            conn.execute_batch(
+                "UPDATE customers SET deleted_at = NULL \
+                  WHERE status='archived' AND deleted_at IS NOT NULL;",
+            )
+            .map_err(|e| format!("ddl v8 restore archived customers: {e}"))?;
+        }
+        applied += 1;
+    }
     conn.execute_batch(&format!("PRAGMA user_version={SCHEMA_VERSION};"))
         .map_err(|e| format!("set user_version: {e}"))?;
     Ok(applied)
+}
+
+fn table_exists(conn: &Connection, table: &str) -> Result<bool, String> {
+    conn.query_row(
+        "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?1)",
+        [table],
+        |row| row.get(0),
+    )
+    .map_err(|e| format!("check table {table}: {e}"))
+}
+
+fn column_exists(conn: &Connection, table: &str, column: &str) -> Result<bool, String> {
+    let mut statement = conn
+        .prepare(&format!("PRAGMA table_info({table})"))
+        .map_err(|e| format!("inspect table {table}: {e}"))?;
+    let names = statement
+        .query_map([], |row| row.get::<_, String>(1))
+        .map_err(|e| format!("read columns for {table}: {e}"))?;
+    for name in names {
+        if name.map_err(|e| format!("read column for {table}: {e}"))? == column {
+            return Ok(true);
+        }
+    }
+    Ok(false)
 }
 
 /// Read the current schema version.
@@ -180,11 +264,31 @@ fn bootstrap(conn: &Connection) -> Result<(), String> {
     // Pass-Through (billing = net); identisch zum Server-Setup.
     conn.execute(
         "INSERT INTO rounding_rules(id, main_account_id, name, mode, interval_minutes, scope, valid_from, calculation_version, created_at, updated_at)\
-         SELECT ?1, ?2, 'Standard — 15 Minuten aufrunden', 'ceil_started_interval', 15, 'global', '1970-01-01', 1, ?3, ?3\
+         SELECT ?1, ?2, 'Standard, 15 Minuten aufrunden', 'ceil_started_interval', 15, 'global', '1970-01-01', 1, ?3, ?3\
          WHERE NOT EXISTS (SELECT 1 FROM rounding_rules WHERE main_account_id = ?2 AND scope = 'global')",
         rusqlite::params![new_uuid(), MAIN_ACCOUNT_ID, now],
     )
     .map_err(|e| format!("seed rounding rule: {e}"))?;
+    seed_no_rounding_standard(conn)?;
+    Ok(())
+}
+
+fn seed_no_rounding_standard(conn: &Connection) -> Result<(), String> {
+    let now = now_ms();
+    conn.execute(
+        "UPDATE rounding_rules SET name = 'Standard, 15 Minuten aufrunden', updated_at = ?1 \
+         WHERE main_account_id = ?2 AND mode = 'ceil_started_interval' AND interval_minutes = 15 \
+           AND scope = 'global' AND name LIKE 'Standard%15 Minuten aufrunden'",
+        rusqlite::params![now, MAIN_ACCOUNT_ID],
+    )
+    .map_err(|e| format!("normalize standard rounding rule: {e}"))?;
+    conn.execute(
+        "INSERT INTO rounding_rules(id, main_account_id, name, mode, scope, valid_from, calculation_version, created_at, updated_at) \
+         SELECT ?1, ?2, 'Standard, keine Rundung', 'none', 'project', '1970-01-01', 1, ?3, ?3 \
+         WHERE NOT EXISTS (SELECT 1 FROM rounding_rules WHERE main_account_id = ?2 AND mode = 'none' AND name = 'Standard, keine Rundung' AND deleted_at IS NULL)",
+        rusqlite::params![new_uuid(), MAIN_ACCOUNT_ID, now],
+    )
+    .map_err(|e| format!("seed no-rounding standard: {e}"))?;
     Ok(())
 }
 
@@ -204,7 +308,7 @@ fn host_platform() -> &'static str {
 }
 
 // ---------------------------------------------------------------------------
-// Audit trail (doc 06 audit_logs) — best-effort; never fails the operation.
+// Audit trail (doc 06 audit_logs), best-effort; never fails the operation.
 // ---------------------------------------------------------------------------
 
 /// Append an audit-log row. Errors are swallowed so audit never blocks a write.
@@ -223,7 +327,7 @@ pub fn audit(
 }
 
 // ---------------------------------------------------------------------------
-// Settings (doc 06 settings) — account-scoped key/JSON store used by lock + sync.
+// Settings (doc 06 settings), account-scoped key/JSON store used by lock + sync.
 // ---------------------------------------------------------------------------
 
 /// Read an account-scoped setting's string value (JSON-decoded), if present.
@@ -388,7 +492,7 @@ pub fn time_entry_by_id(conn: &Connection, id: &str) -> Result<Option<Value>, St
 }
 
 // ---------------------------------------------------------------------------
-// DDL — schema v1. Column/table names mirror packages/db/src/schema/sqlite.ts
+// DDL, schema v1. Column/table names mirror packages/db/src/schema/sqlite.ts
 // (doc 06). Only the tables the desktop backend needs are created here; the
 // full 40-table model is provided by the Drizzle migrations on the server side.
 // FK enforcement is OFF (see `open`), so declaration order is not significant.
@@ -868,4 +972,63 @@ CREATE INDEX IF NOT EXISTS ix_compliance_results_scope_date
   ON compliance_results(scope_date);
 CREATE INDEX IF NOT EXISTS ix_compliance_results_severity
   ON compliance_results(severity);
+"#;
+
+// Normalized customer identity and address fields. `name` remains the stable
+// display value for sync/backwards compatibility and is derived by the UI.
+const DDL_V3: &str = r#"
+ALTER TABLE customers ADD COLUMN first_name TEXT;
+ALTER TABLE customers ADD COLUMN last_name TEXT;
+ALTER TABLE customers ADD COLUMN street TEXT;
+ALTER TABLE customers ADD COLUMN house_number TEXT;
+ALTER TABLE customers ADD COLUMN postal_code TEXT;
+ALTER TABLE customers ADD COLUMN city TEXT;
+ALTER TABLE customers ADD COLUMN country TEXT;
+UPDATE customers
+SET first_name = CASE
+      WHEN instr(trim(name), ' ') > 0 THEN substr(trim(name), 1, instr(trim(name), ' ') - 1)
+      ELSE trim(name)
+    END,
+    last_name = CASE
+      WHEN instr(trim(name), ' ') > 0 THEN substr(trim(name), instr(trim(name), ' ') + 1)
+      ELSE NULL
+    END
+WHERE first_name IS NULL AND name IS NOT NULL;
+"#;
+
+// Project and task documents are copied into the private application-data
+// directory. The category is encoded in `entity_type` (for example
+// `project_document:pflichtenheft`) to stay compatible with the shared schema.
+const DDL_V4: &str = r#"
+CREATE TABLE IF NOT EXISTS attachments (
+  id TEXT PRIMARY KEY NOT NULL,
+  main_account_id TEXT NOT NULL,
+  entity_type TEXT NOT NULL,
+  entity_id TEXT NOT NULL,
+  filename TEXT NOT NULL,
+  mime_type TEXT NOT NULL,
+  storage_path TEXT NOT NULL,
+  size_bytes INTEGER NOT NULL,
+  checksum_sha256 TEXT,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  deleted_at INTEGER,
+  sync_version INTEGER NOT NULL DEFAULT 0,
+  server_revision INTEGER,
+  local_revision INTEGER NOT NULL DEFAULT 0,
+  hlc TEXT,
+  last_modified_by_device TEXT
+);
+CREATE INDEX IF NOT EXISTS ix_attachments_entity
+  ON attachments(entity_type, entity_id);
+"#;
+
+const DDL_V6_NORMALIZE: &str = r#"
+UPDATE rounding_rules
+SET priority = CASE scope
+  WHEN 'task' THEN 400
+  WHEN 'project' THEN 300
+  WHEN 'customer' THEN 200
+  ELSE 0
+END;
 "#;

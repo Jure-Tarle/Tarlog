@@ -1,5 +1,5 @@
 /**
- * app/api/exports — Exporthistorie (doc 10 §7.1 Report 20). Listet erzeugte
+ * app/api/exports, Exporthistorie (doc 10 §7.1 Report 20). Listet erzeugte
  * Exporte inkl. Dateimetadaten (scoped). GET mit limit/offset.
  */
 import { json, requireAuth } from "@/lib/api";

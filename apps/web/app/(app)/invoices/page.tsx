@@ -1,5 +1,5 @@
 /**
- * /invoices — Rechnungsliste, Erstellen, Finalisieren, Storno, PDF (doc 11 §2
+ * /invoices, Rechnungsliste, Erstellen, Finalisieren, Storno, PDF (doc 11 §2
  * Nr. 10, doc 10). Beträge tabular in Integer-Cents.
  */
 import { PageHeader, LoadError, Table, Th, Td, EmptyState, Badge } from "@/lib/ui/ui";
@@ -58,8 +58,8 @@ export default async function InvoicesPage(): Promise<React.ReactElement> {
         >
           {invoices.map((inv) => (
             <tr key={inv.id}>
-              <Td mono>{inv.invoice_number ?? "—"}</Td>
-              <Td>{inv.customerName ?? "—"}</Td>
+              <Td mono>{inv.invoice_number ?? ","}</Td>
+              <Td>{inv.customerName ?? ","}</Td>
               <Td mono muted>{formatDate(issueEpoch(inv.issue_date), account.timezone, account.locale)}</Td>
               <Td muted>{TYPE_LABEL[inv.type] ?? inv.type}</Td>
               <Td align="right" mono>{formatMoney(inv.net_amount_cents, inv.currency)}</Td>

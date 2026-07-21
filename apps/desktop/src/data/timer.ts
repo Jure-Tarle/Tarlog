@@ -1,5 +1,5 @@
 /**
- * timer.ts — the single source of truth for the live timer in the UI.
+ * timer.ts, the single source of truth for the live timer in the UI.
  *
  * Wraps the `src/lib/bridge` timer commands and the persisted `timer_states`
  * singleton (doc 06 A.1). One `TimerProvider` feeds the persistent timer bar
@@ -22,6 +22,8 @@ import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import {
   timerGetState,
   nativeTimerCommandsUpdate,
+  nativeTimerStatusUpdate,
+  revealMainWindow,
   timerStart,
   timerPause,
   timerResume,
@@ -30,6 +32,20 @@ import {
   type TimerStopResult,
 } from "../lib/bridge";
 import type { Uuid, EpochMs, TimerStatus } from "@tarlog/core";
+import { getProject } from "./projects";
+import {
+  loadTrackingShortcuts,
+  registerTrackingShortcuts,
+  TRACKING_SHORTCUT_EVENT,
+  type TrackingShortcut,
+} from "./trackingShortcuts";
+import {
+  clearTimerDescriptionDraft,
+  saveTimerDescriptionDraft,
+} from "./timerDescriptionDraft";
+import { recalcEntry } from "./recalc";
+import { notifyChange } from "./backup";
+import { t } from "../i18n";
 
 /** Tray → frontend event names (Rust `app.emit(...)` from `tray.rs`). */
 export const TRAY_EVENTS = {
@@ -125,6 +141,12 @@ function useTimerController(pollMs = 4000): UseTimer {
   const [mutationError, setMutationError] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<TimerMutation | null>(null);
   const pendingRef = useRef(false);
+  const stateRef = useRef<TimerState | null>(null);
+  const [activeProjectName, setActiveProjectName] = useState<string | null>(null);
+
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
   // Native menu/tray mutations are disabled during boot and every in-flight
   // mutation. Unknown/transitional statuses remain disabled in Rust.
@@ -146,6 +168,38 @@ function useTimerController(pollMs = 4000): UseTimer {
     });
   }, []);
 
+  // Resolve the project label only when the active project changes. The native
+  // status update below can then tick once per second without querying SQLite.
+  useEffect(() => {
+    let cancelled = false;
+    const projectId = state?.project_id;
+    if (!projectId) {
+      setActiveProjectName(null);
+      return;
+    }
+    void getProject(projectId)
+      .then((project) => { if (!cancelled) setActiveProjectName(project?.name ?? t("Projekt")); })
+      .catch(() => { if (!cancelled) setActiveProjectName(t("Projekt")); });
+    return () => { cancelled = true; };
+  }, [state?.project_id]);
+
+  // Keep the macOS menu-bar title and the native tray menu synchronized with
+  // the durable timer. Plain browser previews simply do not expose this call.
+  useEffect(() => {
+    const syncStatus = () => void nativeTimerStatusUpdate({
+      projectName: activeProjectName,
+      status: state?.status ?? null,
+      elapsedSeconds: elapsedSeconds(state, Date.now()),
+    }).catch(() => {});
+    syncStatus();
+    const interval = state?.status === "running" ? window.setInterval(syncStatus, 1000) : null;
+    return () => { if (interval != null) window.clearInterval(interval); };
+  }, [activeProjectName, state]);
+
+  useEffect(() => () => {
+    void nativeTimerStatusUpdate({ projectName: null, status: null, elapsedSeconds: 0 }).catch(() => {});
+  }, []);
+
   const clearError = useCallback(() => {
     setRefreshError(null);
     setMutationError(null);
@@ -158,7 +212,7 @@ function useTimerController(pollMs = 4000): UseTimer {
       setState(s);
       setRefreshError(null);
     } catch (err) {
-      // Backend not ready / no timer yet — treat as idle, surface nothing loud.
+      // Backend not ready / no timer yet, treat as idle, surface nothing loud.
       setState(null);
       setRefreshError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -203,6 +257,12 @@ function useTimerController(pollMs = 4000): UseTimer {
 
   const start = useCallback<UseTimer["start"]>(async (args = {}) => {
     const result = await runMutation("start", () => timerStart(args), setState);
+    if (result) {
+      await saveTimerDescriptionDraft(result.started_at, args.description).catch(() => {
+        // The timer itself is already durable; a missing optional draft must
+        // never make a successful start look like a failure.
+      });
+    }
     return result !== null;
   }, [runMutation]);
 
@@ -217,8 +277,70 @@ function useTimerController(pollMs = 4000): UseTimer {
   }, [runMutation]);
 
   const stop = useCallback<UseTimer["stop"]>(async (args = {}) => {
-    return runMutation("stop", () => timerStop(args), (result) => setState(result.timer));
+    const result = await runMutation("stop", () => timerStop(args), (value) => setState(value.timer));
+    if (result) {
+      // Freeze the effective rate (part-project > project > customer) and all
+      // rounding fields immediately after the native timer creates the entry.
+      await recalcEntry(result.entry.id);
+      await notifyChange();
+      await clearTimerDescriptionDraft().catch(() => {});
+    }
+    return result;
   }, [runMutation]);
+
+  // Load per-device global shortcuts once and route presses through this same
+  // controller. Stopping always opens the mandatory description dialog.
+  useEffect(() => {
+    const unlisteners: UnlistenFn[] = [];
+    let cancelled = false;
+    const wire = async () => {
+      try {
+        const bindings = await loadTrackingShortcuts();
+        await registerTrackingShortcuts(bindings);
+        unlisteners.push(await listen<TrackingShortcut>(TRACKING_SHORTCUT_EVENT, (event) => {
+          const binding = event.payload;
+          const current = stateRef.current;
+          const active = current?.status === "running" || current?.status === "paused";
+          const sameProject = current?.project_id === binding.projectId;
+
+          if (binding.action === "start" || (binding.action === "toggle" && !active)) {
+            if (active) {
+              setMutationError(sameProject
+                ? t("Dieses Projekt wird bereits erfasst.")
+                : t("Beende zuerst den aktuell laufenden Timer."));
+              return;
+            }
+            void start({ projectId: binding.projectId });
+            return;
+          }
+
+          if (!active) {
+            setMutationError(t("Es läuft derzeit kein Timer."));
+            return;
+          }
+          if (!sameProject) {
+            setMutationError(t("Der Kurzbefehl gehört nicht zum aktuell laufenden Projekt."));
+            return;
+          }
+          void revealMainWindow()
+            .catch(() => {})
+            .finally(() => dispatchNavigationRequest({ route: "timer", action: "stop" }));
+        }));
+      } catch (error) {
+        // Browser previews have no global shortcut plugin. In Tauri, surface
+        // actual registration conflicts to the existing timer error UI.
+        if ("__TAURI_INTERNALS__" in window) {
+          setMutationError(error instanceof Error ? error.message : String(error));
+        }
+      }
+      if (cancelled) unlisteners.forEach((unlisten) => unlisten());
+    };
+    void wire();
+    return () => {
+      cancelled = true;
+      unlisteners.forEach((unlisten) => unlisten());
+    };
+  }, [start]);
 
   // Subscribe to tray menu events → drive the same commands.
   useEffect(() => {
@@ -241,7 +363,7 @@ function useTimerController(pollMs = 4000): UseTimer {
           }),
         );
       } catch {
-        // Not running under Tauri (e.g. plain vite preview) — tray is unavailable.
+        // Not running under Tauri (e.g. plain vite preview), tray is unavailable.
       }
       if (cancelled) unlisteners.forEach((u) => u());
     };

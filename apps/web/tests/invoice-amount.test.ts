@@ -18,7 +18,7 @@ function entry(over: Partial<BillableEntry>): BillableEntry {
     id: "e1",
     project_id: "p1",
     task_id: null,
-    label: "Projekt A · Entwicklung",
+    label: "Projekt A | Entwicklung",
     description: null,
     timezone: "Europe/Berlin",
     actual_started_at: 0,

@@ -1,5 +1,5 @@
 /**
- * /nachtrag — Nachtragsassistent (doc 11 §2 Nr. 12, doc 03 §7). Lädt Stammdaten
+ * /nachtrag, Nachtragsassistent (doc 11 §2 Nr. 12, doc 03 §7). Lädt Stammdaten
  * serverseitig und übergibt Vorbelegung (Datum/Start/Ende aus einer erkannten
  * Lücke) an das Client-Formular.
  */
@@ -58,7 +58,7 @@ export default async function NachtragPage({
     <section>
       <PageHeader
         title="Nachtragen"
-        subtitle="Vergessene Arbeitszeit erfassen — Quelle wird als „manuell nachgetragen“ markiert."
+        subtitle="Vergessene Arbeitszeit erfassen, Quelle wird als „manuell nachgetragen“ markiert."
       />
       <Card>{body}</Card>
     </section>

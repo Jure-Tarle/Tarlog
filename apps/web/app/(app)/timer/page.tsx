@@ -1,5 +1,5 @@
 /**
- * /timer — Live-Erfassung (doc 11 §2 Nr. 2, doc 03).
+ * /timer, Live-Erfassung (doc 11 §2 Nr. 2, doc 03).
  * Server-Component lädt Timer-Zustand + Stammdaten und übergibt sie an die
  * Client-Konsole. Live-Refresh über den Sync-Kanal (timer.* Events).
  */
@@ -45,7 +45,7 @@ export default async function TimerPage(): Promise<React.ReactElement> {
     <section>
       <PageHeader
         title="Timer"
-        subtitle="Starten, pausieren, fortsetzen, stoppen — Beschreibung wird je Projekt beim Stoppen verlangt."
+        subtitle="Starten, pausieren, fortsetzen, stoppen, Beschreibung wird je Projekt beim Stoppen verlangt."
         actions={<RealtimeRefresher types={["timer.", "time_entry."]} showIndicator />}
       />
       {content}

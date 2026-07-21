@@ -1,5 +1,5 @@
 /**
- * DELETE /api/devices/{id} — Gerät widerrufen (doc 05 API Nr. 18, doc 09 §5
+ * DELETE /api/devices/{id}, Gerät widerrufen (doc 05 API Nr. 18, doc 09 §5
  * Nr. 14/16). Setzt `devices.revoked = true` (+ permission_status=revoked) und
  * widerruft atomar alle daran gebundenen `api_tokens` und Browser-Sessions.
  * Ein widerrufenes Gerät verliert damit API-, Sync-, Live- und Web-Rechte

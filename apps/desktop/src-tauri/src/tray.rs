@@ -1,9 +1,10 @@
-//! tray.rs — menu-bar / system-tray timer (doc 11 §5 nr. 1, §6 nr. 1).
+//! tray.rs, menu-bar / system-tray timer (doc 11 §5 nr. 1, §6 nr. 1).
 //!
 //! Builds the tray icon + a control menu (Start / Pause / Resume / Stop /
 //! Nachtrag / Beenden). Menu actions are emitted to the single frontend timer
 //! controller, which owns command serialization and the mandatory stop dialog.
 
+use crate::l10n::{tr, Lang, UiLang};
 use crate::native_timer::TimerCommandItems;
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem},
@@ -47,26 +48,69 @@ fn macos_template_icon() -> tauri::Result<tauri::image::Image<'static>> {
 }
 
 /// Build the tray icon and its control menu. Called once from setup.
-pub fn build_tray<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<TimerCommandItems<R>> {
+pub(crate) struct TrayTimerStatus<R: Runtime> {
+    summary: MenuItem<R>,
+}
+
+pub fn build_tray<R: Runtime>(
+    app: &AppHandle<R>,
+    lang: Lang,
+) -> tauri::Result<(TimerCommandItems<R>, TrayTimerStatus<R>)> {
     // Timer mutations stay disabled until the frontend has loaded the durable
     // timer state and explicitly synchronizes the native command controller.
     let start = MenuItem::with_id(
         app,
         "tray_timer_start",
-        "Timer starten",
+        tr(lang, "Timer starten"),
         false,
         None::<&str>,
     )?;
     let pause = MenuItem::with_id(app, "tray_timer_pause", "Pause", false, None::<&str>)?;
-    let resume = MenuItem::with_id(app, "tray_timer_resume", "Fortsetzen", false, None::<&str>)?;
-    let stop = MenuItem::with_id(app, "tray_timer_stop", "Stoppen", false, None::<&str>)?;
-    let backdate = MenuItem::with_id(app, "tray_entry_backdate", "Nachtrag", true, None::<&str>)?;
+    let resume = MenuItem::with_id(
+        app,
+        "tray_timer_resume",
+        tr(lang, "Fortsetzen"),
+        false,
+        None::<&str>,
+    )?;
+    let stop = MenuItem::with_id(
+        app,
+        "tray_timer_stop",
+        tr(lang, "Stoppen"),
+        false,
+        None::<&str>,
+    )?;
+    let backdate = MenuItem::with_id(
+        app,
+        "tray_entry_backdate",
+        tr(lang, "Nachtrag"),
+        true,
+        None::<&str>,
+    )?;
+    let summary = MenuItem::with_id(
+        app,
+        "tray_timer_summary",
+        tr(lang, "Kein Timer aktiv"),
+        false,
+        None::<&str>,
+    )?;
+    let status_sep = PredefinedMenuItem::separator(app)?;
     let sep = PredefinedMenuItem::separator(app)?;
-    let quit = PredefinedMenuItem::quit(app, Some("Beenden"))?;
+    let quit = PredefinedMenuItem::quit(app, Some(tr(lang, "Beenden")))?;
 
     let menu = Menu::with_items(
         app,
-        &[&start, &pause, &resume, &stop, &backdate, &sep, &quit],
+        &[
+            &summary,
+            &status_sep,
+            &start,
+            &pause,
+            &resume,
+            &stop,
+            &backdate,
+            &sep,
+            &quit,
+        ],
     )?;
 
     let mut builder = TrayIconBuilder::with_id("main")
@@ -106,5 +150,107 @@ pub fn build_tray<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<TimerCommandI
     }
 
     builder.build(app)?;
-    Ok(TimerCommandItems::from_items(start, pause, resume, stop))
+    Ok((
+        TimerCommandItems::from_items(start, pause, resume, stop),
+        TrayTimerStatus { summary },
+    ))
+}
+
+fn compact_project_name(name: &str, lang: Lang) -> String {
+    let trimmed = name.trim();
+    let mut chars = trimmed.chars();
+    let short: String = chars.by_ref().take(18).collect();
+    if chars.next().is_some() {
+        format!("{short}…")
+    } else if short.is_empty() {
+        tr(lang, "Projekt").to_string()
+    } else {
+        short
+    }
+}
+
+fn format_elapsed(seconds: u64) -> String {
+    let hours = seconds / 3600;
+    let minutes = (seconds % 3600) / 60;
+    if hours > 0 {
+        format!("{hours}:{minutes:02}")
+    } else {
+        format!("{minutes:02}:{:02}", seconds % 60)
+    }
+}
+
+#[cfg(test)]
+mod status_tests {
+    use super::{compact_project_name, format_elapsed, Lang};
+
+    #[test]
+    fn menu_bar_duration_stays_compact() {
+        assert_eq!(format_elapsed(65), "01:05");
+        assert_eq!(format_elapsed(3_661), "1:01");
+    }
+
+    #[test]
+    fn project_names_are_trimmed_and_bounded() {
+        assert_eq!(compact_project_name("  Alpha  ", Lang::De), "Alpha");
+        assert_eq!(
+            compact_project_name("Ein sehr langes Kundenprojekt", Lang::De),
+            "Ein sehr langes Ku…"
+        );
+        assert_eq!(compact_project_name("", Lang::En), "Project");
+    }
+}
+
+/// Update the visible native menu-bar label and the first menu item.
+#[tauri::command]
+pub(crate) fn native_timer_status_update(
+    app: AppHandle,
+    project_name: Option<String>,
+    status: Option<String>,
+    elapsed_seconds: u64,
+    tray_status: tauri::State<'_, TrayTimerStatus<tauri::Wry>>,
+    ui_lang: tauri::State<'_, UiLang>,
+) -> Result<(), String> {
+    let lang = ui_lang.0;
+    let tray = app
+        .tray_by_id("main")
+        .ok_or_else(|| "Tarlog-Menüleistenobjekt ist nicht verfügbar".to_string())?;
+
+    let active = matches!(status.as_deref(), Some("running" | "paused"));
+    if !active {
+        tray_status
+            .summary
+            .set_text(tr(lang, "Kein Timer aktiv"))
+            .map_err(|error| error.to_string())?;
+        tray.set_tooltip(Some(tr(lang, "Tarlog, kein Timer aktiv")))
+            .map_err(|error| error.to_string())?;
+        #[cfg(target_os = "macos")]
+        tray.set_title(None::<&str>)
+            .map_err(|error| error.to_string())?;
+        return Ok(());
+    }
+
+    let project = compact_project_name(project_name.as_deref().unwrap_or(""), lang);
+    let elapsed = format_elapsed(elapsed_seconds);
+    let paused = status.as_deref() == Some("paused");
+    let state = if paused {
+        tr(lang, "pausiert")
+    } else {
+        tr(lang, "läuft")
+    };
+    let title = if paused {
+        format!("Ⅱ {project} | {elapsed}")
+    } else {
+        format!("{project} | {elapsed}")
+    };
+
+    tray_status
+        .summary
+        .set_text(format!("{project} {state} | {elapsed}"))
+        .map_err(|error| error.to_string())?;
+    tray.set_tooltip(Some(format!("Tarlog, {project} {state} | {elapsed}")))
+        .map_err(|error| error.to_string())?;
+    #[cfg(target_os = "macos")]
+    tray.set_title(Some(&title))
+        .map_err(|error| error.to_string())?;
+    Ok(())
 }

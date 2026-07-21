@@ -1,5 +1,5 @@
 /**
- * lib/session.ts — Sessions + Passwort-/Token-Hashing (doc 05 §5.1, doc 09).
+ * lib/session.ts, Sessions + Passwort-/Token-Hashing (doc 05 §5.1, doc 09).
  *
  * Zwei Auth-Wege (doc 05 §5.1):
  *  - Browser: sichere HttpOnly-Cookie-Session (`sessions`-Tabelle).
@@ -31,7 +31,7 @@ export const SESSION_COOKIE = "ptl_session" as const;
 /** Cookie-Lebensdauer (14 Tage) in ms. */
 export const SESSION_TTL_MS = 14 * 24 * 60 * 60 * 1000;
 
-/** Argon2id-Parameter (doc 09 — sichere Defaults, moderat für Self-Host). */
+/** Argon2id-Parameter (doc 09, sichere Defaults, moderat für Self-Host). */
 const ARGON2ID_OPTS = {
   memoryCost: 19_456, // 19 MiB
   timeCost: 2,
@@ -63,7 +63,7 @@ export async function verifyPassword(
 // Token-Hashing (SHA-256, für session_hash / token_hash)
 // ---------------------------------------------------------------------------
 
-/** SHA-256-Hex eines Tokens — Speicherform in `session_hash`/`token_hash`. */
+/** SHA-256-Hex eines Tokens, Speicherform in `session_hash`/`token_hash`. */
 export function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
@@ -133,7 +133,7 @@ export function tokenAllowsRest(scopes: unknown): scopes is string[] {
   return normalized.length > 0 && normalized.some((scope) => scope !== "realtime");
 }
 
-/** Ergebnis von `createSession` — Klartext-Token für das Set-Cookie. */
+/** Ergebnis von `createSession`, Klartext-Token für das Set-Cookie. */
 export interface CreatedSession {
   session_id: string;
   /** Klartext-Token; NUR dieser geht in das Cookie, wird NIE gespeichert. */
@@ -258,13 +258,13 @@ export async function destroySession(token: string): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
-// Device-/Bearer-Token (api_tokens-Tabelle) — auch vom WS-Server genutzt
+// Device-/Bearer-Token (api_tokens-Tabelle), auch vom WS-Server genutzt
 // ---------------------------------------------------------------------------
 
 /**
  * Prüft einen Device-/Bearer-Token gegen `api_tokens`. Nur gültig, wenn nicht
  * abgelaufen, nicht widerrufen UND das gebundene Gerät nicht `revoked` ist
- * (doc 04 §2 Nr. 10 — widerrufenes Gerät darf keine Events einspielen).
+ * (doc 04 §2 Nr. 10, widerrufenes Gerät darf keine Events einspielen).
  * Aktualisiert `last_used_at`. Liefert `AuthContext` oder `null`.
  *
  * Diese Funktion ist die Wahrheit für die WS-Token-Auth (doppelt in server.mjs

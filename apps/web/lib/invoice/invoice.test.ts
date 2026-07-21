@@ -1,5 +1,5 @@
 /**
- * Unit-Tests der reinen Rechnungslogik (doc 10 §5). Kein Server/DB — nur pure
+ * Unit-Tests der reinen Rechnungslogik (doc 10 §5). Kein Server/DB, nur pure
  * functions (tax/build/snapshot). Deckt Testfall 20 (Summe = gerundete
  * Abrechnungszeit) und §19/§13b-Steuerbehandlung ab.
  */
@@ -13,7 +13,7 @@ function entry(over: Partial<BillableEntry>): BillableEntry {
     id: "e1",
     project_id: "p1",
     task_id: null,
-    label: "Projekt A · Entwicklung",
+    label: "Projekt A | Entwicklung",
     description: null,
     timezone: "Europe/Berlin",
     actual_started_at: 0,
@@ -53,6 +53,23 @@ describe("buildHourlyItems", () => {
     // 9000/3600*6000 = 15000 cents.
     expect(items[0]!.net_amount_cents).toBe(15000);
     expect(items[0]!.links).toHaveLength(2);
+  });
+
+  it("erstellt für zwei Teilprojekte desselben Projekts getrennte Rechnungspositionen", () => {
+    const items = buildHourlyItems(
+      [
+        entry({ id: "website", task_id: "task-website", label: "Projekt A | Website erstellen" }),
+        entry({ id: "extension", task_id: "task-extension", label: "Projekt A | Erweiterung der Website" }),
+      ],
+      19,
+      fallback,
+    );
+
+    expect(items.map((item) => item.description)).toEqual([
+      "Projekt A | Erweiterung der Website",
+      "Projekt A | Website erstellen",
+    ]);
+    expect(items.every((item) => item.links.length === 1)).toBe(true);
   });
 
   it("nutzt den Fallback-Satz, wenn kein rate_snapshot vorliegt", () => {

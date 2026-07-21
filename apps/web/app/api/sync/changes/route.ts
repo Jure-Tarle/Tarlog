@@ -1,5 +1,5 @@
 /**
- * GET /api/sync/changes?since=&limit= — Delta-Pull (doc 04 §1 Nr. 8, §5.1
+ * GET /api/sync/changes?since=&limit=, Delta-Pull (doc 04 §1 Nr. 8, §5.1
  * Polling). Liefert sync_events fremder Geräte mit server_revision > since
  * (aufsteigend) plus die aktuelle Hochwassermarke und has_more.
  */

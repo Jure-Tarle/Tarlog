@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Rundung, Compliance und Abrechnung sind zeitzonenabhängig — der Testlauf
+  # Rundung, Compliance und Abrechnung sind zeitzonenabhängig, der Testlauf
   # fixiert die Zone, damit Tagesgrenzen deterministisch sind.
   TZ: Europe/Berlin
 
@@ -96,5 +96,5 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Web samt Workspace-Abhängigkeiten bauen (server.mjs braucht .next)
         run: pnpm --filter '@tarlog/web...' build
-      - name: Smoke — 22 Invarianten (Rundung, Compliance, PDF, Rechnung, Sync, WS)
+      - name: Smoke, 22 Invarianten (Rundung, Compliance, PDF, Rechnung, Sync, WS)
         run: bash scripts/smoke.sh

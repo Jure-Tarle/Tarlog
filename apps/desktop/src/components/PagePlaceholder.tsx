@@ -1,10 +1,12 @@
 /**
- * PagePlaceholder — shared scaffold for the 13 area pages.
+ * PagePlaceholder, shared scaffold for the 13 area pages.
  *
  * Every page stub renders this until its owning UI author fills the page. It
  * carries the ledger design tokens (title scale, muted hint, dashed stub box)
  * so the skeleton already looks intentional, not like a broken route.
  */
+import { t } from "../i18n";
+
 export function PagePlaceholder({
   title,
   hint,
@@ -25,9 +27,7 @@ export function PagePlaceholder({
       <div className="page__stub">
         {children ?? (
           <p>
-            Platzhalter für <strong>{title}</strong>. Diese Seite füllt der
-            UI-Autor. Backend über <code>src/lib/bridge.ts</code>, Read-Queries
-            über <code>src/lib/db.ts</code>.
+            {t("Platzhalter für")} <strong>{title}</strong>{t(". Diese Seite füllt der UI-Autor. Backend über")} <code>src/lib/bridge.ts</code>{t(", Read-Queries über")} <code>src/lib/db.ts</code>.
           </p>
         )}
       </div>

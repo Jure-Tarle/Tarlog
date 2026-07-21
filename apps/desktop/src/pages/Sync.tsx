@@ -1,5 +1,5 @@
 /**
- * Sync — optional, experimental self-hosted device sync.
+ * Sync, optional, experimental self-hosted device sync.
  *
  * The engine configuration is the sole source of truth. A URL saved in general
  * settings is never treated as a connection, and "synchronisiert" is shown only
@@ -21,6 +21,7 @@ import {
 } from "../components/ui";
 import { useAsync } from "../data/hooks";
 import { detectDesktopPlatform } from "../lib/platform";
+import { t, getLocale } from "../i18n";
 import {
   NativeHttpTransportError,
   ServerHttpError,
@@ -84,10 +85,10 @@ const PHASE_COPY: Record<SyncUiPhase, { label: string; detail: string }> = {
 function currentDeviceInfo(): DeviceInfo {
   const platform = detectDesktopPlatform();
   if (platform !== "macos" && platform !== "windows") {
-    throw new Error("Geräte-Pairing wird derzeit nur unter macOS und Windows unterstützt.");
+    throw new Error(t("Geräte-Pairing wird derzeit nur unter macOS und Windows unterstützt."));
   }
   return {
-    device_name: platform === "macos" ? "Tarlog auf diesem Mac" : "Tarlog auf diesem PC",
+    device_name: platform === "macos" ? t("Tarlog auf diesem Mac") : t("Tarlog auf diesem PC"),
     platform,
     app_version: packageJson.version,
     local_db_version: LOCAL_DB_VERSION,
@@ -96,30 +97,30 @@ function currentDeviceInfo(): DeviceInfo {
 
 function describeError(error: unknown, duringPairing: boolean): string {
   if (error instanceof NativeHttpTransportError) {
-    return "Der native HTTP-Transport konnte nicht aktiviert werden. Bitte Tarlog neu starten und die Installation prüfen.";
+    return t("Der native HTTP-Transport konnte nicht aktiviert werden. Bitte Tarlog neu starten und die Installation prüfen.");
   }
   if (error instanceof ServerUnreachableError) {
-    return "Server nicht erreichbar. Adresse, Netzwerk und TLS-Zertifikat prüfen.";
+    return t("Server nicht erreichbar. Adresse, Netzwerk und TLS-Zertifikat prüfen.");
   }
   if (error instanceof ServerProtocolError) {
-    return "Der Server antwortet nicht mit einem kompatiblen Tarlog-Sync-Protokoll.";
+    return t("Der Server antwortet nicht mit einem kompatiblen Tarlog-Sync-Protokoll.");
   }
   if (error instanceof SyncMergeRequiredError) {
-    return `${error.message} Der Pull-Cursor bleibt unverändert; es gehen keine Serverdaten verloren.`;
+    return t("{message} Der Pull-Cursor bleibt unverändert; es gehen keine Serverdaten verloren.", { message: error.message });
   }
   if (error instanceof SyncMergeFailedError) {
-    return `${error.message} Der Pull-Cursor bleibt unverändert und der Vorgang kann erneut versucht werden.`;
+    return t("{message} Der Pull-Cursor bleibt unverändert und der Vorgang kann erneut versucht werden.", { message: error.message });
   }
   if (error instanceof ServerHttpError) {
     if (error.status === 401 && duringPairing) {
-      return "Pairing-Code ungültig oder abgelaufen. Bitte in der Webanwendung einen neuen Code erzeugen.";
+      return t("Pairing-Code ungültig oder abgelaufen. Bitte in der Webanwendung einen neuen Code erzeugen.");
     }
     if (error.status === 401 || error.status === 403) {
-      return "Der Gerätezugang wurde abgelehnt oder widerrufen. Bitte neu koppeln.";
+      return t("Der Gerätezugang wurde abgelehnt oder widerrufen. Bitte neu koppeln.");
     }
-    if (error.status === 429) return "Zu viele Pairing-Versuche. Bitte kurz warten und erneut versuchen.";
-    if (error.status === 422) return "Server-Adresse oder Pairing-Daten wurden vom Server abgelehnt.";
-    return `Serverfehler ${error.status}. Der Abgleich wurde nicht bestätigt.`;
+    if (error.status === 429) return t("Zu viele Pairing-Versuche. Bitte kurz warten und erneut versuchen.");
+    if (error.status === 422) return t("Server-Adresse oder Pairing-Daten wurden vom Server abgelehnt.");
+    return t("Serverfehler {status}. Der Abgleich wurde nicht bestätigt.", { status: error.status });
   }
   return error instanceof Error ? error.message : String(error);
 }
@@ -128,17 +129,21 @@ function roundMessage(round: SyncRound, phase: SyncUiPhase): string {
   const conflicts = round.push.conflicts + round.pull.conflicts;
   const rejected = round.push.rejected + round.pull.rejected;
   if (phase === "conflict") {
-    return `${conflicts} Konflikt${conflicts === 1 ? "" : "e"} erkannt. Keine Version wurde still verworfen.`;
+    const word = conflicts === 1 ? t("Konflikt") : t("Konflikte");
+    return t("{n} {word} erkannt. Keine Version wurde still verworfen.", { n: conflicts, word });
   }
   if (phase === "error") {
-    return rejected > 0
-      ? `${rejected} Änderung${rejected === 1 ? " wurde" : "en wurden"} vom Server abgelehnt und bleibt lokal ausstehend.`
-      : "Der Server hat den Abgleich nicht vollständig bestätigt.";
+    if (rejected > 0) {
+      const word = rejected === 1 ? t("Änderung wurde") : t("Änderungen wurden");
+      return t("{n} {word} vom Server abgelehnt und bleibt lokal ausstehend.", { n: rejected, word });
+    }
+    return t("Der Server hat den Abgleich nicht vollständig bestätigt.");
   }
   if (phase === "buffered") {
-    return "Netzwerk nicht erreichbar. Bereits vorhandene Outbox-Ereignisse bleiben retrybar; lokale Fachmutationen sind in dieser Vorschau noch nicht vollständig angebunden.";
+    return t("Netzwerk nicht erreichbar. Bereits vorhandene Outbox-Ereignisse bleiben retrybar; lokale Fachmutationen sind in dieser Vorschau noch nicht vollständig angebunden.");
   }
-  return `${round.push.count} Event${round.push.count === 1 ? "" : "s"} gesendet, ${round.pull.count} empfangen.`;
+  const word = round.push.count === 1 ? t("Event") : t("Events");
+  return t("{n} {word} gesendet, {m} empfangen.", { n: round.push.count, word, m: round.pull.count });
 }
 
 export default function Sync() {
@@ -262,31 +267,35 @@ export default function Sync() {
   const conflictCount = conflicts.data?.length ?? 0;
 
   return (
-    <Page title="Sync" hint="Experimenteller Self-Host-Abgleich">
+    <Page className="sync-page" title={t("Sync")} hint={t("Experimenteller Self-Host-Abgleich")}>
       <StatGrid>
         <StatTile
-          label="Modus"
-          value={config ? <Tag tone="accent">Server</Tag> : <Tag tone="muted">Lokal</Tag>}
-          sub={config ? "gekoppelt" : "vollständig offline nutzbar"}
+          label={t("Modus")}
+          value={config ? <Tag tone="accent">{t("Server")}</Tag> : <Tag tone="muted">{t("Lokal")}</Tag>}
+          sub={config ? t("gekoppelt") : t("vollständig offline nutzbar")}
         />
         <StatTile
-          label="Status"
-          value={<Tag tone={phase === "synced" ? "accent" : "muted"}>{status.label}</Tag>}
-          sub={status.detail}
+          label={t("Status")}
+          value={<Tag tone={phase === "synced" ? "accent" : "muted"}>{t(status.label)}</Tag>}
+          sub={t(status.detail)}
         />
-        <StatTile label="Server" value={config?.baseUrl ?? "—"} />
         <StatTile
-          label="Letzter bestätigter Transport"
+          label={t("Server")}
+          value={<span className="sync-server-value">{config?.baseUrl ?? "—"}</span>}
+          sub={config ? t("Gekoppelte Gegenstelle") : t("Nicht gekoppelt")}
+        />
+        <StatTile
+          label={t("Letzter bestätigter Transport")}
           value={lastSuccessfulSyncAt
-            ? new Date(lastSuccessfulSyncAt).toLocaleString("de-DE")
-            : "nie"}
+            ? new Date(lastSuccessfulSyncAt).toLocaleString(getLocale())
+            : t("nie")}
         />
         <StatTile
-          label="Ausstehend"
+          label={t("Ausstehend")}
           value={pending.loading ? "…" : pending.error ? "—" : pendingCount}
-          sub={pending.error ? "Outbox nicht lesbar" : "bereits erzeugte lokale Events"}
+          sub={pending.error ? t("Outbox nicht lesbar") : t("bereits erzeugte lokale Events")}
         />
-        <StatTile label="Konflikte" value={conflicts.loading ? "…" : conflictCount} sub="offen" />
+        <StatTile label={t("Konflikte")} value={conflicts.loading ? "…" : conflictCount} sub={t("offen")} />
       </StatGrid>
 
       {error ? <ErrorNote error={error} /> : null}
@@ -296,41 +305,37 @@ export default function Sync() {
           role={phase === "conflict" || phase === "error" ? "alert" : "status"}
           aria-live="polite"
         >
-          <span><strong>{status.label}.</strong> {statusMessage}</span>
+          <span><strong>{t(status.label)}.</strong> {statusMessage}</span>
         </div>
       ) : null}
 
       {config ? (
         <Card
-          title="Server-Verbindung"
-          subtitle="Experimentell — der lokale Datenbestand bleibt die ausfallsichere Basis."
+          title={t("Server-Verbindung")}
+          subtitle={t("Experimentell, der lokale Datenbestand bleibt die ausfallsichere Basis.")}
           actions={(
             <Button variant="primary" disabled={busy} onClick={() => void syncNow()}>
-              {phase === "syncing" ? "Abgleich läuft …" : "Transport jetzt prüfen"}
+              {phase === "syncing" ? t("Abgleich läuft …") : t("Transport jetzt prüfen")}
             </Button>
           )}
         >
           <p className="muted">
-            Gekoppelt mit <strong>{config.baseUrl}</strong>. Bei einem Verbindungsfehler
-            bleiben bereits erzeugte Outbox-Ereignisse retrybar. Konflikte und
-            Server-Ablehnungen werden sichtbar gemeldet. Die Erzeugung lokaler
-            Fachereignisse sowie die Anwendung eingehender Änderungen auf die lokalen
-            Fachdaten sind weiterhin experimentell.
+            {t("Gekoppelt mit")} <strong>{config.baseUrl}</strong>{t(". Bei einem Verbindungsfehler bleiben bereits erzeugte Outbox-Ereignisse retrybar. Konflikte und Server-Ablehnungen werden sichtbar gemeldet. Die Erzeugung lokaler Fachereignisse sowie die Anwendung eingehender Änderungen auf die lokalen Fachdaten sind weiterhin experimentell.")}
           </p>
           <Button variant="ghost" disabled={busy} onClick={disconnect}>
-            Kopplung lokal entfernen und offline weiterarbeiten
+            {t("Kopplung lokal entfernen und offline weiterarbeiten")}
           </Button>
         </Card>
       ) : (
         <Card
-          title="Mit eigenem Server koppeln"
-          subtitle="In der Webanwendung unter Geräte einen kurzlebigen Pairing-Code erzeugen."
+          title={t("Mit eigenem Server koppeln")}
+          subtitle={t("In der Webanwendung unter Geräte einen kurzlebigen Pairing-Code erzeugen.")}
         >
-          <form onSubmit={(event) => void connect(event)} noValidate>
+          <form className="sync-pairing-form" onSubmit={(event) => void connect(event)} noValidate>
             <FormRow>
               <Field
-                label="Server-Adresse"
-                hint="z. B. https://tarlog.example.com"
+                label={t("Server-Adresse")}
+                hint={t("z. B. https://tarlog.example.com")}
                 error={urlError}
                 required
               >
@@ -338,21 +343,21 @@ export default function Sync() {
                   type="url"
                   value={url}
                   onChange={(event) => setUrl(event.target.value)}
-                  placeholder="https://…"
+                  placeholder={t("https://…")}
                   autoComplete="url"
                   disabled={busy}
                 />
               </Field>
               <Field
-                label="Pairing-Code"
-                hint="8 Zeichen, z. B. ABCD-EF23"
+                label={t("Pairing-Code")}
+                hint={t("8 Zeichen, z. B. ABCD-EF23")}
                 error={codeError}
                 required
               >
                 <TextInput
                   value={pairingCode}
                   onChange={(event) => setPairingCode(event.target.value.toUpperCase())}
-                  placeholder="ABCD-EF23"
+                  placeholder={t("ABCD-EF23")}
                   autoCapitalize="characters"
                   autoComplete="one-time-code"
                   spellCheck={false}
@@ -361,9 +366,11 @@ export default function Sync() {
                 />
               </Field>
             </FormRow>
-            <Button variant="primary" type="submit" disabled={busy}>
-              {phase === "pairing" ? "Code wird geprüft …" : "Koppeln und ersten Sync prüfen"}
-            </Button>
+            <div className="sync-pairing-form__actions">
+              <Button variant="primary" type="submit" disabled={busy}>
+                {phase === "pairing" ? t("Code wird geprüft …") : t("Koppeln und ersten Sync prüfen")}
+              </Button>
+            </div>
           </form>
         </Card>
       )}

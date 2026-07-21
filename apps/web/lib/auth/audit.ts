@@ -1,12 +1,12 @@
 /**
- * lib/auth/audit.ts — Audit-Log-Schreiber (doc 09 §5 Nr. 16, doc 06 `audit_logs`).
+ * lib/auth/audit.ts, Audit-Log-Schreiber (doc 09 §5 Nr. 16, doc 06 `audit_logs`).
  *
  * Revisionssicheres Protokoll kritischer Änderungen. `action` ist an das
- * `audit_logs.action`-Enum (doc 06, 25 Events) gebunden — daher hier typsicher
+ * `audit_logs.action`-Enum (doc 06, 25 Events) gebunden, daher hier typsicher
  * aus dem Drizzle-Insert-Typ abgeleitet. Für Auth/Token existiert im Enum nur
  * `device_connected` / `device_disconnected`; Account-/Session-/Token-Mutationen
  * tragen ihre Historie in den Entitätsspalten selbst (`api_tokens.created_at/
- * revoked_at`, `sessions.revoked_at`, `devices.revoked`) — offener Punkt: Enum
+ * revoked_at`, `sessions.revoked_at`, `devices.revoked`), offener Punkt: Enum
  * um Token-/Account-Aktionen erweitern (Datenmodell-Autor).
  */
 import { uuidv7 } from "uuidv7";

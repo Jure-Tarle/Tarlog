@@ -1,9 +1,10 @@
 /**
- * /settings — Profil, Rundungsregeln, Nummernkreis (doc 11 §2 Nr. 14).
+ * /settings, Profil, Rundungsregeln, Nummernkreis (doc 11 §2 Nr. 14).
  */
 import { PageHeader, LoadError, Table, Th, Td, EmptyState, SectionTitle, Badge } from "@/lib/ui/ui";
 import { requireAccount, listRoundingRules, listSettings } from "@/lib/ui/queries";
 import { ProfileForm, RoundingRuleForm, NumberRangeForm } from "./SettingsForms";
+import { AppearanceSettings } from "./AppearanceSettings";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,10 +15,17 @@ const MODE_LABEL: Record<string, string> = {
   always_down: "immer ab",
   commercial: "kaufmännisch",
   nearest_interval: "nächstes Intervall",
-  ceil_started_interval: "angefangenes Intervall",
-  min_per_entry: "Min. je Eintrag",
-  min_per_day: "Min. je Tag",
-  min_per_project: "Min. je Projekt",
+  ceil_started_interval: "angefangene Intervalle aufrunden",
+  min_per_entry: "Mindestzeit je Eintrag",
+  min_per_day: "Mindestzeit je Tag",
+  min_per_project: "Mindestzeit je Projekt",
+};
+
+const SCOPE_LABEL: Record<string, string> = {
+  global: "Alle Projekte",
+  customer: "Bestimmter Kunde",
+  project: "Bestimmtes Projekt",
+  task: "Bestimmtes Teilprojekt",
 };
 
 export default async function SettingsPage(): Promise<React.ReactElement> {
@@ -35,6 +43,7 @@ export default async function SettingsPage(): Promise<React.ReactElement> {
 
     content = (
       <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+        <AppearanceSettings />
         <ProfileForm
           initial={{
             displayName: account.displayName,
@@ -48,7 +57,7 @@ export default async function SettingsPage(): Promise<React.ReactElement> {
         <div>
           <SectionTitle>Rundungsregeln</SectionTitle>
           {rules.length === 0 ? (
-            <EmptyState title="Keine Rundungsregeln" hint="Lege unten eine Regel an (9 Modi, Intervalle 5–60 Min.)." />
+            <EmptyState title="Keine Rundungsregeln" hint="Lege unten fest, wie die Abrechnungszeit gerundet werden soll." />
           ) : (
             <Table
               head={
@@ -65,9 +74,9 @@ export default async function SettingsPage(): Promise<React.ReactElement> {
                 <tr key={r.id}>
                   <Td><span style={{ fontWeight: 500 }}>{r.name}</span></Td>
                   <Td>{MODE_LABEL[r.mode] ?? r.mode}</Td>
-                  <Td align="right" mono>{r.interval_minutes != null ? `${r.interval_minutes} Min.` : "—"}</Td>
-                  <Td align="right" mono>{r.min_duration_seconds != null ? `${Math.round(r.min_duration_seconds / 60)} Min.` : "—"}</Td>
-                  <Td align="center"><Badge tone="muted">{r.scope ?? "global"}</Badge></Td>
+                  <Td align="right" mono>{r.interval_minutes != null ? `${r.interval_minutes} Min.` : ","}</Td>
+                  <Td align="right" mono>{r.min_duration_seconds != null ? `${Math.round(r.min_duration_seconds / 60)} Min.` : ","}</Td>
+                  <Td align="center"><Badge tone="muted">{SCOPE_LABEL[r.scope ?? "global"] ?? "Alle Projekte"}</Badge></Td>
                 </tr>
               ))}
             </Table>
@@ -86,7 +95,7 @@ export default async function SettingsPage(): Promise<React.ReactElement> {
 
   return (
     <section>
-      <PageHeader title="Einstellungen" subtitle="Profil, Rundungsregeln, Rechnungs-Nummernkreis" />
+      <PageHeader title="Einstellungen" subtitle="Darstellung, Profil, Rundungsregeln, Rechnungsnummern" />
       {content}
     </section>
   );

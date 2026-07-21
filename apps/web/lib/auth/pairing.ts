@@ -1,5 +1,5 @@
 /**
- * lib/auth/pairing.ts — kurzlebige Geräte-Pairing-Codes (doc 05 §9.3 Schritt 3).
+ * lib/auth/pairing.ts, kurzlebige Geräte-Pairing-Codes (doc 05 §9.3 Schritt 3).
  *
  * Ablauf: Admin (authentifiziert im Browser) erzeugt einen kurzen Code. Das NEUE
  * Gerät (noch ohne Token) sendet den Code an `POST /api/devices/connect` und
@@ -8,12 +8,12 @@
  *
  * Speicherung BEWUSST nur In-Memory (globalThis-gecacht): nur der SHA-256-Hash
  * des Codes wird gehalten, nie der Klartext. Prozess-lokal wie das Rate-Limiting
- * (Single-Node-Self-Host). Übersteht keinen Neustart / keine Mehr-Instanz —
+ * (Single-Node-Self-Host). Übersteht keinen Neustart / keine Mehr-Instanz ,
  * offener Punkt für einen späteren persistenten Store.
  */
 import { createHash, randomInt } from "node:crypto";
 
-/** Alphabet ohne mehrdeutige Zeichen (kein 0/O/1/I) — gut abtippbar. */
+/** Alphabet ohne mehrdeutige Zeichen (kein 0/O/1/I), gut abtippbar. */
 const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const CODE_LEN = 8;
 const DEFAULT_TTL_SECONDS = 600; // 10 min

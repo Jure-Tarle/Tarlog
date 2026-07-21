@@ -40,7 +40,7 @@ function updateThemeColor(theme: ResolvedAppearance): void {
     meta.dataset.tarlogThemeColor = "true";
     document.head.append(meta);
   }
-  meta.content = theme === "dark" ? "#171719" : "#f5f5f7";
+  meta.content = theme === "dark" ? "#1c1c1e" : "#f5f5f7";
 }
 
 function applyAppearance(preference: AppearancePreference, persist: boolean): ResolvedAppearance {

@@ -1,5 +1,5 @@
 /**
- * SQLite dialect schema (client DB) — Drizzle ORM.
+ * SQLite dialect schema (client DB), Drizzle ORM.
  *
  * Setzt das vollständige Datenmodell aus docs/project-time-ledger/06-datenmodell.md
  * um: alle 40 Tabellen (31 SPEC-V1 + abgeleitete `timer_states` + 8 Team).
@@ -7,7 +7,7 @@
  * Konventionen (doc 06 §0, doc 05 §8):
  *  - `id`/FKs: UUIDv7/UUIDv4 als TEXT.
  *  - Enums: TEXT mit `{ enum: [...] }`.
- *  - `*_at` Zeitpunkte: INTEGER epoch-ms (UTC) — deckt sich mit core `EpochMs = number`.
+ *  - `*_at` Zeitpunkte: INTEGER epoch-ms (UTC), deckt sich mit core `EpochMs = number`.
  *  - `*_seconds` Dauern: INTEGER.
  *  - Geld `*_cents`: INTEGER (SQLite speichert 64-Bit-Ints nativ).
  *  - Prozente/Stunden NUMERIC(p,s): REAL.
@@ -267,7 +267,7 @@ export const timerStates = sqliteTable(
 );
 
 // ===========================================================================
-// A.2 Stammdaten — Kunden, Projekte, Aufgaben, Tags
+// A.2 Stammdaten, Kunden, Projekte, Aufgaben, Tags
 // ===========================================================================
 
 export const customers = sqliteTable(
@@ -278,10 +278,17 @@ export const customers = sqliteTable(
       .notNull()
       .references(() => mainAccounts.id),
     name: text("name").notNull(),
+    first_name: text("first_name"),
+    last_name: text("last_name"),
     company: text("company"),
     contact_person: text("contact_person"),
     email: text("email"),
     phone: text("phone"),
+    street: text("street"),
+    house_number: text("house_number"),
+    postal_code: text("postal_code"),
+    city: text("city"),
+    country: text("country"),
     billing_address: text("billing_address"),
     shipping_address: text("shipping_address"),
     vat_id: text("vat_id"),
@@ -436,7 +443,7 @@ export const tags = sqliteTable(
 );
 
 // ===========================================================================
-// A.3 Zeiterfassung — Kernentität
+// A.3 Zeiterfassung, Kernentität
 // ===========================================================================
 
 export const timeEntries = sqliteTable(
@@ -583,6 +590,7 @@ export const roundingRules = sqliteTable("rounding_rules", {
   scope: text("scope", {
     enum: ["global", "customer", "project", "task"],
   }).default("global"),
+  priority: integer("priority").notNull().default(0),
   valid_from: text("valid_from").notNull(),
   valid_until: text("valid_until"),
   calculation_version: integer("calculation_version").notNull(),
@@ -1120,7 +1128,7 @@ export const conflictRecords = sqliteTable(
 );
 
 // ===========================================================================
-// TEIL B — 8 vorbereitete Team-Tabellen (Phase 6, angelegt aber inaktiv)
+// TEIL B, 8 vorbereitete Team-Tabellen (Phase 6, angelegt aber inaktiv)
 // ===========================================================================
 
 export const organizations = sqliteTable(

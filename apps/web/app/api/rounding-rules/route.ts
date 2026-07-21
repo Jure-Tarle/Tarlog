@@ -1,5 +1,5 @@
 /**
- * /api/rounding-rules — Liste + Anlegen (doc 06 §A.4 `rounding_rules`, doc 07 §3).
+ * /api/rounding-rules, Liste + Anlegen (doc 06 §A.4 `rounding_rules`, doc 07 §3).
  *
  * 9 Modi / 6 Intervalle, historisiert über `valid_from`/`valid_until`. Jede
  * Mutation schreibt Audit `rounding_rule_changed` (doc 06 rounding_rules-Meta).
@@ -55,6 +55,16 @@ export const POST = requireAuth(async (req, _ctx, auth) => {
 
   const created = await db.transaction(async (tx) => {
     const newId = uuidv7();
+    if (input.scope === "global") {
+      await tx
+        .update(schema.roundingRules)
+        .set({ scope: "project", priority: 100, updated_at: now })
+        .where(and(
+          eq(schema.roundingRules.main_account_id, mid),
+          eq(schema.roundingRules.scope, "global"),
+          isNull(schema.roundingRules.deleted_at),
+        ));
+    }
     const [row] = await tx
       .insert(schema.roundingRules)
       .values({
@@ -65,6 +75,7 @@ export const POST = requireAuth(async (req, _ctx, auth) => {
         interval_minutes: input.interval_minutes ?? null,
         min_duration_seconds: input.min_duration_seconds ?? null,
         scope: input.scope,
+        priority: input.scope === "global" ? 0 : input.priority,
         valid_from: input.valid_from,
         valid_until: input.valid_until ?? null,
         calculation_version: input.calculation_version ?? CALCULATION_VERSION,

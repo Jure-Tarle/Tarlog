@@ -1,9 +1,9 @@
 /**
- * lib/crud/http.ts — gemeinsame CRUD-Bausteine: Pagination, Filter, Scoping,
+ * lib/crud/http.ts, gemeinsame CRUD-Bausteine: Pagination, Filter, Scoping,
  * Fehler-Mapping (doc 05 §5 "Design-Regeln", Pagination + einfache Filter).
  *
  * Alle Stammdaten sind streng `main_account`-gescoped: jede Query bekommt
- * `eq(table.main_account_id, auth.main_account_id)` — Body-`main_account_id`
+ * `eq(table.main_account_id, auth.main_account_id)`, Body-`main_account_id`
  * wird NIE vertraut (immer aus dem AuthContext). Soft-Delete-Tabellen filtern
  * standardmäßig `deleted_at IS NULL`.
  */
@@ -110,7 +110,7 @@ export function mapDbError(err: unknown): never {
   throw err;
 }
 
-/** NUMERIC-Spalten erwarten Strings — Zahl → String (oder null). */
+/** NUMERIC-Spalten erwarten Strings, Zahl → String (oder null). */
 export function numericToString(v: number | null | undefined): string | null {
   return v == null ? null : String(v);
 }

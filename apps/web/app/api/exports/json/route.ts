@@ -1,5 +1,5 @@
 /**
- * app/api/exports/json — verlustfreier JSON-Komplettexport (doc 10 §6.1
+ * app/api/exports/json, verlustfreier JSON-Komplettexport (doc 10 §6.1
  * Format JSON; doc 09 Art. 20 Datenportabilität, doc 12 Testfall 36).
  * Exportiert alle account-gescopeten Domänendaten (ohne Geheimnisse),
  * maschinenlesbar und wieder importierbar. Erzeugt einen exports-Eintrag.

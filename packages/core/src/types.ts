@@ -1,10 +1,10 @@
 /**
- * Tarlog — Core contract (types.ts).
+ * Tarlog, Core contract (types.ts).
  *
  * This is THE CONTRACT. All engine modules (time, rounding, compliance,
  * billing, schemas) and all apps depend on these types. Field names match
  * docs/project-time-ledger/07-zeitberechnung-rundung.md and 06-datenmodell.md
- * EXACTLY — any divergence is a data-model bug.
+ * EXACTLY, any divergence is a data-model bug.
  *
  * Conventions (docs 05-architektur.md §8):
  *  - Instants: UTC epoch-ms (number) + IANA `timezone` (string) per entry.
@@ -54,7 +54,7 @@ export interface BreakInput {
 }
 
 /**
- * Raw input for the per-entry calculation pipeline. Only raw measured fields —
+ * Raw input for the per-entry calculation pipeline. Only raw measured fields ,
  * derived values (net, billing, deltas) are computed by the engine.
  */
 export interface TimeEntryCalcInput {
@@ -100,7 +100,7 @@ export interface RoundingRule {
   minimum_seconds?: Seconds;
 }
 
-/** Output of applyRounding — the three rounding fields (doc 07 §3.1). */
+/** Output of applyRounding, the three rounding fields (doc 07 §3.1). */
 export interface RoundingResult {
   /** Rounded billable seconds. */
   billing_duration_seconds: Seconds;
@@ -127,7 +127,7 @@ export interface RateSnapshot {
 }
 
 /**
- * Full per-entry calculation result — all 12 fields of the time entry
+ * Full per-entry calculation result, all 12 fields of the time entry
  * (doc 07 §3.1). `actual_duration_seconds` (gross = ended − started) is NEVER
  * altered by rounding; `billing_duration_seconds` is the rounded result.
  */
@@ -198,7 +198,7 @@ export interface ComplianceRuleResult {
  */
 export type ComplianceProfileSeverity = "info" | "warning" | "violation";
 
-/** Versioned country/jurisdiction compliance profile — all 9 fields (doc 08 §5.1). */
+/** Versioned country/jurisdiction compliance profile, all 9 fields (doc 08 §5.1). */
 export interface ComplianceProfile {
   /** ISO 3166-1 alpha-2, plus special value "EU". */
   country_code: string;
@@ -241,7 +241,7 @@ export interface DayEntrySummary {
   is_sunday: boolean;
   /** Local day is a public holiday per the profile. */
   is_holiday: boolean;
-  /** Any work overlaps the night window (23:00–06:00). */
+  /** Any work overlaps the night window (23:00,06:00). */
   has_night_work: boolean;
 }
 

@@ -2,29 +2,47 @@
  * Current macOS presentation layer.
  *
  * The WebView stays opaque so the signed app remains compatible with public
- * macOS APIs. The WebView begins below the standard AppKit titlebar so native
- * window controls can never collide with application content. The remaining
- * material responds to the system accessibility media features.
+ * macOS APIs. Native window controls overlay the upper-left source-list rail;
+ * only navigation and compact functional controls use translucent material.
+ * The content plane remains solid and responds to accessibility media features.
  */
 
 :root[data-platform="macos"] {
   --sidebar-w: var(--sidebar-user-w, 16rem);
   --topbar-h: 2.75rem;
-  --row-h: 2rem;
+  --row-h: 2.75rem;
   --radius-sm: 0.5rem;
   --radius-control: 0.5625rem;
   --radius-card: 0.75rem;
   --radius-material: 0.875rem;
 
-  --mac-window: #f0f0f2;
-  --mac-content: #f5f5f7;
-  --mac-sidebar: rgba(239, 239, 242, 0.72);
-  --mac-toolbar: rgba(248, 248, 249, 0.7);
+  --mac-window: #e9edf4;
+  --mac-content: #f8f8fa;
+  --mac-sidebar: rgba(247, 247, 250, 0.58);
+  --mac-toolbar: rgba(252, 252, 253, 0.56);
   --mac-control: rgba(255, 255, 255, 0.72);
   --mac-control-hover: rgba(255, 255, 255, 0.94);
   --mac-input: rgba(255, 255, 255, 0.9);
+  --mac-button-fill: rgba(255, 255, 255, 0.26);
+  --mac-button-hover: rgba(255, 255, 255, 0.44);
+  --mac-button-pressed: rgba(238, 243, 250, 0.32);
+  --mac-button-border: rgba(255, 255, 255, 0.45);
+  --mac-button-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent 40%);
+  --mac-button-shadow: 0 0.0625rem 0.0625rem rgba(31, 41, 61, 0.06), 0 0.125rem 0.375rem rgba(31, 41, 61, 0.08), inset 0 0.5px 0 rgba(255, 255, 255, 0.6);
+  --mac-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='12' viewBox='0 0 8 12'%3E%3Cpath d='M1.5 4.2 4 1.7 6.5 4.2' fill='none' stroke='%236e6e73' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M1.5 7.8 4 10.3 6.5 7.8' fill='none' stroke='%236e6e73' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --mac-button-primary-fill: color-mix(in srgb, var(--accent) 52%, transparent);
+  --mac-button-primary-hover: color-mix(in srgb, var(--accent) 64%, transparent);
+  --mac-button-primary-pressed: color-mix(in srgb, var(--accent) 46%, transparent);
+  --mac-button-primary-text: #ffffff;
   --mac-selection: rgba(0, 122, 255, 0.16);
   --mac-glass-edge: rgba(0, 0, 0, 0.07);
+  --mac-glass-outline: rgba(60, 60, 67, 0.13);
+  --mac-glass-highlight: rgba(255, 255, 255, 0.78);
+  --mac-glass-shadow: 0 1rem 2.75rem rgba(48, 56, 72, 0.14), 0 0.125rem 0.5rem rgba(48, 56, 72, 0.08);
+  --mac-backdrop:
+    radial-gradient(circle at 8% 8%, rgba(96, 170, 255, 0.3), transparent 30rem),
+    radial-gradient(circle at 88% 0%, rgba(196, 174, 255, 0.22), transparent 32rem),
+    linear-gradient(145deg, #edf2f9, #e5e9f0 58%, #eef0f5);
   --mac-scroll-edge: rgba(0, 0, 0, 0.09);
 
   --workspace: var(--mac-content);
@@ -35,8 +53,8 @@
   --material: var(--mac-toolbar);
   --material-heavy: rgba(250, 250, 251, 0.94);
   --text: #1d1d1f;
-  --text-muted: #626267;
-  --text-faint: #76767c;
+  --text-muted: #6e6e73;
+  --text-faint: #8e8e93;
   --accent: #007aff;
   --accent-hover: #006ee6;
   --accent-pressed: #0062cc;
@@ -55,15 +73,33 @@
 }
 
 :root[data-platform="macos"][data-theme="dark"] {
-  --mac-window: #18181a;
-  --mac-content: #1e1e20;
-  --mac-sidebar: rgba(38, 38, 41, 0.72);
-  --mac-toolbar: rgba(31, 31, 34, 0.7);
+  --mac-window: #101114;
+  --mac-content: #1c1c1e;
+  --mac-sidebar: rgba(38, 38, 42, 0.58);
+  --mac-toolbar: rgba(42, 42, 46, 0.56);
   --mac-control: rgba(69, 69, 74, 0.66);
   --mac-control-hover: rgba(82, 82, 88, 0.82);
   --mac-input: rgba(45, 45, 48, 0.92);
+  --mac-button-fill: rgba(66, 70, 80, 0.32);
+  --mac-button-hover: rgba(98, 102, 114, 0.44);
+  --mac-button-pressed: rgba(52, 55, 64, 0.42);
+  --mac-button-border: rgba(255, 255, 255, 0.16);
+  --mac-button-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 40%);
+  --mac-button-shadow: 0 0.0625rem 0.0625rem rgba(0, 0, 0, 0.18), 0 0.125rem 0.375rem rgba(0, 0, 0, 0.22), inset 0 0.5px 0 rgba(255, 255, 255, 0.22);
+  --mac-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='12' viewBox='0 0 8 12'%3E%3Cpath d='M1.5 4.2 4 1.7 6.5 4.2' fill='none' stroke='%23b0b0b8' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M1.5 7.8 4 10.3 6.5 7.8' fill='none' stroke='%23b0b0b8' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --mac-button-primary-fill: color-mix(in srgb, var(--accent) 46%, transparent);
+  --mac-button-primary-hover: color-mix(in srgb, var(--accent) 58%, transparent);
+  --mac-button-primary-pressed: color-mix(in srgb, var(--accent) 40%, transparent);
+  --mac-button-primary-text: #ffffff;
   --mac-selection: rgba(10, 132, 255, 0.25);
   --mac-glass-edge: rgba(255, 255, 255, 0.095);
+  --mac-glass-outline: rgba(255, 255, 255, 0.1);
+  --mac-glass-highlight: rgba(255, 255, 255, 0.16);
+  --mac-glass-shadow: 0 1.25rem 3.25rem rgba(0, 0, 0, 0.38), 0 0.125rem 0.625rem rgba(0, 0, 0, 0.28);
+  --mac-backdrop:
+    radial-gradient(circle at 8% 8%, rgba(10, 132, 255, 0.24), transparent 31rem),
+    radial-gradient(circle at 90% 0%, rgba(94, 71, 176, 0.22), transparent 32rem),
+    linear-gradient(145deg, #15171c, #0f1013 62%, #18181d);
   --mac-scroll-edge: rgba(0, 0, 0, 0.3);
 
   --workspace: var(--mac-content);
@@ -74,8 +110,8 @@
   --material: var(--mac-toolbar);
   --material-heavy: rgba(43, 43, 46, 0.94);
   --text: #f5f5f7;
-  --text-muted: #b8b8bd;
-  --text-faint: #98989f;
+  --text-muted: #aeaeb2;
+  --text-faint: #8e8e93;
   --accent: #0a84ff;
   --accent-hover: #278fff;
   --accent-pressed: #086dcc;
@@ -96,11 +132,12 @@
   }
 }
 
-@supports (color: AccentColorText) {
-  :root[data-platform="macos"] {
-    --accent-fg: AccentColorText;
-  }
-}
+/* Native-density adjustments for the shared Today/Week overview. */
+:root[data-platform="macos"] .time-overview-page .stat { min-height: 5.25rem; }
+:root[data-platform="macos"] .today-timeline__entry { min-height: 4.1rem; }
+:root[data-platform="macos"] .week-day-row { min-height: 4rem; }
+:root[data-platform="macos"] .week-period-toolbar { border-radius: 0.6rem; background: color-mix(in srgb, var(--mac-control) 76%, transparent); }
+:root[data-platform="macos"] .week-period-toolbar .btn:hover { background: var(--mac-control-hover); }
 
 @supports (color: color-mix(in srgb, red, blue)) {
   :root[data-platform="macos"] {
@@ -123,7 +160,7 @@
 }
 
 :root[data-platform="macos"] body {
-  background: var(--mac-window);
+  background: var(--mac-backdrop), var(--mac-window);
   font-size: 0.8125rem;
   line-height: 1.3846;
 }
@@ -140,6 +177,50 @@
   font-family: var(--font-mono);
 }
 
+:root[data-platform="macos"] .backdating-summary__hero,
+:root[data-platform="macos"] .detail-hero,
+:root[data-platform="macos"] .report-detail-hero {
+  background: color-mix(in srgb, var(--surface) 82%, var(--accent-soft) 18%);
+  box-shadow: inset 0 1px var(--highlight);
+}
+
+:root[data-platform="macos"] .backdating-section__number,
+:root[data-platform="macos"] .detail-hero__icon,
+:root[data-platform="macos"] .activity-row__icon,
+:root[data-platform="macos"] .report-entry__icon {
+  border-radius: 0.5rem;
+}
+
+:root[data-platform="macos"] .backdating-history-row,
+:root[data-platform="macos"] .activity-row,
+:root[data-platform="macos"] .report-entry {
+  border-radius: 0.45rem;
+  padding-inline: 0.5rem;
+}
+
+:root[data-platform="macos"] .backdating-history-row:active,
+:root[data-platform="macos"] .activity-row:active,
+:root[data-platform="macos"] .report-entry:active {
+  transform: scale(0.997);
+}
+
+:root[data-platform="macos"] .temporal-input {
+  appearance: auto;
+  -webkit-appearance: auto;
+}
+
+:root[data-platform="macos"] .detail-hero + .statgrid,
+:root[data-platform="macos"] .report-detail-hero + .statgrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 72rem) {
+  :root[data-platform="macos"] .detail-hero + .statgrid,
+  :root[data-platform="macos"] .report-detail-hero + .statgrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 :root[data-platform="macos"] [data-tauri-drag-region] {
   cursor: default;
   user-select: none;
@@ -148,10 +229,10 @@
 
 :root[data-platform="macos"] .app-shell:not(.app-shell--boot) {
   grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
-  gap: 0;
-  padding: 0;
-  background: var(--mac-window);
-  transition: grid-template-columns 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  gap: 0.75rem;
+  padding: 0.25rem 0 0.25rem 0.25rem;
+  background: var(--mac-backdrop), var(--mac-window);
+  transition: grid-template-columns 260ms cubic-bezier(0.22, 1, 0.36, 1), gap 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 :root[data-platform="macos"] .app-shell.is-sidebar-resizing {
@@ -163,20 +244,21 @@
 
 :root[data-platform="macos"] .app-shell.is-sidebar-hidden {
   grid-template-columns: 0 minmax(0, 1fr);
+  gap: 0;
 }
 
 :root[data-platform="macos"] .sidebar {
   position: relative;
   z-index: 20;
   width: var(--sidebar-w);
-  border: 0;
-  border-radius: 0;
+  border: 1px solid var(--mac-glass-outline);
+  border-radius: 1rem;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.09), transparent 32%),
     var(--mac-sidebar);
-  box-shadow: inset -1px 0 var(--mac-glass-edge);
-  -webkit-backdrop-filter: blur(2.75rem) saturate(180%);
-  backdrop-filter: blur(2.75rem) saturate(180%);
+  box-shadow: var(--mac-glass-shadow), inset 0 1px var(--mac-glass-highlight);
+  -webkit-backdrop-filter: blur(2rem) saturate(175%);
+  backdrop-filter: blur(2rem) saturate(175%);
   transition: opacity 180ms ease, transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -187,7 +269,28 @@
 }
 
 :root[data-platform="macos"] .sidebar__window-chrome {
-  display: none;
+  position: relative;
+  display: block;
+  min-height: 2.75rem;
+  flex: 0 0 2.75rem;
+}
+
+:root[data-platform="macos"] .sidebar__window-drag-region {
+  position: absolute;
+  inset: 0;
+}
+
+:root[data-platform="macos"] .sidebar__chrome-toggle {
+  position: absolute;
+  z-index: 2;
+  top: 0.375rem;
+  right: 0.5rem;
+}
+
+/* When the sidebar is hidden the leading controls move under the native
+   traffic lights — reserve their width so the toggle never collides. */
+:root[data-platform="macos"] .is-sidebar-hidden .topbar__leading {
+  padding-left: 4.75rem;
 }
 
 :root[data-platform="macos"] .sidebar__brand {
@@ -216,7 +319,7 @@
 }
 
 :root[data-platform="macos"] .sidebar__nav {
-  padding: 0.75rem 0.5625rem;
+  padding: 0.125rem 0.5625rem 0.75rem;
   scrollbar-width: none;
 }
 
@@ -303,9 +406,9 @@
 :root[data-platform="macos"] .sidebar__resize-handle {
   position: absolute;
   z-index: 3;
-  top: var(--topbar-h);
+  top: 0.75rem;
   right: -0.25rem;
-  bottom: 0;
+  bottom: 0.75rem;
   width: 0.5rem;
   cursor: col-resize;
   touch-action: none;
@@ -323,35 +426,36 @@
 
 :root[data-platform="macos"] .main {
   position: relative;
-  display: grid;
-  grid-template-rows: var(--topbar-h) minmax(0, 1fr);
+  display: block;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: var(--mac-content);
+  background: transparent;
 }
 
 :root[data-platform="macos"] .topbar {
-  position: relative;
+  position: absolute;
   z-index: 15;
-  inset: auto;
+  inset: 0.5rem 1.25rem auto 1.25rem;
   min-height: 0;
   height: var(--topbar-h);
-  padding: 0 0.875rem 0 0.75rem;
+  padding: 0;
   border: 0;
   border-radius: 0;
-  background: var(--mac-toolbar);
-  box-shadow: 0 1px var(--mac-scroll-edge);
-  -webkit-backdrop-filter: blur(2.75rem) saturate(180%);
-  backdrop-filter: blur(2.75rem) saturate(180%);
+  background: transparent;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
   transition: padding-left 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 :root[data-platform="macos"] .is-sidebar-hidden .topbar {
-  padding-left: 0.75rem;
+  padding-left: 0;
 }
 
 :root[data-platform="macos"] .topbar__leading {
+  position: relative;
+  z-index: 2;
   display: flex;
   min-width: 0;
   flex: 1;
@@ -361,12 +465,35 @@
 
 :root[data-platform="macos"] .topbar__current {
   position: absolute;
-  width: 1px;
-  height: 1px;
+  z-index: 0;
+  inset: 0;
+  width: auto;
+  height: auto;
   padding: 0;
-  overflow: hidden;
-  clip-path: inset(50%);
+  overflow: visible;
+  clip-path: none;
   white-space: nowrap;
+}
+
+:root[data-platform="macos"] .sidebar-toggle {
+  position: fixed;
+  z-index: 30;
+  top: 0.375rem;
+  left: 4.25rem;
+  transition: color 120ms ease, background-color 120ms ease, transform 120ms ease;
+}
+
+/* Only the collapsed-sidebar toggle joins the native traffic-light row. */
+:root[data-platform="macos"] .is-sidebar-hidden .sidebar-toggle {
+  top: calc(28px - 1rem);
+  left: 106px;
+  border: 1px solid color-mix(in srgb, var(--text-muted) 22%, var(--mac-glass-outline));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 54%, transparent);
+}
+
+:root[data-platform="macos"] .sidebar-toggle:focus-visible {
+  outline-width: 0.125rem;
+  outline-offset: 0.125rem;
 }
 
 :root[data-platform="macos"] .topbar__eyebrow {
@@ -374,10 +501,12 @@
 }
 
 :root[data-platform="macos"] .topbar__title {
-  margin: 0;
-  font-size: 0.8125rem;
-  font-weight: 620;
-  letter-spacing: -0.006em;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
 }
 
 :root[data-platform="macos"] .topbar__actions {
@@ -417,10 +546,11 @@
   padding: 0.125rem;
   border: 0;
   border-radius: 999px;
-  background: var(--separator);
-  background: color-mix(in srgb, CanvasText 8%, transparent);
-  box-shadow: inset 0 0 0 1px var(--border);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, CanvasText 3%, transparent);
+  border: 1px solid var(--mac-glass-outline);
+  background: var(--mac-toolbar);
+  box-shadow: 0 0.375rem 1.25rem rgba(35, 40, 52, 0.09), inset 0 1px var(--mac-glass-highlight);
+  -webkit-backdrop-filter: blur(1.25rem) saturate(165%);
+  backdrop-filter: blur(1.25rem) saturate(165%);
 }
 
 :root[data-platform="macos"] .top-timer__summary {
@@ -509,16 +639,43 @@
 :root[data-platform="macos"] .content {
   height: 100%;
   min-height: 0;
-  padding: 1.5rem 1.75rem 2rem;
+  padding: calc(var(--topbar-h) + 1.5rem) clamp(1.5rem, 3vw, 3.25rem) 2.5rem;
   border: 0;
   border-radius: 0;
-  background: var(--mac-content);
+  background: transparent;
   box-shadow: none;
   scrollbar-gutter: auto;
 }
 
+:root[data-platform="macos"] .appearance-choice-grid {
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border: 1px solid var(--separator);
+  border-radius: 0.75rem;
+  background: var(--surface-2);
+}
+
+:root[data-platform="macos"] .appearance-choice {
+  min-height: 4rem;
+  border-color: transparent;
+  border-radius: 0.5625rem;
+  background: transparent;
+  box-shadow: none;
+}
+
+:root[data-platform="macos"] .appearance-choice:hover {
+  border-color: transparent;
+  background: color-mix(in srgb, CanvasText 6%, transparent);
+}
+
+:root[data-platform="macos"] .appearance-choice.is-selected {
+  border-color: var(--separator);
+  background: var(--surface-solid);
+  box-shadow: var(--shadow-control), inset 0 1px var(--highlight);
+}
+
 :root[data-platform="macos"] .page {
-  max-width: 72rem;
+  max-width: 88rem;
 }
 
 :root[data-platform="macos"] .page__head {
@@ -580,6 +737,10 @@
   background: var(--separator);
 }
 
+:root[data-platform="macos"] .statgrid--balanced {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+}
+
 :root[data-platform="macos"] .stat {
   min-height: 5.25rem;
   padding: 0.875rem;
@@ -609,64 +770,205 @@
   padding-block: 0.5rem;
 }
 
+/* Popup buttons as liquid-glass capsules, matching .btn (macOS 26 style). */
 :root[data-platform="macos"] .select {
-  -webkit-appearance: menulist;
-  appearance: auto;
+  -webkit-appearance: none;
+  appearance: none;
+  padding: 0 1.625rem 0 0.8125rem;
+  border: 1px solid var(--mac-button-border);
+  border-radius: 999px;
+  background-color: var(--mac-button-fill);
+  background-image: var(--mac-button-sheen), var(--mac-select-chevron);
+  background-repeat: no-repeat, no-repeat;
+  background-position: 0 0, right 0.625rem center;
+  background-size: 100% 100%, 0.5rem 0.75rem;
+  box-shadow: var(--mac-button-shadow);
+  -webkit-backdrop-filter: blur(1.25rem) saturate(165%);
+  backdrop-filter: blur(1.25rem) saturate(165%);
+  font-weight: 560;
+  transition: color 140ms ease, border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
+}
+
+:root[data-platform="macos"] .select:hover:not(:disabled) {
+  background-color: var(--mac-button-hover);
+}
+
+:root[data-platform="macos"] .select:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 0.1875rem var(--focus), var(--mac-button-shadow);
+}
+
+:root[data-platform="macos"] .shortcut-row {
+  border-color: var(--separator);
+  border-radius: 0.625rem;
+  background: color-mix(in srgb, var(--mac-control) 72%, transparent);
+}
+
+:root[data-platform="macos"] .shortcut-recorder {
+  color: var(--text);
+  background: var(--mac-input);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
 }
 
 :root[data-platform="macos"] .btn {
-  min-height: 2rem;
-  height: 2rem;
-  padding: 0 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: 0.5rem;
+  position: relative;
+  isolation: isolate;
+  min-height: 2.125rem;
+  height: 2.125rem;
+  padding: 0 0.875rem;
+  border: 1px solid var(--mac-button-border);
+  border-radius: 999px;
   color: var(--text);
-  background: var(--mac-control);
-  box-shadow: var(--shadow-control);
+  background-color: var(--mac-button-fill);
+  background-image: var(--mac-button-sheen);
+  box-shadow: var(--mac-button-shadow);
+  -webkit-backdrop-filter: blur(1.5rem) saturate(180%);
+  backdrop-filter: blur(1.5rem) saturate(180%);
   font-size: 0.8125rem;
-  font-weight: 500;
+  font-weight: 560;
+  /* Transform springs back with a slight overshoot — the gel-like release. */
+  transition: color 140ms ease, border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease, filter 140ms ease, transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+/* Refraction: the SVG displacement bends (lenses) the backdrop behind the
+   capsule instead of only blurring it — the defining Liquid Glass trait. It
+   sits in the element's own backdrop-filter so the translucent tint and rim
+   still paint over the warped content. WebKit on the supported macOS targets
+   resolves the url(); the reduced-transparency/contrast media queries below
+   already replace this with a solid fill for platforms or users that opt out. */
+@supports (backdrop-filter: url("#f")) or (-webkit-backdrop-filter: url("#f")) {
+  :root[data-platform="macos"] .btn {
+    -webkit-backdrop-filter: blur(1.5rem) saturate(180%) url("#liquid-glass-refraction");
+    backdrop-filter: blur(1.5rem) saturate(180%) url("#liquid-glass-refraction");
+  }
+
+  :root[data-platform="macos"] .btn--glass,
+  :root[data-platform="macos"] .select {
+    -webkit-backdrop-filter: blur(1.75rem) saturate(190%) url("#liquid-glass-refraction");
+    backdrop-filter: blur(1.75rem) saturate(190%) url("#liquid-glass-refraction");
+  }
+}
+
+/* Hover = material becomes more luminous; no lift, no border darkening. */
 :root[data-platform="macos"] .btn:hover:not(:disabled) {
-  background: var(--mac-control-hover);
+  background-color: var(--mac-button-hover);
 }
 
 :root[data-platform="macos"] .btn:active:not(:disabled) {
-  background: var(--border-strong);
-  background: color-mix(in srgb, CanvasText 12%, transparent);
-  transform: scale(0.985);
+  background-color: var(--mac-button-pressed);
+  box-shadow: 0 0.125rem 0.375rem rgba(31, 41, 61, 0.12), inset 0 1px 1.5px rgba(255, 255, 255, 0.3), inset 0 -1px 1.5px rgba(255, 255, 255, 0.1);
+  transform: scale(0.97);
 }
 
-:root[data-platform="macos"] .btn--primary,
+/* Tinted prominent glass: translucent accent you can see through, a crisp
+   hairline rim, faint top highlight, soft low shadow — no gloss. */
+:root[data-platform="macos"] .btn--primary {
+  color: var(--mac-button-primary-text);
+  border-color: transparent;
+  background-color: var(--mac-button-primary-fill);
+  box-shadow:
+    inset 0 0 0 0.5px color-mix(in srgb, #fff 42%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    0 0.125rem 0.5rem color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
 :root[data-platform="macos"] .btn--primary:hover:not(:disabled) {
-  color: var(--accent-fg);
-  border-color: var(--accent-hover);
-  border-color: color-mix(in srgb, AccentColor 84%, CanvasText 16%);
-  background: var(--accent);
-  box-shadow: 0 0.0625rem 0.125rem var(--focus);
-  box-shadow: 0 0.0625rem 0.125rem color-mix(in srgb, AccentColor 28%, transparent);
+  color: var(--mac-button-primary-text);
+  border-color: color-mix(in srgb, #fff 34%, transparent);
+  background-color: var(--mac-button-primary-hover);
 }
 
 :root[data-platform="macos"] .btn--primary:active:not(:disabled) {
-  background: var(--accent-pressed);
+  color: var(--mac-button-primary-text);
+  background-color: var(--mac-button-primary-pressed);
 }
 
 :root[data-platform="macos"] .btn--ghost {
-  border-color: transparent;
-  background: transparent;
-  box-shadow: none;
+  color: var(--text-muted);
+  border-color: color-mix(in srgb, var(--mac-button-border) 60%, transparent);
+  background-color: color-mix(in srgb, var(--mac-button-fill) 65%, transparent);
+  box-shadow: 0 0.25rem 0.75rem rgba(31, 41, 61, 0.07), inset 0 1px 1.5px color-mix(in srgb, #fff 34%, transparent);
 }
 
 :root[data-platform="macos"] .btn--ghost:hover:not(:disabled) {
-  background: var(--separator);
-  background: color-mix(in srgb, CanvasText 8%, transparent);
+  color: var(--text);
+  border-color: var(--mac-button-border);
+  background-color: var(--mac-button-hover);
+}
+
+:root[data-platform="macos"] .btn--danger {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 24%, var(--mac-button-border));
+  background-color: color-mix(in srgb, var(--danger) 14%, var(--mac-button-fill));
+  box-shadow: 0 0.375rem 1rem color-mix(in srgb, var(--danger) 12%, transparent), inset 0 1px 1.5px rgba(255, 255, 255, 0.36), inset 0 -1px 1.5px rgba(255, 255, 255, 0.1);
+}
+
+:root[data-platform="macos"] .btn--danger:hover:not(:disabled) {
+  color: var(--danger);
+  background-color: color-mix(in srgb, var(--danger) 22%, var(--mac-button-hover));
+}
+
+/* Clear liquid-glass CTA: colorless frosted capsule, the content behind it
+   shines through; edge reads as a light rim (lensing), not a border line.
+   Hover brightens the material, press dims and compresses. */
+:root[data-platform="macos"] .btn--glass {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--mac-button-border) 70%, transparent);
+  background-color: color-mix(in srgb, var(--mac-button-fill) 80%, transparent);
+  box-shadow:
+    0 0.125rem 0.5rem rgba(31, 41, 61, 0.1),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.6);
+  -webkit-backdrop-filter: blur(1.75rem) saturate(190%);
+  backdrop-filter: blur(1.75rem) saturate(190%);
+}
+
+:root[data-platform="macos"] .btn--glass:hover:not(:disabled) {
+  color: var(--text);
+  background-color: var(--mac-button-hover);
+  filter: brightness(1.04) saturate(1.04);
+}
+
+:root[data-platform="macos"] .btn--glass:active:not(:disabled) {
+  color: var(--text);
+  background-color: var(--mac-button-pressed);
+  filter: brightness(0.95);
 }
 
 :root[data-platform="macos"] .btn--sm {
   min-height: 1.75rem;
   height: 1.75rem;
-  padding-inline: 0.5625rem;
+  padding-inline: 0.6875rem;
   font-size: 0.75rem;
+}
+
+:root[data-platform="macos"] .btn--icon {
+  width: 1.75rem;
+  padding: 0;
+  border-radius: 50%;
+}
+
+:root[data-platform="macos"] .btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 0.1875rem var(--focus), var(--mac-button-shadow);
+}
+
+/* Inset tables: quiet, material-true hovering instead of an accent flood, and
+   enough vertical air that the capsule row actions read as separate controls. */
+:root[data-platform="macos"] .table tbody tr:hover {
+  background: color-mix(in srgb, CanvasText 4%, transparent);
+}
+
+:root[data-platform="macos"] .table-actions {
+  gap: 0.5rem;
+}
+
+:root[data-platform="macos"] .btn--ghost:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--mac-button-hover) 88%, transparent);
+}
+
+:root[data-platform="macos"][data-window-active="false"] .btn {
+  filter: saturate(68%);
+  box-shadow: inset 0 1px color-mix(in srgb, var(--mac-button-border) 58%, transparent);
 }
 
 :root[data-platform="macos"] .segmented {
@@ -692,7 +994,7 @@
 
 :root[data-platform="macos"] .segmented__btn.is-active {
   background: var(--mac-control-hover);
-  box-shadow: var(--shadow-control);
+  box-shadow: var(--mac-button-shadow), inset 0 1px var(--highlight);
   font-weight: 560;
 }
 
@@ -720,7 +1022,7 @@
 }
 
 :root[data-platform="macos"][data-window-active="false"] .sidebar,
-:root[data-platform="macos"][data-window-active="false"] .topbar {
+:root[data-platform="macos"][data-window-active="false"] .top-timer {
   --accent: #8e8e93;
   --mac-selection: var(--separator);
   filter: saturate(65%);
@@ -755,9 +1057,42 @@
 
 @media (prefers-reduced-transparency: reduce) {
   :root[data-platform="macos"] .sidebar,
-  :root[data-platform="macos"] .topbar,
+  :root[data-platform="macos"] .top-timer,
   :root[data-platform="macos"] .dialog {
     background: var(--surface-solid);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  :root[data-platform="macos"] .btn {
+    background-color: var(--surface-solid);
+    background-image: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  :root[data-platform="macos"] .btn--primary {
+    color: var(--accent-fg);
+    background-color: var(--accent);
+  }
+
+  :root[data-platform="macos"] .btn:focus-visible {
+    box-shadow: 0 0 0 0.1875rem var(--focus), var(--shadow-control);
+  }
+
+  :root[data-platform="macos"] .btn--danger {
+    background-color: var(--danger-soft);
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root[data-platform="macos"] .sidebar,
+  :root[data-platform="macos"] .top-timer {
+    background: var(--material-heavy);
+  }
+
+  :root[data-platform="macos"] .btn {
+    background-color: var(--surface-solid);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
@@ -777,7 +1112,7 @@
   }
 
   :root[data-platform="macos"] .sidebar,
-  :root[data-platform="macos"] .topbar,
+  :root[data-platform="macos"] .top-timer,
   :root[data-platform="macos"] .dialog {
     background: var(--surface-solid);
     -webkit-backdrop-filter: none;
@@ -785,18 +1120,57 @@
   }
 
   :root[data-platform="macos"] .sidebar,
-  :root[data-platform="macos"] .topbar,
+  :root[data-platform="macos"] .top-timer,
   :root[data-platform="macos"] .card,
   :root[data-platform="macos"] .stat,
   :root[data-platform="macos"] .tablewrap {
     box-shadow: inset 0 0 0 1px var(--separator);
+  }
+
+  :root[data-platform="macos"] .btn {
+    border-color: var(--border-strong);
+    background-color: var(--surface-solid);
+    background-image: none;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  :root[data-platform="macos"] .btn--primary {
+    color: var(--accent-fg);
+    background-color: var(--accent);
+  }
+
+  :root[data-platform="macos"] .btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    box-shadow: none;
+  }
+}
+
+@media (forced-colors: active) {
+  :root[data-platform="macos"] .btn,
+  :root[data-platform="macos"] .btn--primary,
+  :root[data-platform="macos"] .btn--ghost,
+  :root[data-platform="macos"] .btn--danger {
+    color: ButtonText;
+    border: 1px solid ButtonText;
+    background: ButtonFace;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  :root[data-platform="macos"] .btn:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   :root[data-platform="macos"] .app-shell:not(.app-shell--boot),
   :root[data-platform="macos"] .sidebar,
-  :root[data-platform="macos"] .topbar,
+  :root[data-platform="macos"] .top-timer,
   :root[data-platform="macos"] .toolbar-icon-button {
     transition: none;
   }
@@ -806,6 +1180,37 @@
   :root[data-platform="macos"] .sidebar__mark {
     transform: none !important;
   }
+}
+
+/* Native macOS density for the customizable dashboard. */
+:root[data-platform="macos"] .dashboard-editorbar {
+  border-radius: 0.625rem;
+  background: color-mix(in srgb, var(--mac-toolbar) 86%, transparent);
+  box-shadow: inset 0 1px var(--highlight);
+}
+
+:root[data-platform="macos"] .dashboard-widget-picker,
+:root[data-platform="macos"] .dashboard-metric,
+:root[data-platform="macos"] .dashboard-widget {
+  border-radius: 0.625rem;
+}
+
+:root[data-platform="macos"] .dashboard-canvas.is-editing .dashboard-widget {
+  box-shadow: 0 0 0 0.125rem var(--mac-selection);
+}
+
+:root[data-platform="macos"] .dashboard-widget__chrome {
+  border-radius: 0.625rem 0.625rem 0 0;
+  background: var(--mac-selection);
+}
+
+:root[data-platform="macos"] .dashboard-metric__icon,
+:root[data-platform="macos"] .dashboard-quickrow__play {
+  border-radius: 0.5rem;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root[data-platform="macos"] .dashboard-editorbar { background: var(--surface-solid); }
 }
 
 /* Native-window Setup Assistant: compact macOS hierarchy, with material only
@@ -862,7 +1267,7 @@
 }
 
 :root[data-platform="macos"] .onboarding__rail {
-  padding: 0.75rem 0.5rem;
+  padding: 3rem 0.5rem 0.75rem;
   border: 0;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.09), transparent 32%),
@@ -978,7 +1383,7 @@
 :root[data-platform="macos"] .onboarding-callout,
 :root[data-platform="macos"] .onboarding-ready,
 :root[data-platform="macos"] .onboarding-detail-list,
-:root[data-platform="macos"] .onboarding-timeline {
+:root[data-platform="macos"] .onboarding-backdating-card {
   border-color: var(--separator);
   background: var(--surface-solid);
   box-shadow: none;
@@ -1065,15 +1470,40 @@
   border-radius: 0.75rem;
 }
 
-:root[data-platform="macos"] .onboarding-timeline,
+:root[data-platform="macos"] .onboarding-backdating-card,
 :root[data-platform="macos"] .onboarding-detail-list {
   border-radius: 0.75rem;
 }
 
-:root[data-platform="macos"] .onboarding-sync-options {
-  display: flex;
+:root[data-platform="macos"] .onboarding-backdating-card {
   max-width: 38rem;
-  flex-direction: column;
+}
+
+:root[data-platform="macos"] .onboarding-backdating-card__header {
+  padding: 0.875rem 1rem 0.75rem;
+}
+
+:root[data-platform="macos"] .onboarding-backdating-card__header time {
+  padding: 0.25rem 0.5rem;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+:root[data-platform="macos"] .onboarding-backdating-card__details > div {
+  min-height: 2.5rem;
+  align-items: center;
+  padding-block: 0.5625rem;
+}
+
+:root[data-platform="macos"] .onboarding-backdating-card__footer {
+  padding-block: 0.5625rem;
+}
+
+:root[data-platform="macos"] .onboarding-sync-options {
+  display: grid;
+  width: 100%;
+  max-width: 38rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
   gap: 0.625rem;
 }
 
@@ -1129,6 +1559,14 @@
   background: var(--mac-control-hover);
 }
 
+:root[data-platform="macos"] .onboarding-billing-note {
+  min-height: 2rem;
+  padding-inline: 0.5rem;
+  border-radius: 0.375rem;
+  background: var(--mac-control-hover);
+  font-size: 0.8125rem;
+}
+
 @media (max-width: 56rem) {
   :root[data-platform="macos"] .onboarding__layout {
     grid-template-columns: 12rem minmax(0, 1fr);
@@ -1136,6 +1574,12 @@
 
   :root[data-platform="macos"] .onboarding__content-scroll {
     padding-inline: 2rem;
+  }
+}
+
+@media (max-width: 47.5rem) {
+  :root[data-platform="macos"] .onboarding-sync-options {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1171,7 +1615,7 @@
   :root[data-platform="macos"] .onboarding-callout,
   :root[data-platform="macos"] .onboarding-ready,
   :root[data-platform="macos"] .onboarding-detail-list,
-  :root[data-platform="macos"] .onboarding-timeline,
+  :root[data-platform="macos"] .onboarding-backdating-card,
   :root[data-platform="macos"] .onboarding__footer {
     border-color: var(--border-contrast);
     box-shadow: none;

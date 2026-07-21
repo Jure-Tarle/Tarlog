@@ -1,5 +1,5 @@
 /**
- * POST /api/devices/connect — neues Gerät verbindet sich per Pairing-Code
+ * POST /api/devices/connect, neues Gerät verbindet sich per Pairing-Code
  * (doc 05 API Nr. 17, doc 05 §9.3). ÖFFENTLICH (das neue Gerät hat noch kein
  * Token), aber durch den kurzlebigen, einmalig gültigen Code gesichert +
  * Rate-Limit pro IP.

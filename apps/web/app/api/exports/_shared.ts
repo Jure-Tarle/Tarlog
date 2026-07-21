@@ -1,5 +1,5 @@
 /**
- * app/api/exports/_shared.ts — gemeinsame Datenbeschaffung für Exporte
+ * app/api/exports/_shared.ts, gemeinsame Datenbeschaffung für Exporte
  * (kein Route-Handler). Lädt Zeiteinträge eines Zeitraums (scoped) inkl.
  * Projekt-/Aufgaben-Namen + Tags und aggregiert tageweise die
  * Compliance-Hinweise über die Core-Engine (evaluateDay/evaluateRestPeriod,
@@ -159,7 +159,7 @@ async function loadBreakBlocks(entryIds: string[]): Promise<Map<string, number[]
   return map;
 }
 
-/** True, wenn ein Eintrag das Nachtfenster 23:00–06:00 (lokal) berührt. */
+/** True, wenn ein Eintrag das Nachtfenster 23:00,06:00 (lokal) berührt. */
 function touchesNight(entry: TimesheetEntry): boolean {
   const startHour = Number(
     new Intl.DateTimeFormat("en-GB", { timeZone: entry.timezone, hour: "2-digit", hour12: false }).format(
@@ -275,7 +275,7 @@ export function sha256Hex(data: Buffer | string): string {
  * Vergibt die nächste Exportnummer (EX-{JAHR}-{NNNN}) in eigener Transaktion.
  * Wird VOR dem Rendern aufgerufen, damit die Nummer im PDF-Kopf (Inhalt 9)
  * erscheint. Seltene Lücke möglich, falls das Rendern danach scheitert
- * (Exportnummern müssen nicht lückenlos sein — anders als Rechnungsnummern).
+ * (Exportnummern müssen nicht lückenlos sein, anders als Rechnungsnummern).
  */
 export async function allocateExportNumber(mainAccountId: string): Promise<string> {
   const client = await pool.connect();

@@ -67,7 +67,7 @@ export default function SyncScreen() {
         <Card>
           <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
             <StatusDot status={isServer ? "ok" : "idle"}>
-              {isServer ? "Server-Modus — synchronisiert" : "Lokaler Modus — vollständig offline"}
+              {isServer ? "Server-Modus, synchronisiert" : "Lokaler Modus, vollständig offline"}
             </StatusDot>
           </View>
           <View style={{ height: space.sm }} />

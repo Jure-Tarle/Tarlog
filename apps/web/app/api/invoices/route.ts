@@ -1,11 +1,11 @@
 /**
- * app/api/invoices — Rechnungen auflisten (GET) + Entwurf erstellen (POST).
+ * app/api/invoices, Rechnungen auflisten (GET) + Entwurf erstellen (POST).
  *
  * POST erstellt eine Rechnung (status `draft`) aus abrechenbaren Zeiteinträgen
  * (per IDs oder Zeitraum + optional Projekt) und/oder freien Posten. Positionen
  * = `billing_duration_seconds × rate_snapshot` via `computeAmountCents`
  * (doc 10 §5.1 Fn 1). Steuer + §19/§13b-Hinweis aus Aussteller/Kunde
- * (doc 10 §5.3–§5.5). Keine Nummer im Entwurf — erst bei Finalisierung
+ * (doc 10 §5.3,§5.5). Keine Nummer im Entwurf, erst bei Finalisierung
  * (doc 10 §5.6).
  */
 import { z } from "zod";
@@ -17,7 +17,6 @@ import {
   buildHourlyItems,
   computeTotals,
   createDraftInvoice,
-  customerDefaultRate,
   loadBillableEntries,
   listInvoices,
   loadCustomer,
@@ -114,9 +113,9 @@ export const POST = requireAuth(async (req, _ctx, auth) => {
         : [];
 
   const fallbackRate: FallbackRate = {
-    amount_cents: (await customerDefaultRate(mainAccountId, body.customer_id)) ?? 0,
+    amount_cents: 0,
     currency,
-    source: "customer",
+    source: "default",
   };
 
   const hourly = buildHourlyItems(entries, tax.tax_rate, fallbackRate);

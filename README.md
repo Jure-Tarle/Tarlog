@@ -1,41 +1,42 @@
 # Tarlog
 
-Professionelle, revisionsfähige, datenschutzfreundliche Zeiterfassung für eine
-Einzelperson (Freelancer, Berater, Entwickler, Designer, Kreative). Lokal
-nutzbar **ohne Cloud-Zwang** und optional als selbst gehostete Webanwendung mit
-gemeinsamer PostgreSQL-Datenbank für mehrere Browser. Die native
-Desktop↔Server-Synchronisierung ist derzeit experimentell.
+Professional, audit-proof, privacy-friendly time tracking for a single person
+(freelancer, consultant, developer, designer, creative). Usable locally
+**without any cloud requirement**, and optionally as a self-hosted web
+application with a shared PostgreSQL database for multiple browsers. Native
+desktop↔server sync is currently experimental.
 
-> Rechtliche Aussagen im Produkt sind Produkt-Hinweise, keine Rechtsberatung.
+> Legal statements in the product are product notices, not legal advice.
 
-Vollständige Produkt- und Architekturausarbeitung: [`docs/project-time-ledger/`](docs/project-time-ledger/README.md).
-Der aktuelle Apple-HIG-Redesign-Audit mit Plattformgrenzen, Zielsystem und
-Testmatrix steht in [`docs/apple-redesign-2026.md`](docs/apple-redesign-2026.md).
+Full product and architecture writeup: [`docs/project-time-ledger/`](docs/project-time-ledger/README.md).
+The current Apple HIG redesign audit with platform boundaries, target system
+and test matrix is in [`docs/apple-redesign-2026.md`](docs/apple-redesign-2026.md).
 
 ## Monorepo
 
-pnpm-Workspace, TypeScript überall, gemeinsames Core-Package für Zeit, Rundung,
-Compliance und Abrechnung.
+pnpm workspace, TypeScript everywhere, shared core package for time, rounding,
+compliance and billing.
 
-| Paket | Zweck | Stack | Status |
+| Package | Purpose | Stack | Status |
 |---|---|---|---|
-| [`packages/core`](packages/core) | Business-Logik: Zeitberechnung, Rundung, DE/EU-Compliance, Abrechnung, Onboarding, Zod-Schemas | TypeScript, luxon, zod | Build, Typen und Tests in CI |
-| [`packages/db`](packages/db) | Dual-Dialekt-Datenmodell | Drizzle ORM (SQLite + PostgreSQL) | Build und Typen in CI |
-| [`apps/web`](apps/web) | Selbst gehosteter Server + Browser-App: Auth, REST, Long-Poll/WebSocket, PDF/CSV, Rechnungen, Docker | Next.js 15, pg, pdfmake, ws | Server-Smoke-Test in CI |
-| [`apps/desktop`](apps/desktop) | macOS/Windows: lokaler SQLite-Offline-Modus, Timer, Nachtrag, Tray, Backup, experimenteller Sync-Client | Tauri 2, rusqlite, React/Vite | lokaler Modus integriert getestet |
-| [`apps/mobile`](apps/mobile) | iOS vorbereitet: expo-sqlite lokal, Timer/Heute/Nachtrag, Sync-Architektur | Expo 52, React Native | Typprüfung in CI |
+| [`packages/core`](packages/core) | Business logic: time calculation, rounding, DE/EU compliance, billing, onboarding, Zod schemas | TypeScript, luxon, zod | Build, types and tests in CI |
+| [`packages/db`](packages/db) | Dual-dialect data model | Drizzle ORM (SQLite + PostgreSQL) | Build and types in CI |
+| [`apps/web`](apps/web) | Self-hosted server + browser app: auth, REST, long-poll/WebSocket, PDF/CSV, invoices, Docker | Next.js 15, pg, pdfmake, ws | Server smoke test in CI |
+| [`apps/desktop`](apps/desktop) | macOS/Windows: local SQLite offline mode, timer, backdating, tray, backup, experimental sync client | Tauri 2, rusqlite, React/Vite | local mode integration-tested |
+| [`apps/mobile`](apps/mobile) | iOS prepared: expo-sqlite local, timer/today/backdating, sync architecture | Expo 52, React Native | type checking in CI |
 
-### Kern-Entscheidungen (aus der Recherche)
+### Core decisions (from research)
 
-Drizzle statt Prisma (Tauri-SQLite-Tauglichkeit, Dialekt-Switch) · WebSocket
-mit Long-Poll-Fallback · serverseitiges Event-Log mit optimistischen Versionen
-und Hybrid Logical Clock (kein CRDT) · Single-Timer via partiellem
-`UNIQUE`-Index auf `timer_states` ·
-pdfmake portabel · UUIDv7-PKs · Geld = Integer-Cents · Zeit = UTC epoch-ms +
-IANA-Zeitzone je Eintrag · **`actual_duration_seconds` (Brutto) strikt getrennt
-von `billing_duration_seconds` (gerundet) — Rundung überschreibt nie die echte Zeit.**
+Drizzle instead of Prisma (Tauri SQLite compatibility, dialect switch) ·
+WebSocket with long-poll fallback · server-side event log with optimistic
+versions and hybrid logical clock (no CRDT) · single timer via partial
+`UNIQUE` index on `timer_states` ·
+pdfmake portable · UUIDv7 PKs · money = integer cents · time = UTC epoch-ms +
+IANA timezone per entry · **`actual_duration_seconds` (gross) strictly
+separate from `billing_duration_seconds` (rounded); rounding never overwrites
+the real time.**
 
-## Bauen, Testen, Nachweisen
+## Build, test, verify
 
 ```bash
 pnpm install --frozen-lockfile
@@ -44,95 +45,94 @@ pnpm -r build
 pnpm -r test
 pnpm -r typecheck
 
-# Desktop-Rust-Unit- und Integrationstests, headless mit Wegwerf-SQLite-DBs:
+# Desktop Rust unit and integration tests, headless with disposable SQLite DBs:
 cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml --all-targets
 
-# iOS-App (Architektur vorbereitet):
+# iOS app (architecture prepared):
 pnpm --filter @tarlog/mobile exec tsc --noEmit
 
-# Server end-to-end gegen eine Wegwerf-Datenbank:
+# Server end-to-end against a disposable database:
 ./scripts/smoke.sh
 
-# Natives Desktop-Binary (ohne Signing):
+# Native desktop binary (without signing):
 pnpm --filter @tarlog/desktop exec tauri build --no-bundle
 
-# Selbst hosten (Secrets in .env vorher ersetzen):
+# Self-host (replace secrets in .env first):
 cp .env.example .env
 docker compose config --quiet
 docker compose up -d --build
 ```
 
-Alle drei Ebenen laufen auch in CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)):
-Versionskonsistenz, Builds, Unit- und Typprüfungen, `cargo test --all-targets`
-und der Smoke-Lauf gegen einen echten PostgreSQL-Dienst.
+All three layers also run in CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)):
+version consistency, builds, unit and type checks, `cargo test --all-targets`
+and the smoke run against a real PostgreSQL service.
 
-### Was der Smoke-Lauf beweist
+### What the smoke run proves
 
-Die 15-Minuten-Aufrundung (70 Minuten Ist-Zeit → 75 Minuten Abrechnungszeit,
-`actual_duration_seconds` bleibt 4200) · Single-Timer-Invariante (zweiter Start →
-409) · Nachtrag mit Grund · ArbZG-§4-Verstoß bei über 6 Stunden ohne Pause ·
-PDF-Arbeitszeitnachweis und CSV mit getrennten Spalten · Rechnung: Nummer erst
-bei Finalisierung, PDF, Storno als Gegenrechnung · Sync-Konflikt (veraltete
-`base_version` → 409 + `conflict_records`, nichts wird still verworfen) ·
-Live-Sync über WebSocket an einen zweiten Client · Audit-Log.
+The 15-minute round-up (70 minutes actual time → 75 minutes billing time,
+`actual_duration_seconds` stays 4200) · single-timer invariant (second start →
+409) · backdating with a reason · ArbZG §4 violation over 6 hours without a
+break · PDF timesheet and CSV with separate columns · invoice: number assigned
+only on finalization, PDF, cancellation as a counter-invoice · sync conflict
+(stale `base_version` → 409 + `conflict_records`, nothing silently discarded) ·
+live sync over WebSocket to a second client · audit log.
 
 ## Onboarding
 
-Ein leerer Arbeitsbereich öffnet beim ersten Start automatisch einen
-versionierten Einrichtungsassistenten. Er kann nicht versehentlich übersprungen
-werden, setzt nach einem Neustart am gespeicherten Schritt fort und blockiert
-bereits verwendete Installationen mit vorhandenem Projekt nicht nachträglich.
+An empty workspace automatically opens a versioned setup assistant on first
+launch. It cannot be accidentally skipped, resumes at the saved step after a
+restart, and does not retroactively block already-used installations with an
+existing project.
 
-Der Ablauf erklärt und verknüpft die zentralen Arbeitsweisen:
+The flow explains and links the central workflows:
 
-1. Betriebsart und Arbeitsbereich kennenlernen.
-2. Optional einen Kunden und verpflichtend das erste Projekt als echte
-   Stammdaten anlegen.
-3. Aktive Bearbeitung starten, pausieren, fortsetzen und stoppen.
-4. Vergangene Arbeitszeit mit Beschreibung und Grund nachtragen.
-5. Browser-Sync und die Grenzen der experimentellen nativen Synchronisierung
-   verstehen.
-6. Einrichtung abschließen und in den regulären Arbeitsbereich wechseln.
+1. Get to know the operating mode and workspace.
+2. Optionally create a customer, and mandatorily create the first project as
+   real master data.
+3. Start, pause, resume and stop active tracking.
+4. Backdate past working time with a description and reason.
+5. Understand browser sync and the limits of experimental native
+   synchronization.
+6. Complete setup and switch to the regular workspace.
 
-Im Web kommt davor einmalig `/setup`: Dort werden der Main Account, das
-Passwort und optionale Profilangaben angelegt. Dieses Account-Setup ist bewusst
-getrennt vom anschließenden Produkt-Onboarding.
+On the web, `/setup` runs once beforehand: the main account, password and
+optional profile details are created there. This account setup is
+deliberately separate from the subsequent product onboarding.
 
-## Self-Hosting und Sync
+## Self-hosting and sync
 
-| Betriebsart | Status |
+| Operating mode | Status |
 |---|---|
-| macOS/Windows vollständig lokal mit SQLite | unterstützt |
-| Selbst gehostete Webanwendung mit PostgreSQL | unterstützt |
-| Mehrere Browser an derselben Tarlog-URL | unterstützt; alle arbeiten direkt auf derselben PostgreSQL-Datenbank |
-| Server-REST, Konflikterkennung und WebSocket-Pfad | serverseitig per Smoke-Test geprüft |
-| Native Desktop-App ↔ Server | **experimentell, nicht end-to-end produktionsbereit** |
-| iOS ↔ Server | vorbereitet, nicht produktionsbereit |
+| macOS/Windows fully local with SQLite | supported |
+| Self-hosted web application with PostgreSQL | supported |
+| Multiple browsers on the same Tarlog URL | supported; all work directly on the same PostgreSQL database |
+| Server REST, conflict detection and WebSocket path | verified server-side by smoke test |
+| Native desktop app ↔ server | **experimental, not end-to-end production-ready** |
+| iOS ↔ server | prepared, not production-ready |
 
-Der Desktop-Pull speichert eingehende Roh-Events zuerst dauerhaft mit
-`applied=0`. Erst ein erfolgreich abgewarteter, idempotenter Merge in die
-lokalen Fachtabellen darf sie auf `applied=1` setzen und den Pull-Cursor
-fortschreiben. Da dieser Fach-Merge im aktuellen Desktop-Stand noch nicht
-verdrahtet ist, wird bei eingehenden Änderungen bewusst ein wiederholbarer
-Fehler statt eines falschen Sync-Erfolgs angezeigt; die Rohdaten und der alte
-Cursor bleiben erhalten.
+The desktop pull first durably stores incoming raw events with `applied=0`.
+Only a successfully awaited, idempotent merge into the local domain tables may
+set them to `applied=1` and advance the pull cursor. Since this domain merge
+is not yet wired up in the current desktop state, a repeatable error is
+deliberately shown for incoming changes instead of a false sync success; the
+raw data and the old cursor are preserved.
 
-Auch die Gegenrichtung ist noch nicht vollständig: Nicht jede lokale
-Fachmutation erzeugt bereits ein Outbox-Ereignis. Das Geräte-Token liegt im
-Desktop derzeit im WebView-`localStorage` statt im Betriebssystem-Keychain und
-die Tauri-WebView hat noch keine aktivierte Content Security Policy
-(`csp: null`). Der experimentelle Desktop-Sync ist deshalb weder vollständige
-Offline-Queue noch Backup- oder Sicherheitsgrenze.
+The reverse direction is also not yet complete: not every local domain
+mutation already produces an outbox event. The device token currently lives
+in the desktop's WebView `localStorage` instead of the OS keychain, and the
+Tauri WebView does not yet have an enabled Content Security Policy (`csp:
+null`). The experimental desktop sync is therefore neither a complete offline
+queue nor a backup or security boundary.
 
-Der derzeit verifizierte Deployment-Weg ist der Build aus dem Repository; es
-wird kein verfügbares Container-Registry-Image vorausgesetzt:
+The currently verified deployment path is building from the repository; no
+available container registry image is assumed:
 
 ```bash
 umask 077
 cp .env.example .env
 chmod 600 .env
 
-# Sichere Werte erzeugen und in .env eintragen:
+# Generate secure values and enter them in .env:
 openssl rand -hex 32  # SESSION_SECRET
 openssl rand -hex 24  # POSTGRES_PASSWORD
 
@@ -142,10 +142,10 @@ docker compose ps
 curl -fsS http://localhost:3000/api/health
 ```
 
-Für externen Zugriff ist HTTPS zwingend. Setze
-`NEXT_PUBLIC_APP_URL=https://tarlog.example.com`, binde den internen Port nur an
-Loopback oder schütze ihn per Firewall und leite ihn beispielsweise mit Caddy
-weiter:
+HTTPS is mandatory for external access. Set
+`NEXT_PUBLIC_APP_URL=https://tarlog.example.com`, bind the internal port only
+to loopback or protect it with a firewall, and forward it with, for example,
+Caddy:
 
 ```caddy
 tarlog.example.com {
@@ -156,69 +156,117 @@ tarlog.example.com {
 }
 ```
 
-Caddy reicht WebSocket-Upgrades automatisch durch. Andere Reverse-Proxies
-müssen den ursprünglichen `Host` erhalten, `/api/ws` upgraden und ein
-Read-Timeout von mehr als 25 Sekunden für `/api/sync/poll` erlauben. Derzeit
-genau eine `web`-Instanz betreiben, weil Pairing-Codes und Rate-Limits
-prozesslokal sind.
+Caddy passes through WebSocket upgrades automatically. Other reverse proxies
+must preserve the original `Host`, upgrade `/api/ws`, and allow a read timeout
+of more than 25 seconds for `/api/sync/poll`. Currently run exactly one `web`
+instance, because pairing codes and rate limits are process-local.
 
-`TARLOG_TRUST_PROXY=0` ist der sichere Standard für direkten Zugriff: Tarlog
-ignoriert dann `X-Forwarded-For` und verwendet den direkten TCP-Peer als
-Client-IP für Auth-/Pairing-Schutzlimits. Setze die Variable nur dann auf `1`,
-wenn ein lokaler, vertrauenswürdiger Caddy oder Reverse-Proxy der einzige
-direkte Peer ist und eingehendes `X-Forwarded-For` wie oben bereinigt
-beziehungsweise überschreibt. In allen anderen Fällen bleibt sie `0`.
+`TARLOG_TRUST_PROXY=0` is the safe default for direct access: Tarlog then
+ignores `X-Forwarded-For` and uses the direct TCP peer as the client IP for
+auth/pairing protection limits. Only set the variable to `1` if a local,
+trusted Caddy or reverse proxy is the sole direct peer and it sanitizes or
+overwrites incoming `X-Forwarded-For` as described above. In all other cases
+it stays `0`.
 
-Die vollständige Anleitung zu sicherer `.env`, Browser-Sync, TLS,
-Backup/Restore, Updates und bekannten Grenzen steht in
+The complete guide to secure `.env`, browser sync, TLS, backup/restore,
+updates and known limits is in
 [`apps/web/README.md`](apps/web/README.md).
 
-## Version-1-Akzeptanzkriterien (Spec §35) → Umsetzung
+## Version 1 acceptance criteria (spec §35) → implementation
 
-| # | Kriterium | Umsetzung |
+| # | Criterion | Implementation |
 |---|---|---|
-| 1 | App lokal ohne Server nutzbar | `apps/desktop` lokaler SQLite-Modus (rusqlite), voll offline |
-| 2 | Lokales Hauptprofil | `db.rs` bootstrap: `main_accounts`/`local_profiles`-Singleton |
-| 3 | Kunden erstellen | `commands::create_customer`, `data/customers`, Web `POST /api/customers` |
-| 4 | Projekte erstellen | `commands::create_project`, `data/projects`, Web `POST /api/projects` |
-| 5 | Aufgaben erstellen | `tasks`-Tabelle, `data/tasks`, Web `POST /api/tasks` |
-| 6 | Stundensätze | `billing_rates` (historisiert), `resolveRate` (Aufgabe>Projekt>Kunde>Default) |
-| 7 | Tagessätze | `day_rate_rules`, `computeDayRate` in `@tarlog/core` |
-| 8 | Festpreise | `fixed_fee_contracts`, `computeFixedFeeMargin` |
-| 9–12 | Timer start/pause/resume/stop | `commands::timer_*` (Desktop), `POST /api/timer/*` (Web), `data/timer` (iOS) |
-| 13 | Beschreibung beim Stoppen | Stop-Dialog `Timer.tsx` (Pflicht je Projekt), `needs_description`-Status |
-| 14 | Arbeitszeiten nachtragen | `entry_backdate` / `entries.backdate` (`source='manual_backdated'`) |
-| 15 | Vergessenen Start korrigieren | Timer-Start mit Startzeit-Korrektur; Nachtrag-Assistent |
-| 16 | Vergessenen Stopp korrigieren | Stop-Dialog Endzeit-Korrektur mit Grund |
-| 17 | Ist-Zeit vs. Abrechnungszeit getrennt | `actual_duration_seconds` ≠ `billing_duration_seconds` (Schema + Engine) |
-| 18 | Auf 15 Minuten aufrunden | `applyRounding` Modus `ceil_started_interval:900` — Test: 4200s→4500s |
-| 19 | Deutsche Pausenregeln | `evaluateDay` GERMAN_PROFILE: >6h→30min, >9h→45min, 15-min-Blöcke |
-| 20 | Compliance-Warnungen | Ampel grün/gelb/rot in Compliance-Seiten (Desktop/Web) |
-| 21 | PDF-Arbeitszeitnachweis | `lib/pdf` (pdfmake), Web `GET /api/exports/timesheet` |
-| 22 | PDF-Rechnung | `lib/invoice` + pdfmake, Web Rechnungsmodul |
-| 23 | CSV-Export | Web `GET /api/exports` CSV |
-| 24 | Desktop lokal | `apps/desktop` mit headless Integrationstest des lokalen Modus |
-| 25 | Server selbst gehostet | `apps/web` + `docker-compose.yml` + Postgres + Health |
-| 26 | Desktop ↔ Server verbinden | experimenteller Client vorhanden; Pairing und Replikation noch ohne produktionsreifen End-to-End-Nachweis |
-| 27 | Geräteübergreifender Timer | Serverzustand + `publishEvent`→`pg_notify`→WebSocket geprüft; nativer Desktop-Roundtrip noch offen |
-| 28 | iOS-Architektur vorbereitet | `apps/mobile` mit lokaler Store-/Sync-Architektur; nicht produktionsbereit |
-| 29 | Sync-Konflikte erkannt | serverseitig `conflict_records` + 409-Compare-and-Set; vollständige native Auflösungs-UI noch offen |
-| 30 | Audit-Log | `audit_logs` bei jeder Mutation (`db::audit`, `lib/crud/audit`) |
-| 31 | Backups | `run_backup` (SQLite-Kopie + `PRAGMA integrity_check`), Web JSON-Export, pg_dump |
-| 32 | Tests laufen | Versionsprüfung, `pnpm -r test`, Typprüfung, `cargo test --all-targets` und Server-Smoke in CI |
+| 1 | App usable locally without a server | `apps/desktop` local SQLite mode (rusqlite), fully offline |
+| 2 | Local main profile | `db.rs` bootstrap: `main_accounts`/`local_profiles` singleton |
+| 3 | Create customers | `commands::create_customer`, `data/customers`, web `POST /api/customers` |
+| 4 | Create projects | `commands::create_project`, `data/projects`, web `POST /api/projects` |
+| 5 | Create tasks | `tasks` table, `data/tasks`, web `POST /api/tasks` |
+| 6 | Hourly rates | `billing_rates` (historized), `resolveRate` (task > project > customer > default) |
+| 7 | Daily rates | `day_rate_rules`, `computeDayRate` in `@tarlog/core` |
+| 8 | Fixed prices | `fixed_fee_contracts`, `computeFixedFeeMargin` |
+| 9,12 | Timer start/pause/resume/stop | `commands::timer_*` (desktop), `POST /api/timer/*` (web), `data/timer` (iOS) |
+| 13 | Description on stop | Stop dialog `Timer.tsx` (mandatory per project), `needs_description` status |
+| 14 | Backdate working time | `entry_backdate` / `entries.backdate` (`source='manual_backdated'`) |
+| 15 | Fix a forgotten start | Timer start with start-time correction; backdating assistant |
+| 16 | Fix a forgotten stop | Stop dialog end-time correction with reason |
+| 17 | Actual time vs. billing time separated | `actual_duration_seconds` ≠ `billing_duration_seconds` (schema + engine) |
+| 18 | Round up to 15 minutes | `applyRounding` mode `ceil_started_interval:900`, test: 4200s→4500s |
+| 19 | German break rules | `evaluateDay` GERMAN_PROFILE: >6h→30min, >9h→45min, 15-min blocks |
+| 20 | Compliance warnings | traffic light green/yellow/red on compliance pages (desktop/web) |
+| 21 | PDF timesheet | `lib/pdf` (pdfmake), web `GET /api/exports/timesheet` |
+| 22 | PDF invoice | `lib/invoice` + pdfmake, web invoicing module |
+| 23 | CSV export | web `GET /api/exports` CSV |
+| 24 | Desktop local | `apps/desktop` with headless integration test of local mode |
+| 25 | Self-hosted server | `apps/web` + `docker-compose.yml` + Postgres + health |
+| 26 | Connect desktop ↔ server | experimental client present; pairing and replication still without production-ready end-to-end proof |
+| 27 | Cross-device timer | server state + `publishEvent`→`pg_notify`→WebSocket verified; native desktop round trip still open |
+| 28 | iOS architecture prepared | `apps/mobile` with local store/sync architecture; not production-ready |
+| 29 | Sync conflicts detected | server-side `conflict_records` + 409 compare-and-set; complete native resolution UI still open |
+| 30 | Audit log | `audit_logs` on every mutation (`db::audit`, `lib/crud/audit`) |
+| 31 | Backups | `run_backup` (SQLite copy + `PRAGMA integrity_check` + versioned document companion directory), web JSON export, pg_dump |
+| 32 | Tests run | version check, `pnpm -r test`, type checking, `cargo test --all-targets` and server smoke in CI |
 
-## Datenschutz
+### Local backup with project documents
 
-Keine Telemetrie im Standard, keine externen Dienste, keine GPS-/Screenshot-
-Überwachung. Lokaler Modus voll ohne Internet. DSGVO-Konzept (Export Art. 20,
-Löschkonzept Art. 17 mit Aufbewahrungssperren, Argon2id-Passwörter und
-gehashte Session-Tokens) siehe
+From format version 1 onward, a desktop backup always consists of three
+identically named parts in the `backups` folder: the file
+`ptl-<timestamp>.db`, the manifest `ptl-<timestamp>.manifest.json`, and the
+directory `ptl-<timestamp>.attachments`. These three parts must be kept
+together. For a manual restore while the app is closed, the database is
+copied back as `ptl.db` into Tarlog's app data folder, and the companion
+directory's contents are copied into its `attachments` folder. The document
+paths stored in the backup are relative and therefore remain valid even after
+a device change. The previous plain SQLite backup remains readable, but
+naturally does not contain project documents added later.
+
+## Privacy
+
+No telemetry by default, no external services, no GPS/screenshot monitoring.
+Local mode fully offline. GDPR concept (export Art. 20, deletion concept
+Art. 17 with retention holds, Argon2id passwords and hashed session tokens),
+see
 [`docs/project-time-ledger/09-datenschutz-sicherheit.md`](docs/project-time-ledger/09-datenschutz-sicherheit.md).
 
-## Roadmap-Stand
+## What GPT 5.6 has done
 
-Fundament, Export/Abrechnung, DE-Compliance und der selbst gehostete
-Browser-Server sind implementiert. Desktop macOS/Windows ist im lokalen Modus
-funktional; seine Server-Replikation sowie iOS-Sync bleiben vor einer
-Produktionsfreigabe end-to-end fertigzustellen. Import, Webhooks und
-Team/Kundenportal sind architektonisch vorbereitet.
+Tarlog has been built in AI-paired sessions with GPT 5.6, from the initial
+data model through the current native macOS redesign. Full entry-by-entry
+history: [`CHANGELOG.md`](CHANGELOG.md).
+
+- **v0.0.1** — Initial release: core time/rounding/DE-EU-compliance/billing
+  engine, 40-table dual-dialect schema, Next.js server (auth, REST,
+  WebSocket sync, invoicing, PDF/CSV/JSON exports), Tauri desktop local
+  mode, Expo iOS scaffold, CI with 98+ unit tests and a 22-invariant
+  end-to-end smoke test.
+- **v0.0.2** — Full Apple-oriented redesign across desktop, macOS chrome
+  (native overlay title bar, traffic lights, German AppKit menu, SF
+  Symbols) and the browser app; new Tarlog Flow brand and icon family; 167
+  passing tests.
+- **v0.0.3** — Guided six-step first-run onboarding (workspace → first
+  customer/project → live timer → backdating → sync limits → done) for
+  desktop and web; reworked self-hosting guide; SQLite schema migrated to
+  v2 with fresh/upgrade/no-op integration tests; hardened browser
+  pairing/session/token handling.
+- **v0.0.4** — Fixed native desktop launch to go through the real
+  `Tarlog.app` bundle instead of a bare executable, and removed a stray
+  keyboard-focus ring on a non-interactive onboarding heading.
+- **v0.0.5** — Replaced the fragile overlay title bar with the native
+  AppKit title bar, unified onboarding and the main app around a compact
+  source-list sidebar, moved appearance switching to the native macOS
+  menu, and cleaned up the dashboard grid.
+- **v0.0.6** — Made the whole top bar draggable instead
+  of text-selecting; fixed a bug where archiving a customer silently
+  soft-deleted it and made it unrecoverable (the same class of bug already
+  fixed for projects in schema v7 — now fixed for customers in schema v8,
+  with a matching data-repair migration and a "Reaktivieren"/restore
+  action); added a customer-change control on the project detail page;
+  cleaned up broken placeholder labels (a stray `, intern ,` artifact) left
+  over from an incomplete translation pass.
+
+## Roadmap status
+
+Foundation, export/billing, DE compliance and the self-hosted browser server
+are implemented. Desktop macOS/Windows is functional in local mode; its
+server replication and iOS sync remain to be finished end-to-end before a
+production release. Import, webhooks and team/customer portal are
+architecturally prepared.

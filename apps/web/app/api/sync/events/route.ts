@@ -1,5 +1,5 @@
 /**
- * POST /api/sync/events — Client-Events hochladen (doc 04 §1, §5).
+ * POST /api/sync/events, Client-Events hochladen (doc 04 §1, §5).
  * Idempotent (Dedup über event_id/correlation_id), HLC + local_revision je
  * Event. Konflikt → conflict_records + Antwort 409 mit lokaler + Server-Version;
  * sonst 200 mit accepted-Liste und aktueller server_revision-Hochwassermarke.

@@ -1,5 +1,5 @@
 /**
- * /dashboard — Einstieg mit 15 Elementen (doc 11 §3). Kompaktes Kachel-Raster,
+ * /dashboard, Einstieg mit 15 Elementen (doc 11 §3). Kompaktes Kachel-Raster,
  * tabulare Ziffern, EINE Akzentfarbe für aktiven Timer + Primäraktion. Zahlen
  * werden serverseitig gelesen und via Sync-Kanal live aktualisiert.
  */
@@ -95,7 +95,7 @@ export default async function DashboardPage(): Promise<React.ReactElement> {
           <StatTile
             label="Sync-Status"
             value={connected ? "verbunden" : "offline"}
-            hint={`${conflicts} Konflikte · letzter Sync ${formatRelative(lastSync, account.locale)}`}
+            hint={`${conflicts} Konflikte | letzter Sync ${formatRelative(lastSync, account.locale)}`}
             href="/sync"
           />
         </Grid>

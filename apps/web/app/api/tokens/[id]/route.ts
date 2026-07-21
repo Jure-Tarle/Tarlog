@@ -1,5 +1,5 @@
 /**
- * DELETE /api/tokens/{id} — API-Token widerrufen (doc 09 §5 Nr. 18). Setzt
+ * DELETE /api/tokens/{id}, API-Token widerrufen (doc 09 §5 Nr. 18). Setzt
  * `revoked_at`; ab dann lehnt verifyDeviceToken (+ server.mjs) das Token ab.
  * Idempotent-freundlich: bereits widerrufene/fremde Tokens → 404.
  * Main-Account-Scoping erzwungen.

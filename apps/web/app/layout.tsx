@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: {
     default: "Tarlog Flow",
-    template: "%s · Tarlog Flow",
+    template: "%s | Tarlog Flow",
   },
   description: "Local-first Zeiterfassung, Abrechnung und Compliance.",
   applicationName: "Tarlog Flow",
@@ -17,7 +17,7 @@ export const viewport: Viewport = {
   colorScheme: "light dark",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f5f5f7" },
-    { media: "(prefers-color-scheme: dark)", color: "#171719" },
+    { media: "(prefers-color-scheme: dark)", color: "#1c1c1e" },
   ],
 };
 
@@ -38,7 +38,7 @@ const themeBootstrap = `
     const meta = document.createElement("meta");
     meta.name = "theme-color";
     meta.dataset.tarlogThemeColor = "true";
-    meta.content = theme === "dark" ? "#171719" : "#f5f5f7";
+    meta.content = theme === "dark" ? "#1c1c1e" : "#f5f5f7";
     document.head.append(meta);
   } catch (_) {}
 })();`;

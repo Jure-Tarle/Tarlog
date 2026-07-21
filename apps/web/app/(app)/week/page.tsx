@@ -1,5 +1,5 @@
 /**
- * /week — Wochenübersicht (doc 11 §2 Nr. 4, §4.1). 7-Tage-Raster mit
+ * /week, Wochenübersicht (doc 11 §2 Nr. 4, §4.1). 7-Tage-Raster mit
  * Tagessummen (netto/abrechenbar) und 48-h-EU-Richtwert. Die Drag-and-Drop-
  * Timesheet-Interaktion ist Desktop-Ausbau (doc 11 §4.2); hier die dichte
  * Lesesicht mit Direktlink je Tag in die Tagesansicht.

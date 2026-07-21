@@ -1,5 +1,5 @@
 /**
- * scripts/ws-smoke.mjs — Live-Sync-Nachweis (doc 04 §5, AC27).
+ * scripts/ws-smoke.mjs, Live-Sync-Nachweis (doc 04 §5, AC27).
  *
  * Zwei Clients gegen den laufenden `server.mjs`:
  *   Client B hängt am WebSocket `/api/ws` (Auth per device/API-Token).
@@ -15,7 +15,7 @@
  */
 import WebSocket from "ws";
 
-const [, , base, token, cookie, projectId, deviceId] = process.argv;
+const [,, base, token, cookie, projectId, deviceId] = process.argv;
 if (!base || !token || !cookie || !deviceId) {
   console.error("usage: node scripts/ws-smoke.mjs <baseUrl> <apiToken> <cookieHeader> <projectId> <deviceId>");
   process.exit(2);
@@ -93,5 +93,5 @@ ws.on("close", (code) => {
     );
     return;
   }
-  if (!opened) done(1, "FAIL: WS vor `open` geschlossen — Token-Auth abgelehnt?");
+  if (!opened) done(1, "FAIL: WS vor `open` geschlossen, Token-Auth abgelehnt?");
 });

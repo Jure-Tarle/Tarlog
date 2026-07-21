@@ -1,6 +1,6 @@
 /**
- * lib/auth/ratelimit.ts — leichtgewichtiges In-Memory-Rate-Limiting
- * (doc 09 §5 Nr. 15 — Brute-Force-/Flooding-Schutz auf Auth-Endpunkten).
+ * lib/auth/ratelimit.ts, leichtgewichtiges In-Memory-Rate-Limiting
+ * (doc 09 §5 Nr. 15, Brute-Force-/Flooding-Schutz auf Auth-Endpunkten).
  *
  * Fixed-Window pro Schlüssel (z. B. IP). BEWUSST prozess-lokal: für den
  * Single-Node-Self-Host-Betrieb (server.mjs = ein Prozess) ausreichend. Bei

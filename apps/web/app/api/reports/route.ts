@@ -1,5 +1,5 @@
 /**
- * app/api/reports — Report-Katalog als JSON (doc 10 §7). Ein Endpunkt, per
+ * app/api/reports, Report-Katalog als JSON (doc 10 §7). Ein Endpunkt, per
  * `type` gesteuert: day | week | month | project | customer. Grundsatz:
  * tatsächliche Zeit (`actual`/`net`) und gerundete Abrechnungszeit (`billing`)
  * werden IMMER getrennt ausgewiesen (doc 07, doc 10 §4).

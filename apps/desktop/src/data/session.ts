@@ -1,10 +1,10 @@
 /**
- * session.ts — the active local account + device context the UI writes against.
+ * session.ts, the active local account + device context the UI writes against.
  *
  * Every insert (customer, project, entry) needs `main_account_id`; the account
  * is the local singleton created on first run (doc 06 A.1 `main_accounts`). We
  * resolve it once from SQLite and cache it. If the DB is not migrated yet the
- * resolver falls back to a stable nil id so forms still render — the backend
+ * resolver falls back to a stable nil id so forms still render, the backend
  * commands own the authoritative account (doc 05 §3.1).
  */
 import { uuidv7 } from "uuidv7";
@@ -37,7 +37,7 @@ async function resolve(): Promise<{ mainAccountId: string; timezone: IanaTimezon
       };
     }
   } catch {
-    // DB not ready (unmigrated / not opened) — fall through to defaults.
+    // DB not ready (unmigrated / not opened), fall through to defaults.
   }
   return { mainAccountId: NIL_ACCOUNT, timezone: deviceTimezone(), currency: "EUR" };
 }

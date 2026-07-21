@@ -1,6 +1,6 @@
 /**
- * lib/invoice/snapshot.ts — reine Snapshot-Bildung für die Finalisierung
- * (doc 10 §5.1 Fn 16–19, §5.6). Zum Finalisierungszeitpunkt werden Kunde,
+ * lib/invoice/snapshot.ts, reine Snapshot-Bildung für die Finalisierung
+ * (doc 10 §5.1 Fn 16,19, §5.6). Zum Finalisierungszeitpunkt werden Kunde,
  * Projekt, Satz und Rundungsregel eingefroren, damit spätere
  * Stammdatenänderungen finalisierte Rechnungen nicht verändern (Immutability).
  */

@@ -1,5 +1,5 @@
 /**
- * GET /api/sync/poll?since=&timeout= — Long-Poll (doc 04 §5.1 Fallback-Kaskade).
+ * GET /api/sync/poll?since=&timeout=, Long-Poll (doc 04 §5.1 Fallback-Kaskade).
  * Hält die Verbindung bis ein Delta > since vorliegt oder timeout (≤25s) abläuft
  * (Polling-Fallback wenn WebSocket/SSE nicht verfügbar). Antwort wie /changes
  * plus timed_out.

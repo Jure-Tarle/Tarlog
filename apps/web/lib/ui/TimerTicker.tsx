@@ -1,6 +1,6 @@
 "use client";
 /**
- * lib/ui/TimerTicker.tsx — live tickende Netto-Dauer (HH:MM:SS).
+ * lib/ui/TimerTicker.tsx, live tickende Netto-Dauer (HH:MM:SS).
  *
  * Rechnet Brutto − Pausen aus den rohen Timer-Feldern (doc 03 §3): laufende
  * Pause zählt nicht zur Nettozeit. Puls-Punkt signalisiert NUR echten

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/smoke.sh — End-to-End-Nachweis des Server-Modus.
+# scripts/smoke.sh, End-to-End-Nachweis des Server-Modus.
 #
 # Fährt die Kette hoch, die in der Doku beschrieben ist (docs/project-time-ledger/):
 # Postgres → Migrationen → `server.mjs` (REST + WebSocket) → fachlicher Flow.
@@ -11,7 +11,7 @@
 #
 # Geprüfte Akzeptanzkriterien: AC17/18 (Ist- vs. Abrechnungszeit, 15-Minuten-
 # Aufrundung), AC13 (Beschreibung beim Stoppen), AC14 (Nachtrag), AC19/20
-# (ArbZG-Pausenregel), AC21–23 (PDF/CSV), AC22 (Rechnungs-PDF), AC27 (Live-Sync),
+# (ArbZG-Pausenregel), AC21,23 (PDF/CSV), AC22 (Rechnungs-PDF), AC27 (Live-Sync),
 # AC29 (Konflikterkennung), AC30 (Audit-Log).
 
 set -euo pipefail
@@ -90,7 +90,7 @@ log "Server starten (REST + WebSocket)"
 export SESSION_SECRET="${SESSION_SECRET:-smoke-secret-0123456789abcdef0123456789abcdef}"
 export PORT NEXT_PUBLIC_APP_URL="$BASE" NODE_ENV=production
 free_port "$PORT"
-# `exec` ersetzt die Subshell durch node — sonst überlebt der Node-Prozess das Cleanup.
+# `exec` ersetzt die Subshell durch node, sonst überlebt der Node-Prozess das Cleanup.
 ( cd "$ROOT/apps/web" && exec node server.mjs > "$SRV_LOG" 2>&1 ) &
 SRV_PID=$!
 for _ in $(seq 1 40); do curl -sf "$BASE/api/health" >/dev/null 2>&1 && break; sleep 1; done
@@ -228,7 +228,7 @@ assert_eq "$DUPLICATE_REVISIONS" "0" "Server-Revisionen sind pro Konto eindeutig
 
 # ---------------------------------------------------------------------------
 if [ "$FAILURES" -eq 0 ]; then
-  printf '\n\033[32mSMOKE OK — alle Kern-Invarianten halten.\033[0m\n'
+  printf '\n\033[32mSMOKE OK, alle Kern-Invarianten halten.\033[0m\n'
   exit 0
 fi
 printf '\n\033[31mSMOKE FEHLGESCHLAGEN: %s Prüfung(en).\033[0m\n' "$FAILURES"

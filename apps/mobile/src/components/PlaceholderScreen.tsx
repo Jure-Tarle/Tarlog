@@ -1,10 +1,10 @@
 /**
- * PlaceholderScreen — neutral scaffold screen (doc 11 §1 Ledger aesthetic).
+ * PlaceholderScreen, neutral scaffold screen (doc 11 §1 Ledger aesthetic).
  *
  * The screen author replaces each route body with the real UI. This keeps the
  * skeleton type-checking and visually labeled without committing to any layout
  * the design pass will own. Deliberately minimal: no default shadows, no
- * decorative color — only a title, a short purpose line, and a tabular note.
+ * decorative color, only a title, a short purpose line, and a tabular note.
  */
 import { StyleSheet, Text, View } from "react-native";
 

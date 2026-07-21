@@ -1,5 +1,5 @@
 /**
- * app/api/backup — authentifizierter JSON-Vollexport (doc 12 §1 Nr. 9, Server-
+ * app/api/backup, authentifizierter JSON-Vollexport (doc 12 §1 Nr. 9, Server-
  * Modus). Liefert eine konsistente, account-gescopete Kopie aller Domänendaten
  * (ohne Geheimnisse) und protokolliert sie in `backups` (kind=manual,
  * target=server_pg, integrity_status=ok) mit SHA-256-Prüfsumme.

@@ -1,6 +1,6 @@
 "use client";
 /**
- * lib/ui/useRealtime.ts — Live-Kanal-Hook (doc 05 §5/§7, doc 04 §5.2).
+ * lib/ui/useRealtime.ts, Live-Kanal-Hook (doc 05 §5/§7, doc 04 §5.2).
  *
  * Primär WebSocket auf `/api/ws` (server.mjs). Da der WS-Server per
  * Device-Token authentifiziert, holt der Browser zuerst einen kurzlebigen
@@ -280,7 +280,7 @@ export function useRealtime(opts: UseRealtimeOptions = {}): {
 
     // Start at revision zero. The socket is already registered when the
     // on-open catch-up runs, so events between SSR and WS registration are
-    // either drained here or arrive live — never silently skipped.
+    // either drained here or arrive live, never silently skipped.
     void connect();
 
     return () => {

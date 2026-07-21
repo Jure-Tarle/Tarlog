@@ -1,5 +1,5 @@
 /**
- * lib/invoice/build.ts — reiner Bau der Stundenposten aus Zeiteinträgen
+ * lib/invoice/build.ts, reiner Bau der Stundenposten aus Zeiteinträgen
  * (doc 10 §5.1 Fn 1, §5.2 Postenart `hourly`).
  *
  * Grundsatz (doc 10 §4): die abrechenbare Zeit stammt aus der gerundeten
@@ -7,7 +7,7 @@
  * über `computeAmountCents(billing_seconds, rate)` aus @tarlog/core berechnet
  * (Integer-Cents). Einträge werden nach aufgelöstem Satz + Bezeichnung gruppiert;
  * je Gruppe genau ein Posten, der Betrag EINMAL aus der Summensekundenzahl
- * gerundet — die Postensumme stimmt damit exakt zur gerundeten Abrechnungszeit
+ * gerundet, die Postensumme stimmt damit exakt zur gerundeten Abrechnungszeit
  * (Testfall 20).
  */
 import { computeAmountCents } from "@tarlog/core";

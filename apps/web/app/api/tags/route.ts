@@ -1,5 +1,5 @@
 /**
- * /api/tags — Liste + Anlegen (doc 06 §A.2 `tags`).
+ * /api/tags, Liste + Anlegen (doc 06 §A.2 `tags`).
  * UNIQUE(`main_account_id`,`name`) → Duplikat ⇒ 409. Audit-Pflicht: nein.
  */
 import { and, eq, ilike, isNull, type SQL } from "drizzle-orm";

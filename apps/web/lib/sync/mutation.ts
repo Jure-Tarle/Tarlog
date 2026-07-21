@@ -1,5 +1,5 @@
 /**
- * lib/sync/mutation.ts — kanonische Mutations-Klammer (doc 04 §1, §6.1).
+ * lib/sync/mutation.ts, kanonische Mutations-Klammer (doc 04 §1, §6.1).
  *
  * Jede sync-pflichtige Server-Mutation läuft durch `applyMutation`:
  *   1. Pro-Account-Serialisierung via `pg_advisory_xact_lock` (Single-Timer +
@@ -15,7 +15,7 @@
  *
  * Revisionsquelle ist `audit_logs.server_revision` (wird IN der gesperrten
  * Transaktion geschrieben), nicht `sync_events` (wird erst nach Commit
- * publiziert) — so bleibt die Vergabe unter dem Advisory-Lock kollisionsfrei.
+ * publiziert), so bleibt die Vergabe unter dem Advisory-Lock kollisionsfrei.
  */
 import type { PoolClient } from "pg";
 import { uuidv7 } from "uuidv7";
@@ -28,7 +28,7 @@ import {
 } from "@/lib/events";
 import { serverReceiveHlc, serverSendHlc } from "./hlc.js";
 
-/** Numerik-Coercion: pg liefert BIGINT als String — überall zu number machen. */
+/** Numerik-Coercion: pg liefert BIGINT als String, überall zu number machen. */
 export function toNum(v: unknown): number {
   if (v == null) return 0;
   return typeof v === "number" ? v : Number(v);
@@ -324,7 +324,7 @@ export type ConflictReason =
 /**
  * Schreibt einen `conflict_records`-Eintrag IN der laufenden Transaktion
  * (doc 04 §6.1 Nr. 8/9). Gibt die Conflict-ID zurück. `conflict_case` = die
- * Nummer 1–10 aus doc 04 §6.
+ * Nummer 1,10 aus doc 04 §6.
  */
 export async function insertConflictRecord(
   ctx: MutationContext,

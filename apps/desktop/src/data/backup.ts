@@ -1,5 +1,5 @@
 /**
- * backup.ts — auto-backup trigger (doc 09, doc 11 §5 nr. 14). The repository
+ * backup.ts, auto-backup trigger (doc 09, doc 11 §5 nr. 14). The repository
  * calls {@link notifyChange} after every mutating operation; once N changes have
  * accumulated OR the local calendar day rolled over since the last backup, we
  * fire `run_backup` (bridge → Rust owns the actual SQLite copy).
@@ -24,7 +24,7 @@ function localDay(at: number): string {
 /**
  * Record one change and, if a threshold/day-rollover condition is met, run an
  * automatic backup. Returns the {@link BackupResult} when a backup ran, else
- * null. Failures never throw into the caller's mutation — they are swallowed and
+ * null. Failures never throw into the caller's mutation, they are swallowed and
  * the counter is preserved so the next change retries.
  */
 export async function notifyChange(count = 1): Promise<BackupResult | null> {

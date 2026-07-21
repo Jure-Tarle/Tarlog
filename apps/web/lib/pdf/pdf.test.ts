@@ -1,6 +1,6 @@
 /**
  * Unit-Tests der reinen PDF-Dokumentdefinitionen + Formatierung (doc 10 §6.4:
- * "dokumentdefinition testbar ohne Server"). Rendert NICHT — prüft nur die
+ * "dokumentdefinition testbar ohne Server"). Rendert NICHT, prüft nur die
  * erzeugten Definitionsstrukturen und Formatierer.
  */
 import { describe, expect, it } from "vitest";
@@ -20,7 +20,7 @@ describe("format", () => {
   });
 
   it("formatiert Geld als Euro-Cents", () => {
-    // Non-breaking spaces sind egal — Betrag + Symbol prüfen.
+    // Non-breaking spaces sind egal, Betrag + Symbol prüfen.
     expect(formatMoneyCents(123456, "EUR").replace(/ /g, " ")).toContain("1.234,56");
   });
 
@@ -35,7 +35,7 @@ describe("format", () => {
 const timesheet: TimesheetData = {
   title: "Interner Arbeitszeitnachweis",
   userName: "Test",
-  periodLabel: "2026-01-01 – 2026-01-31",
+  periodLabel: "2026-01-01, 2026-01-31",
   createdAt: "2026-02-01",
   exportNumber: "EX-2026-0001",
   timezone: "Europe/Berlin",
@@ -90,7 +90,7 @@ const invoice: InvoicePdfData = {
   customer: { name: "Kunde GmbH", address: "Weg 2", vatId: "DE999", number: "K-1" },
   invoiceNumber: "RE-2026-0001",
   issueDate: "2026-02-01",
-  servicePeriod: "2026-01-01 – 2026-01-31",
+  servicePeriod: "2026-01-01, 2026-01-31",
   serviceDate: null,
   dueDate: "2026-02-15",
   currency: "EUR",

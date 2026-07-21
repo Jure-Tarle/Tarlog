@@ -1,5 +1,5 @@
 /**
- * app/api/exports/timesheet — PDF-Arbeitszeitnachweis (doc 10 §6.2 alle 38
+ * app/api/exports/timesheet, PDF-Arbeitszeitnachweis (doc 10 §6.2 alle 38
  * Inhalte, §6.3 die 7 Varianten). GET mit Query-Filtern:
  *   from,to (epoch-ms, Pflicht), project_id?, customer_id?, variant?, tz?,
  *   amounts=0|1, checksum=0|1, signature=0|1.
@@ -89,11 +89,11 @@ export const GET = requireAuth(async (req, _ctx, auth) => {
     return {
       date: day,
       start: formatLocalClock(e.actual_started_at, e.timezone),
-      end: e.actual_ended_at != null ? formatLocalClock(e.actual_ended_at, e.timezone) : "—",
+      end: e.actual_ended_at != null ? formatLocalClock(e.actual_ended_at, e.timezone) : ",",
       breakHm: formatDurationHm(e.break_seconds),
       netHm: formatDurationHm(e.net_seconds),
       billingHm: formatDurationHm(e.billing_seconds),
-      project: e.project ?? "—",
+      project: e.project ?? ",",
       task: e.task ?? "",
       description: e.description ?? "",
       internalNote: e.internal_note,
@@ -107,7 +107,7 @@ export const GET = requireAuth(async (req, _ctx, auth) => {
     };
   });
 
-  // Summen (Inhalte 12–17): tatsächliche Nettozeit und gerundete Abrechnungszeit getrennt.
+  // Summen (Inhalte 12,17): tatsächliche Nettozeit und gerundete Abrechnungszeit getrennt.
   const actualSum = entries.reduce((s, e) => s + e.actual_seconds, 0);
   const breakSum = entries.reduce((s, e) => s + e.break_seconds, 0);
   const netSum = entries.reduce((s, e) => s + e.net_seconds, 0);
@@ -117,7 +117,7 @@ export const GET = requireAuth(async (req, _ctx, auth) => {
     .filter((e) => e.billable && e.billing_amount_cents != null)
     .reduce((s, e) => s + (e.billing_amount_cents ?? 0), 0);
 
-  const periodLabel = `${formatLocalDate(from, tz)} – ${formatLocalDate(to - 1, tz)}`;
+  const periodLabel = `${formatLocalDate(from, tz)}, ${formatLocalDate(to - 1, tz)}`;
   const filterParts = [
     project_id ? `Projekt=${project_id}` : null,
     customer_id ? `Kunde=${customer_id}` : null,
@@ -130,7 +130,7 @@ export const GET = requireAuth(async (req, _ctx, auth) => {
   const wantChecksum = sp.get("checksum") === "1";
   const wantSignature = sp.get("signature") === "1";
 
-  // Daten-Prüfsumme (deterministisch über die Einträge) — nicht der PDF-Byte-Hash,
+  // Daten-Prüfsumme (deterministisch über die Einträge), nicht der PDF-Byte-Hash,
   // da ein PDF seinen eigenen Byte-Hash nicht enthalten kann.
   const dataChecksum = wantChecksum
     ? sha256Hex(

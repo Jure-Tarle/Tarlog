@@ -16,7 +16,7 @@ import { sqlite } from "@tarlog/db";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 // Aus der @tarlog/db-Definition abgeleitete, strukturgleiche DDL (Kernspalten +
-// der single-active-Index). SQLite erzwingt Enums nicht — status als TEXT.
+// der single-active-Index). SQLite erzwingt Enums nicht, status als TEXT.
 const DDL = `
 CREATE TABLE timer_states (
   timer_id TEXT PRIMARY KEY,
@@ -54,7 +54,7 @@ afterEach(() => {
   db.close();
 });
 
-describe("@tarlog/db sqlite.timerStates — Schema-Bindung", () => {
+describe("@tarlog/db sqlite.timerStates, Schema-Bindung", () => {
   it("heißt timer_states und trägt die konfliktrelevanten Spalten", () => {
     expect(getTableName(sqlite.timerStates)).toBe("timer_states");
     const cols = getTableColumns(sqlite.timerStates);

@@ -1,5 +1,5 @@
 /**
- * /api/rates/[id] — Detail, Ändern, Soft-Delete eines Stundensatzes
+ * /api/rates/[id], Detail, Ändern, Soft-Delete eines Stundensatzes
  * (doc 06 §A.4 `billing_rates`). Jede Mutation schreibt Audit `rate_changed`.
  */
 import { and, eq, isNull } from "drizzle-orm";

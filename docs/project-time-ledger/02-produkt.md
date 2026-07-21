@@ -1,4 +1,4 @@
-# Produkt — Vision, Zielgruppen, Betriebsarten, Main Account, Feature-Liste
+# Produkt, Vision, Zielgruppen, Betriebsarten, Main Account, Feature-Liste
 
 > Hinweis: Rechtliche Aussagen sind Produkt-Hinweise, keine Rechtsberatung. Stand der Recherche: Juli 2026.
 
@@ -12,8 +12,8 @@ Der **Tarlog** ist eine professionelle, revisionsfähige und datenschutzfreundli
 
 Leitsatz aus der Spezifikation: **Das Produkt darf keine einfache Timer-App sein.** Es bildet die Grundlage für eine nachvollziehbare, auditierbare und abrechnungssichere Zeiterfassung. Zwei Prinzipien sind nicht verhandelbar und ziehen sich durch alle Module:
 
-- **`actual_duration_seconds` und `billing_duration_seconds` bleiben getrennt** — Rundung überschreibt niemals die echte Arbeitszeit (siehe [Zeitberechnung & Rundung](07-zeitberechnung-rundung.md)).
-- **Datenschutz ist Produktkern** — kein invasives Auto-Tracking, keine Screenshots, keine Telemetrie im Standard (siehe [Datenschutz & Sicherheit](09-datenschutz-sicherheit.md)).
+- **`actual_duration_seconds` und `billing_duration_seconds` bleiben getrennt**, Rundung überschreibt niemals die echte Arbeitszeit (siehe [Zeitberechnung & Rundung](07-zeitberechnung-rundung.md)).
+- **Datenschutz ist Produktkern**, kein invasives Auto-Tracking, keine Screenshots, keine Telemetrie im Standard (siehe [Datenschutz & Sicherheit](09-datenschutz-sicherheit.md)).
 
 ### 1.1 Die 32 Kernfähigkeiten (SPEC §2)
 
@@ -72,7 +72,7 @@ Die Spezifikation nennt sieben Primär-Zielgruppen. Das Produkt ist zuerst für 
 
 ---
 
-## 3. Betriebsarten (SPEC §4.1–4.5)
+## 3. Betriebsarten (SPEC §4.1,4.5)
 
 Das Produkt muss fünf Betriebsarten unterstützen. Jede Eigenschaftsliste ist vollständig wiedergegeben.
 
@@ -108,11 +108,11 @@ Eigenschaften:
 6. Datenbank-Integritätsprüfung
 7. Reparaturfunktion für beschädigte lokale Datenbanken
 
-> Umsetzungshinweis (recherchiert): Das Tauri-Biometric-Plugin deckt nur iOS/Android ab; **Touch ID auf macOS läuft nicht über das Plugin**, sondern über LocalAuthentication als eigener Rust-Command oder alternativ App-Passwort — siehe [Datenschutz & Sicherheit](09-datenschutz-sicherheit.md).
+> Umsetzungshinweis (recherchiert): Das Tauri-Biometric-Plugin deckt nur iOS/Android ab; **Touch ID auf macOS läuft nicht über das Plugin**, sondern über LocalAuthentication als eigener Rust-Command oder alternativ App-Passwort, siehe [Datenschutz & Sicherheit](09-datenschutz-sicherheit.md).
 
 ### 3.2 Selbst gehosteter Server Modus (§4.2)
 
-Die Anwendung kann auf einem **eigenen Server** betrieben werden — kein externer Anbieter erforderlich.
+Die Anwendung kann auf einem **eigenen Server** betrieben werden, kein externer Anbieter erforderlich.
 
 Eigenschaften:
 
@@ -211,13 +211,13 @@ Das Produkt wird zuerst für **eine einzelne Hauptperson** entwickelt. Es gibt z
 9. Der Server **synchronisiert Daten zwischen allen verbundenen Geräten**.
 10. Team, Kundenportal und mehrere Nutzer werden **architektonisch vorbereitet, aber nicht als Kernvoraussetzung für Version 1** behandelt.
 
-**Konsequenzen fürs Datenmodell:** Es gibt eine `main_accounts`-Tabelle und pro Gerät ein `local_profiles`- bzw. `devices`-Datensatz. Pro `main_account` läuft standardmäßig **nur ein aktiver Timer** — durchgesetzt über einen partiellen UNIQUE-Index (siehe [Synchronisierung](04-sync.md) und [Datenmodell](06-datenmodell.md)). Die Team-Tabellen (`organizations`, `users`, `memberships`, `roles`, `permissions`, `project_members`, `approvals`, `customer_portal_access`) sind vorbereitet, aber V2.
+**Konsequenzen fürs Datenmodell:** Es gibt eine `main_accounts`-Tabelle und pro Gerät ein `local_profiles`- bzw. `devices`-Datensatz. Pro `main_account` läuft standardmäßig **nur ein aktiver Timer**, durchgesetzt über einen partiellen UNIQUE-Index (siehe [Synchronisierung](04-sync.md) und [Datenmodell](06-datenmodell.md)). Die Team-Tabellen (`organizations`, `users`, `memberships`, `roles`, `permissions`, `project_members`, `approvals`, `customer_portal_access`) sind vorbereitet, aber V2.
 
 ---
 
 ## 5. Vollständige Feature-Liste (V1/V2)
 
-Die folgende Tabelle klassifiziert alle Produktbereiche nach Auslieferungsphase. **V1** = Kern der ersten Version (lokal vollständig nutzbar, plus selbst-gehosteter Server-/Sync-Kern gemäß Roadmap-Phasen 1–4). **V2** = architektonisch vorbereitet, aber später (Roadmap-Phasen 5–6 und optionale Bausteine). Die Roadmap-Phasen sind in [Qualität & Roadmap](12-qualitaet.md) ausgeführt.
+Die folgende Tabelle klassifiziert alle Produktbereiche nach Auslieferungsphase. **V1** = Kern der ersten Version (lokal vollständig nutzbar, plus selbst-gehosteter Server-/Sync-Kern gemäß Roadmap-Phasen 1,4). **V2** = architektonisch vorbereitet, aber später (Roadmap-Phasen 5,6 und optionale Bausteine). Die Roadmap-Phasen sind in [Qualität & Roadmap](12-qualitaet.md) ausgeführt.
 
 ### 5.1 Zeiterfassung & Nachtrag
 
@@ -227,7 +227,7 @@ Die folgende Tabelle klassifiziert alle Produktbereiche nach Auslieferungsphase.
 | Pflichtbeschreibung beim Stoppen (projektweise konfigurierbar) | V1 | [03](03-zeiterfassung.md) |
 | Mehrere Pausen pro Eintrag, manuell + automatischer Pausenstatus | V1 | [03](03-zeiterfassung.md) |
 | Arbeitszeiten nachtragen (Nachtragsassistent, Gründe, Kalender-/Tagesansicht) | V1 | [03 §7](03-zeiterfassung.md) |
-| Timer vergessen zu starten / zu stoppen — Rekonstruktion | V1 | [03 §7.6/7.7](03-zeiterfassung.md) |
+| Timer vergessen zu starten / zu stoppen, Rekonstruktion | V1 | [03 §7.6/7.7](03-zeiterfassung.md) |
 | Timer-Wiederherstellung nach App-Absturz / Neustart | V1 | [03](03-zeiterfassung.md) |
 | Über-Mitternacht-Einträge markieren, Zeitzone speichern | V1 | [07](07-zeitberechnung-rundung.md) |
 | Favoriten-Timer, Schnellstart aus letzten Einträgen | V1 | [03](03-zeiterfassung.md) |
@@ -309,11 +309,11 @@ Die folgende Tabelle klassifiziert alle Produktbereiche nach Auslieferungsphase.
 
 ---
 
-## 6. Abgrenzung — was das Produkt bewusst NICHT ist
+## 6. Abgrenzung, was das Produkt bewusst NICHT ist
 
 Aus der Recherche (siehe [Recherche](01-recherche.md)) abgeleitete, bewusste Nicht-Ziele:
 
 - **Kein invasives Auto-Tracking** von Apps/Websites (Abgrenzung zu ManicTime/TimeCamp/Timely).
 - **Keine automatische Screenshot-Überwachung**, kein invasives Mitarbeitertracking, keine GPS-Pflicht.
 - **Keine Cloud-Pflicht und keine Telemetrie** im Standard.
-- **Keine einfache Timer-App** — Abrechnung, Compliance, Audit und revisionsfähige Rechnungen sind First-Class-Module.
+- **Keine einfache Timer-App**, Abrechnung, Compliance, Audit und revisionsfähige Rechnungen sind First-Class-Module.

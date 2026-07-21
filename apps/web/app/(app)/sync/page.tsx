@@ -1,5 +1,5 @@
 /**
- * /sync — Geräteübersicht, letzter Sync, Live-Kanal, Konflikte (doc 11 §2 Nr.
+ * /sync, Geräteübersicht, letzter Sync, Live-Kanal, Konflikte (doc 11 §2 Nr.
  * 15, doc 04). Widerruf je Gerät.
  */
 import { PageHeader, LoadError, Table, Th, Td, EmptyState, Grid, StatTile, Badge } from "@/lib/ui/ui";
@@ -79,7 +79,7 @@ export default async function SyncPage(): Promise<React.ReactElement> {
     <section>
       <PageHeader
         title="Synchronisierung"
-        subtitle="Geräte, letzter Sync, Live-Kanal und Konflikte – transparent und offline-first"
+        subtitle="Geräte, letzter Sync, Live-Kanal und Konflikte, transparent und offline-first"
         actions={<RealtimeRefresher types={["sync.", "device."]} showIndicator />}
       />
       {body}

@@ -1,5 +1,5 @@
 /**
- * lib/api.ts — Route-Handler-Helper (doc 05 §5 Design-Regeln).
+ * lib/api.ts, Route-Handler-Helper (doc 05 §5 Design-Regeln).
  *
  * Einheitliches JSON-/Fehler-Format, Auth-Wrapper und Zod-Parse-Helper für alle
  * REST-Route-Handlers unter app/api/**. Fehlerobjekt-Form ist `{ error: { code,
@@ -91,7 +91,7 @@ export function toErrorResponse(err: unknown): NextResponse {
 }
 
 // ---------------------------------------------------------------------------
-// Zod-Parse-Helper — werfen ApiError("validation_error") mit Zod-issues
+// Zod-Parse-Helper, werfen ApiError("validation_error") mit Zod-issues
 // ---------------------------------------------------------------------------
 
 function zodDetails(err: ZodError): unknown {
@@ -168,7 +168,7 @@ export function assertSameOrigin(
 /**
  * Ermittelt den Auth-Kontext aus (a) Bearer-Token (Authorization-Header) oder
  * (b) Session-Cookie. Liefert `null` wenn keiner gültig ist. Reine Leseoperation
- * — kann in Route-Handlers und Server-Components genutzt werden.
+ *, kann in Route-Handlers und Server-Components genutzt werden.
  */
 export async function getAuth(): Promise<AuthContext | null> {
   const hdrs = await headers();

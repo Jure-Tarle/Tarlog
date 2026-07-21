@@ -1,14 +1,16 @@
 /**
- * Timer — Start/Pause/Resume/Stop (doc 03, doc 11 §2).
+ * Timer, Start/Pause/Resume/Stop (doc 03, doc 11 §2).
  *
  * The Stop-Dialog enforces a project-mandated description, previews rounding
  * (@tarlog/core roundingPreview + resolveRoundingRuleForEntry) and allows a
  * start/end correction. All state flows through the finished useTimer hook.
  */
 import { useEffect, useId, useRef, useState } from "react";
+import { Clock, NotebookPen, Play } from "lucide-react";
 import {
   Page, Card, Button, Field, FormRow, Select, TextArea, TextInput, ErrorNote, Tag,
 } from "../components/ui";
+import { DateTimePicker } from "../components/DateTimePicker";
 import { useAsync, useTick } from "../data/hooks";
 import {
   consumePendingTimerStop,
@@ -25,6 +27,8 @@ import { resolveRoundingRuleForEntry } from "../data/rounding";
 import { roundingPreview, type RoundingResult } from "@tarlog/core";
 import { fmtHMS, fmtHM, fmtDurationShort, fromDateTimeInputs, toDateInputValue, toTimeInputValue } from "../data/format";
 import { useTimezone } from "./shared";
+import { loadTimerDescriptionDraft } from "../data/timerDescriptionDraft";
+import { t } from "../i18n";
 
 function nowLocalInput(tz: string): string {
   return `${toDateInputValue(Date.now(), tz)}T${toTimeInputValue(Date.now(), tz)}`;
@@ -40,6 +44,7 @@ export default function Timer() {
   const [projectId, setProjectId] = useState<string>("");
   const [taskId, setTaskId] = useState<string>("");
   const [desc, setDesc] = useState("");
+  const [showDescription, setShowDescription] = useState(false);
   const [correctStart, setCorrectStart] = useState(false);
   const [startAt, setStartAt] = useState("");
 
@@ -68,47 +73,70 @@ export default function Timer() {
   async function onStart() {
     const startedAt = correctStart && startAt ? fromDateTimeInputs(startAt.slice(0, 10), startAt.slice(11), tz) : null;
     const started = await timer.start({ projectId: projectId || null, taskId: taskId || null, description: desc || null, startedAt });
-    if (started) setDesc("");
+    if (started) {
+      setDesc("");
+      setShowDescription(false);
+    }
   }
 
   return (
     <Page
-      title="Timer"
-      hint={timer.loading ? "lädt" : timer.state ? TIMER_STATUS_LABELS[timer.state.status] : "Bereit"}
+      title={t("Timer")}
+      hint={timer.loading ? t("lädt") : timer.state && timer.state.status !== "idle" ? t(TIMER_STATUS_LABELS[timer.state.status]) : undefined}
     >
       {timer.error ? <ErrorNote error={timer.error} /> : null}
 
-      <Card title={timer.active ? "Laufender Timer" : "Neuer Timer"}>
+      <Card title={timer.active ? t("Laufender Timer") : t("Neuer Timer")}>
         <div className="timerface">
           <span className={`timerface__elapsed ${timer.state?.status === "running" ? "timerface__elapsed--running" : ""} num`}>
             {fmtHMS(elapsed)}
           </span>
-          <span className="timerface__meta">
-            {timer.state ? TIMER_STATUS_LABELS[timer.state.status] : "Bereit"}
-            {timer.state?.accumulated_pause_seconds ? ` · Pausen ${fmtDurationShort(timer.state.accumulated_pause_seconds)}` : ""}
-          </span>
+          {timer.state && timer.state.status !== "idle" ? (
+            <span className="timerface__meta">
+              {t(TIMER_STATUS_LABELS[timer.state.status])}
+              {timer.state.accumulated_pause_seconds ? t(" | Pausen {duration}", { duration: fmtDurationShort(timer.state.accumulated_pause_seconds) }) : ""}
+            </span>
+          ) : null}
 
           {!timer.active ? (
             <div className="stack" style={{ width: "100%", maxWidth: 520 }}>
               <FormRow>
-                <Field label="Projekt">
+                <Field label={t("Projekt")}>
                   <Select value={projectId} onChange={(e) => { setProjectId(e.target.value); setTaskId(""); }}>
-                    <option value="">— ohne Projekt —</option>
+                    <option value="">{t("Ohne Projekt")}</option>
                     {(proj.data ?? []).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </Select>
                 </Field>
-                <Field label="Aufgabe">
-                  <Select value={taskId} onChange={(e) => setTaskId(e.target.value)} disabled={!(tasks.data ?? []).length}>
-                    <option value="">— ohne Aufgabe —</option>
-                    {(tasks.data ?? []).map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                <Field label={t("Teilprojekt / Aufgabe")} hint={t("Für eine getrennte Auswertung im Projekt")}>
+                  <Select value={taskId} onChange={(e) => setTaskId(e.target.value)} disabled={!(tasks.data ?? []).some((task) => task.status === "active")}>
+                    <option value="">{t("Ohne Teilprojekt")}</option>
+                    {(tasks.data ?? []).filter((task) => task.status === "active").map((task) => <option key={task.id} value={task.id}>{task.name}</option>)}
                   </Select>
                 </Field>
               </FormRow>
-              <Field label="Beschreibung">
-                <TextInput value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Woran arbeitest du?" />
-              </Field>
-              <Field label="Startzeit korrigieren" hint="Für einen vergessenen Start rückwirkend beginnen.">
-                <div className="cluster">
+              {showDescription ? (
+                <Field
+                  label={t("Beschreibung vorab (optional)")}
+                  hint={t("Du kannst sie beim Stoppen prüfen, ergänzen oder ersetzen.")}
+                >
+                  <TextInput
+                    value={desc}
+                    onChange={(e) => setDesc(e.target.value)}
+                    placeholder={t("Falls schon klar: Woran arbeitest du?")}
+                    autoFocus
+                  />
+                </Field>
+              ) : (
+                <button type="button" className="option-row" onClick={() => setShowDescription(true)}>
+                  <span className="option-row__icon" aria-hidden><NotebookPen size={16} /></span>
+                  <span className="option-row__label">{t("Beschreibung vorab hinzufügen")}</span>
+                  <span className="option-row__hint">{t("Optional, normalerweise beim Stoppen")}</span>
+                </button>
+              )}
+              <div className="option-row option-row--static">
+                <span className="option-row__icon" aria-hidden><Clock size={16} /></span>
+                <div className="option-row__body">
+                  <span className="option-row__label">{t("Startzeit korrigieren")}</span>
                   <label className="check">
                     <input
                       type="checkbox"
@@ -116,25 +144,34 @@ export default function Timer() {
                       checked={correctStart}
                       onChange={(e) => { setCorrectStart(e.target.checked); if (e.target.checked && !startAt) setStartAt(nowLocalInput(tz)); }}
                     />
-                    <span>abweichende Startzeit</span>
+                    <span>{t("abweichende Startzeit")}</span>
                   </label>
                   {correctStart ? (
-                    <TextInput type="datetime-local" value={startAt} onChange={(e) => setStartAt(e.target.value)} style={{ width: "auto" }} />
-                  ) : null}
+                    <DateTimePicker value={startAt} onChange={setStartAt} tz={tz} max={Date.now()} />
+                  ) : (
+                    <span className="option-row__hint">{t("Für einen vergessenen Start rückwirkend beginnen.")}</span>
+                  )}
                 </div>
-              </Field>
-              <div className="cluster">
-                <Button variant="primary" disabled={timer.pending || !startable} onClick={() => void onStart()}>Timer starten</Button>
+              </div>
+              <div className="cluster cluster--center">
+                <Button variant="primary" disabled={timer.pending || !startable} onClick={() => void onStart()}>
+                  <Play size={15} fill="currentColor" /> {t("Timer starten")}
+                </Button>
               </div>
             </div>
           ) : (
-            <div className="cluster">
-              {timer.state?.status === "paused" ? (
-                <Button variant="primary" disabled={timer.pending} onClick={() => void timer.resume()}>Fortsetzen</Button>
-              ) : (
-                <Button disabled={timer.pending} onClick={() => void timer.pause()}>Pause</Button>
-              )}
-              <Button variant="danger" disabled={timer.pending} onClick={() => setStopOpen(true)}>Stoppen…</Button>
+            <div className="timerface__active-actions">
+              <p>{t("Beim Stoppen hältst du fest, was du erledigt hast.")}</p>
+              <div className="cluster">
+                {timer.state?.status === "paused" ? (
+                  <Button variant="primary" disabled={timer.pending} onClick={() => void timer.resume()}>
+                    <Play size={15} fill="currentColor" /> {t("Fortsetzen")}
+                  </Button>
+                ) : (
+                  <Button disabled={timer.pending} onClick={() => void timer.pause()}>{t("Pause")}</Button>
+                )}
+                <Button variant="danger" disabled={timer.pending} onClick={() => setStopOpen(true)}>{t("Stoppen & beschreiben…")}</Button>
+              </div>
             </div>
           )}
         </div>
@@ -143,6 +180,7 @@ export default function Timer() {
       {stopOpen && timer.active ? (
         <StopDialog
           projectId={timer.state?.project_id ?? null}
+          initialDescriptionForStartedAt={timer.state?.started_at ?? null}
           netSeconds={elapsed}
           startedAt={timer.state?.started_at ?? Date.now()}
           tz={tz}
@@ -159,9 +197,10 @@ export default function Timer() {
 
 /** The mandatory Stop-Dialog: description gate + rounding preview + end correction. */
 function StopDialog({
-  projectId, netSeconds, startedAt, tz, onCancel, onConfirm,
+  projectId, initialDescriptionForStartedAt, netSeconds, startedAt, tz, onCancel, onConfirm,
 }: {
   projectId: string | null;
+  initialDescriptionForStartedAt: number | null;
   netSeconds: number;
   startedAt: number;
   tz: string;
@@ -169,6 +208,7 @@ function StopDialog({
   onConfirm: (description: string | null, at: number | null) => Promise<void>;
 }) {
   const [description, setDescription] = useState("");
+  const descriptionEdited = useRef(false);
   const [correctEnd, setCorrectEnd] = useState(false);
   const [endAt, setEndAt] = useState(nowLocalInput(tz));
   const [busy, setBusy] = useState(false);
@@ -177,6 +217,14 @@ function StopDialog({
   const onCancelRef = useRef(onCancel);
   const titleId = useId();
   onCancelRef.current = onCancel;
+
+  useEffect(() => {
+    let cancelled = false;
+    void loadTimerDescriptionDraft(initialDescriptionForStartedAt).then((draft) => {
+      if (!cancelled && !descriptionEdited.current && draft) setDescription(draft);
+    });
+    return () => { cancelled = true; };
+  }, [initialDescriptionForStartedAt]);
 
   useEffect(() => {
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -258,44 +306,52 @@ function StopDialog({
         aria-labelledby={titleId}
         tabIndex={-1}
       >
-        <div className="dialog__head" id={titleId}>Timer stoppen</div>
+        <div className="dialog__head" id={titleId}>{t("Timer stoppen")}</div>
         <div className="dialog__body">
           <Field
-            label="Beschreibung"
+            label={t("Beschreibung")}
             required={required.data ?? false}
-            error={descMissing ? "Für dieses Projekt ist eine Beschreibung Pflicht." : undefined}
+            error={descMissing ? t("Für dieses Projekt ist eine Beschreibung Pflicht.") : undefined}
           >
-            <TextArea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Was wurde erledigt?" autoFocus />
+            <TextArea
+              value={description}
+              onChange={(e) => {
+                descriptionEdited.current = true;
+                setDescription(e.target.value);
+              }}
+              placeholder={t("Was hast du erledigt?")}
+              autoFocus
+            />
           </Field>
 
-          <Field label="Endzeit korrigieren">
+          <Field label={t("Endzeit korrigieren")}>
             <div className="cluster">
               <label className="check">
                 <input type="checkbox" className="check__box" checked={correctEnd} onChange={(e) => setCorrectEnd(e.target.checked)} />
-                <span>abweichende Endzeit</span>
+                <span>{t("abweichende Endzeit")}</span>
               </label>
-              {correctEnd ? <TextInput type="datetime-local" value={endAt} onChange={(e) => setEndAt(e.target.value)} style={{ width: "auto" }} /> : null}
+              {correctEnd ? <DateTimePicker value={endAt} onChange={setEndAt} tz={tz} max={Date.now()} /> : null}
             </div>
           </Field>
 
           <div className="inset">
-            <div className="defrow"><span className="defrow__key">Netto</span><span className="num">{fmtHM(previewNet)}</span></div>
-            <div className="defrow"><span className="defrow__key">Abrechnung (gerundet)</span><span className="num">{preview ? fmtHM(preview.billing_duration_seconds) : "—"}</span></div>
+            <div className="defrow"><span className="defrow__key">{t("Netto")}</span><span className="num">{fmtHM(previewNet)}</span></div>
+            <div className="defrow"><span className="defrow__key">{t("Abrechnung (gerundet)")}</span><span className="num">{preview ? fmtHM(preview.billing_duration_seconds) : ","}</span></div>
             <div className="defrow">
-              <span className="defrow__key">Rundung</span>
+              <span className="defrow__key">{t("Rundung")}</span>
               <span>
                 {preview ? (
                   <>
                     <span className="num">{preview.rounding_delta_seconds >= 0 ? "+" : "−"}{fmtHM(Math.abs(preview.rounding_delta_seconds))}</span>{" "}
                     <Tag tone="muted">{preview.rounding_reason}</Tag>
                   </>
-                ) : "—"}
+                ) : ","}
               </span>
             </div>
           </div>
         </div>
         <div className="dialog__foot">
-          <Button variant="ghost" onClick={onCancel}>Abbrechen</Button>
+          <Button variant="ghost" onClick={onCancel}>{t("Abbrechen")}</Button>
           <Button
             variant="primary"
             disabled={descMissing || busy}
@@ -305,7 +361,7 @@ function StopDialog({
               finally { setBusy(false); }
             }}
           >
-            Stoppen &amp; speichern
+            {t("Stoppen & speichern")}
           </Button>
         </div>
       </div>

@@ -1,5 +1,5 @@
 /**
- * customers.ts — customer CRUD (doc 06 A.2 `customers`). Inserts go through the
+ * customers.ts, customer CRUD (doc 06 A.2 `customers`). Inserts go through the
  * `create_customer` bridge command (Rust owns the write + `main_account_id`);
  * reads use the `list_customers` bridge command; updates/soft-deletes are local
  * SQL (no bridge command exists for them). Validation via @tarlog/core
@@ -15,7 +15,7 @@ import { customerSchema, type CustomerInput, type Uuid } from "@tarlog/core";
 
 export type CustomerRow = CustomerInput;
 
-/** Draft for {@link createCustomer} — id/main_account_id are filled here. */
+/** Draft for {@link createCustomer}, id/main_account_id are filled here. */
 export type CustomerDraft = Omit<Partial<CustomerInput>, "main_account_id"> & {
   name: string;
 };
@@ -23,10 +23,17 @@ export type CustomerDraft = Omit<Partial<CustomerInput>, "main_account_id"> & {
 /** Columns a client may patch via {@link updateCustomer}. */
 const PATCHABLE = new Set<keyof CustomerInput>([
   "name",
+  "first_name",
+  "last_name",
   "company",
   "contact_person",
   "email",
   "phone",
+  "street",
+  "house_number",
+  "postal_code",
+  "city",
+  "country",
   "vat_id",
   "customer_number",
   "payment_term_days",
@@ -95,16 +102,28 @@ export async function updateCustomer(
   return after!;
 }
 
-/** Soft-delete (archive) a customer: set `deleted_at` + status archived. */
+/** Archive a customer: status archived, stays listed and restorable. */
 export async function archiveCustomer(id: Uuid): Promise<void> {
   const ctx = await getContext();
   const ts = now();
   await execute(
-    `UPDATE customers SET deleted_at = $1, status = 'archived', updated_at = $2
-      WHERE id = $3 AND main_account_id = $4`,
-    [ts, ts, id, ctx.mainAccountId],
+    `UPDATE customers SET status = 'archived', updated_at = $1
+      WHERE id = $2 AND main_account_id = $3 AND deleted_at IS NULL`,
+    [ts, id, ctx.mainAccountId],
   );
-  await writeAudit({ action: "entry_deleted", entity_type: "customer", entity_id: id });
+  await writeAudit({ action: "entry_updated", entity_type: "customer", entity_id: id });
+  await notifyChange();
+}
+
+/** Bring an archived customer back to active. */
+export async function restoreCustomer(id: Uuid): Promise<void> {
+  const ctx = await getContext();
+  await execute(
+    `UPDATE customers SET status = 'active', updated_at = $1
+      WHERE id = $2 AND main_account_id = $3 AND deleted_at IS NULL`,
+    [now(), id, ctx.mainAccountId],
+  );
+  await writeAudit({ action: "entry_updated", entity_type: "customer", entity_id: id });
   await notifyChange();
 }
 

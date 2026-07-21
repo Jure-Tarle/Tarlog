@@ -1,5 +1,5 @@
 /**
- * /login — Session-Login am eigenen Server (doc 05 §5.1). Guards:
+ * /login, Session-Login am eigenen Server (doc 05 §5.1). Guards:
  *  - Setup noch nicht abgeschlossen → zum Erststart-Wizard (/setup).
  *  - Bereits angemeldet → direkt ins Dashboard.
  */

@@ -1,0 +1,49 @@
+[    5574ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:1420/node_modules/.vite/deps/react-dom_client.js?v=c9460041:20102
+[    5634ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:1420/favicon.ico:0
+[    5667ms] [ERROR] Tarlog database boot failed TypeError: Cannot read properties of undefined (reading 'invoke')
+    at invoke (http://127.0.0.1:1420/node_modules/.vite/deps/chunk-64QN5OMB.js?v=c9460041:109:37)
+    at dbInit (http://127.0.0.1:1420/src/lib/bridge.ts:3:10)
+    at http://127.0.0.1:1420/src/App.tsx:200:15
+    at http://127.0.0.1:1420/src/App.tsx:212:7
+    at Object.react_stack_bottom_frame (http://127.0.0.1:1420/node_modules/.vite/deps/react-dom_client.js?v=c9460041:18567:20)
+    at runWithFiberInDEV (http://127.0.0.1:1420/node_modules/.vite/deps/react-dom_client.js?v=c9460041:997:72)
+    at commitHookEffectListMount (http://127.0.0.1:1420/node_modules/.vite/deps/react-dom_client.js?v=c9460041:9411:163)
+    at commitHookPassiveMountEffects (http://127.0.0.1:1420/node_modules/.vite/deps/react-dom_client.js?v=c9460041:9465:60)
+    at commitPassiveMountOnFiber (http://127.0.0.1:1420/node_modules/.vite/deps/react-dom_client.js?v=c9460041:11040:29)
+    at recursivelyTraversePassiveMountEffects (http://127.0.0.1:1420/node_modules/.vite/deps/react-dom_client.js?v=c9460041:11010:13) @ http://127.0.0.1:1420/src/App.tsx:203
+[    5668ms] [ERROR] Tarlog database boot failed TypeError: Cannot read properties of undefined (reading 'invoke')
+    at invoke (http://127.0.0.1:1420/node_modules/.vite/deps/chunk-64QN5OMB.js?v=c9460041:109:37)
+    at dbInit (http://127.0.0.1:1420/src/lib/bridge.ts:3:10)
+    at http://127.0.0.1:1420/src/App.tsx:200:15
+    at http://127.0.0.1:1420/src/App.tsx:212:7
+    at Object.react_stack_bottom_frame (http://127.0.0.1:1420/node_modules/.vite/deps/react-dom_client.js?v=c9460041:18567:20)
+    at runWithFiberInDEV (http://127.0.0.1:1420/node_modules/.vite/deps/react-dom_client.js?v=c9460041:997:72)
+    at commitHookEffectListMount (http://127.0.0.1:1420/node_modules/.vite/deps/react-dom_client.js?v=c9460041:9411:163)
+    at commitHookPassiveMountEffects (http://127.0.0.1:1420/node_modules/.vite/deps/react-dom_client.js?v=c9460041:9465:60)
+    at reconnectPassiveEffects (http://127.0.0.1:1420/node_modules/.vite/deps/react-dom_client.js?v=c9460041:11273:13)
+    at recursivelyTraverseReconnectPassiveEffects (http://127.0.0.1:1420/node_modules/.vite/deps/react-dom_client.js?v=c9460041:11240:11) @ http://127.0.0.1:1420/src/App.tsx:203
+[  274574ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:1420/@id/react-dom/client:20102
+[  338267ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:1420/node_modules/.vite/deps/react-dom_client.js?v=c9460041:20102
+[  338296ms] [ERROR] Tarlog database boot failed TypeError: Cannot read properties of undefined (reading 'invoke')
+    at invoke (http://127.0.0.1:1420/node_modules/.vite/deps/chunk-64QN5OMB.js?v=c9460041:109:37)
+    at dbInit (http://127.0.0.1:1420/src/lib/bridge.ts:3:10)
+    at http://127.0.0.1:1420/src/App.tsx?t=1784664089753:200:15
+    at http://127.0.0.1:1420/src/App.tsx?t=1784664089753:212:7
+    at Object.react_stack_bottom_frame (http://127.0.0.1:1420/node_modules/.vite/deps/react-dom_client.js?v=c9460041:18567:20)
+    at runWithFiberInDEV (http://127.0.0.1:1420/node_modules/.vite/deps/react-dom_client.js?v=c9460041:997:72)
+    at commitHookEffectListMount (http://127.0.0.1:1420/node_modules/.vite/deps/react-dom_client.js?v=c9460041:9411:163)
+    at commitHookPassiveMountEffects (http://127.0.0.1:1420/node_modules/.vite/deps/react-dom_client.js?v=c9460041:9465:60)
+    at commitPassiveMountOnFiber (http://127.0.0.1:1420/node_modules/.vite/deps/react-dom_client.js?v=c9460041:11040:29)
+    at recursivelyTraversePassiveMountEffects (http://127.0.0.1:1420/node_modules/.vite/deps/react-dom_client.js?v=c9460041:11010:13) @ http://127.0.0.1:1420/src/App.tsx?t=1784664089753:203
+[  338297ms] [ERROR] Tarlog database boot failed TypeError: Cannot read properties of undefined (reading 'invoke')
+    at invoke (http://127.0.0.1:1420/node_modules/.vite/deps/chunk-64QN5OMB.js?v=c9460041:109:37)
+    at dbInit (http://127.0.0.1:1420/src/lib/bridge.ts:3:10)
+    at http://127.0.0.1:1420/src/App.tsx?t=1784664089753:200:15
+    at http://127.0.0.1:1420/src/App.tsx?t=1784664089753:212:7
+    at Object.react_stack_bottom_frame (http://127.0.0.1:1420/node_modules/.vite/deps/react-dom_client.js?v=c9460041:18567:20)
+    at runWithFiberInDEV (http://127.0.0.1:1420/node_modules/.vite/deps/react-dom_client.js?v=c9460041:997:72)
+    at commitHookEffectListMount (http://127.0.0.1:1420/node_modules/.vite/deps/react-dom_client.js?v=c9460041:9411:163)
+    at commitHookPassiveMountEffects (http://127.0.0.1:1420/node_modules/.vite/deps/react-dom_client.js?v=c9460041:9465:60)
+    at reconnectPassiveEffects (http://127.0.0.1:1420/node_modules/.vite/deps/react-dom_client.js?v=c9460041:11273:13)
+    at recursivelyTraverseReconnectPassiveEffects (http://127.0.0.1:1420/node_modules/.vite/deps/react-dom_client.js?v=c9460041:11240:11) @ http://127.0.0.1:1420/src/App.tsx?t=1784664089753:203
+[  338492ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:1420/@id/react-dom/client:20102

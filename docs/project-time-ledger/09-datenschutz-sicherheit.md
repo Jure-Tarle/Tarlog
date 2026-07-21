@@ -10,7 +10,7 @@ Leitprinzip: **local-first, keine Cloud-Pflicht, keine Telemetrie im Standard.**
 
 ## 1. DSGVO-Konzept (SPEC §17)
 
-Die folgende Tabelle bildet alle 25 Datenschutz-Anforderungen aus SPEC §17 auf konkrete Produktentscheidungen ab. Jede Anforderung ist verortet — als Standardverhalten, Opt-in-Funktion oder Bezug auf eine andere Doku-Datei.
+Die folgende Tabelle bildet alle 25 Datenschutz-Anforderungen aus SPEC §17 auf konkrete Produktentscheidungen ab. Jede Anforderung ist verortet, als Standardverhalten, Opt-in-Funktion oder Bezug auf eine andere Doku-Datei.
 
 | # | SPEC §17-Anforderung | Umsetzung im Produkt |
 |---|---|---|
@@ -30,7 +30,7 @@ Die folgende Tabelle bildet alle 25 Datenschutz-Anforderungen aus SPEC §17 auf 
 | 14 | Geräte widerrufen | `devices.revoked`-Flag; widerrufenes Gerät verliert Sync-Rechte sofort (siehe [Sync](04-sync.md)). |
 | 15 | API-Tokens widerrufen | `api_tokens`-Tabelle; Token sofort ungültig setzbar; nur Hash gespeichert. |
 | 16 | Audit-Log | Revisionssicheres Protokoll kritischer Änderungen (`audit_logs`, 25 Events / 15 Felder, siehe [Datenmodell](06-datenmodell.md)). |
-| 17 | keine automatische Screenshot-Überwachung im Standard | Bewusste Nicht-Funktion. Wird auch nicht als Opt-in angeboten — Abgrenzung zu TimeCamp/Timely (siehe [Recherche](01-recherche.md)). |
+| 17 | keine automatische Screenshot-Überwachung im Standard | Bewusste Nicht-Funktion. Wird auch nicht als Opt-in angeboten, Abgrenzung zu TimeCamp/Timely (siehe [Recherche](01-recherche.md)). |
 | 18 | kein invasives Mitarbeitertracking | Produkt ist Selbst-Erfassungs-Werkzeug für eine Hauptperson, kein Überwachungswerkzeug. Team-Erweiterung führt Rollen/Rechte ein, aber kein heimliches Tracking. |
 | 19 | keine GPS-Pflicht | GPS niemals erzwungen. |
 | 20 | GPS nur optional und bewusst aktivierbar | Falls je implementiert, striktes Opt-in pro Eintrag, kein Hintergrund-Standort. |
@@ -90,7 +90,7 @@ Jedes Betroffenenrecht wird auf eine konkrete Produktfunktion abgebildet. Da im 
 
 1. **Selektiv**: einzelne Kunden/Projekte/Einträge löschbar; Soft-Delete (`deleted_at`) für sync-pflichtige und auditpflichtige Entitäten, damit Löschungen synchronisiert und protokolliert werden.
 2. **Aufbewahrungssperre**: vor jedem Hard-Delete prüft der Löschlauf die Fristenmatrix (Abschnitt 2.2). Ist eine Frist offen, wird der Datensatz gesperrt und mit Löschdatum versehen, statt gelöscht.
-3. **Vollständig lokal** (§17 Nr. 24): „Alles löschen" entfernt lokale DB, Export-Dateien, Anhänge und lokale Backups — nach expliziter Bestätigung und Aufbewahrungswarnung.
+3. **Vollständig lokal** (§17 Nr. 24): „Alles löschen" entfernt lokale DB, Export-Dateien, Anhänge und lokale Backups, nach expliziter Bestätigung und Aufbewahrungswarnung.
 4. **Vollständig Server** (§17 Nr. 25): Server-Datenexport vor Löschung anbieten; danach kaskadierendes Löschen inkl. Sessions, Tokens, Geräte-Verknüpfungen.
 5. **Audit**: jede Löschung erzeugt einen `audit_logs`-Eintrag (Aktion, Grund, Zeitpunkt), sofern nicht die Löschung selbst den Audit-Datensatz erfasst (Audit-Log unterliegt eigener Aufbewahrung).
 
@@ -138,8 +138,8 @@ Recherchierter Fakt (Stand Juli 2026): Das **Tauri-Biometric-Plugin unterstützt
 
 Folgen für den App-Lock auf macOS:
 
-- **Option A — App-Passwort**: plattformunabhängiger App-Lock über ein lokales App-Passwort (Argon2id-abgeleiteter Schlüssel). Immer verfügbar, auch auf Windows.
-- **Option B — LocalAuthentication über eigenen Rust-Command**: Touch ID / Face ID auf macOS über das native **LocalAuthentication**-Framework, angebunden via eigenem Tauri-Rust-Command (kein Plugin). Fällt bei Nichtverfügbarkeit auf das App-Passwort zurück.
+- **Option A, App-Passwort**: plattformunabhängiger App-Lock über ein lokales App-Passwort (Argon2id-abgeleiteter Schlüssel). Immer verfügbar, auch auf Windows.
+- **Option B, LocalAuthentication über eigenen Rust-Command**: Touch ID / Face ID auf macOS über das native **LocalAuthentication**-Framework, angebunden via eigenem Tauri-Rust-Command (kein Plugin). Fällt bei Nichtverfügbarkeit auf das App-Passwort zurück.
 
 Auf **iOS** wird die Face-ID-/Touch-ID-Sperre regulär über das Biometric-Plugin bzw. native Module realisiert (siehe [UI/Apps](11-ui-apps.md)). Windows nutzt das App-Passwort (Windows-Hello-Anbindung optional als spätere Erweiterung).
 
@@ -152,7 +152,7 @@ Auf **iOS** wird die Face-ID-/Touch-ID-Sperre regulär über das Biometric-Plugi
 
 ### 6.3 Datensparsamkeit im lokalen Betrieb
 
-Im lokalen Desktop-Modus verlassen keine Daten das Gerät: keine Telemetrie, keine externen Calls, kein IP-Logging. Der Sync-Kanal existiert nur, wenn der Nutzer bewusst einen eigenen Server verbindet — und dann ausschließlich TLS-verschlüsselt zu einem Server, den der Nutzer selbst kontrolliert.
+Im lokalen Desktop-Modus verlassen keine Daten das Gerät: keine Telemetrie, keine externen Calls, kein IP-Logging. Der Sync-Kanal existiert nur, wenn der Nutzer bewusst einen eigenen Server verbindet, und dann ausschließlich TLS-verschlüsselt zu einem Server, den der Nutzer selbst kontrolliert.
 
 ---
 
@@ -164,4 +164,4 @@ Im lokalen Desktop-Modus verlassen keine Daten das Gerät: keine Telemetrie, kei
 - **[Abrechnung/Export](10-abrechnung-export.md)**: Rechnungs-Aufbewahrung (10 Jahre), Finalisierungs-Immutability, DSGVO-/Datenexport-Formate.
 - **[Qualität/Backup](12-qualitaet.md)**: verschlüsselte Backups, Restore, Integritätsprüfung.
 
-Datenschutz und Sicherheit sind damit keine isolierten Kapitel, sondern durchziehen Datenmodell, Sync, Compliance und Abrechnung als Querschnittsanforderung — mit datensparsamen Defaults als Ausgangspunkt (Privacy by Default, Art. 25 DSGVO).
+Datenschutz und Sicherheit sind damit keine isolierten Kapitel, sondern durchziehen Datenmodell, Sync, Compliance und Abrechnung als Querschnittsanforderung, mit datensparsamen Defaults als Ausgangspunkt (Privacy by Default, Art. 25 DSGVO).

@@ -21,7 +21,7 @@ pnpm --filter @tarlog/desktop exec vitest run    # frontend tests
 cd src-tauri && cargo check                    # Rust host
 ```
 
-## Parallel work — 4 module authors, no collisions
+## Parallel work, 4 module authors, no collisions
 
 The application contracts are stable. UI dependencies may be added deliberately
 for the shared design system; data and Rust contracts must continue to change
@@ -36,21 +36,21 @@ only in lockstep. The original implementation was split as follows:
 
 ### The two contracts (change in lockstep or not at all)
 
-1. **Frontend ↔ Rust** — `src/lib/bridge.ts` ⇔ `src-tauri/src/commands.rs`.
+1. **Frontend ↔ Rust**, `src/lib/bridge.ts` ⇔ `src-tauri/src/commands.rs`.
    18 commands: `db_init`, `db_migrate`, `timer_start`, `timer_pause`,
    `timer_resume`, `timer_stop`, `timer_get_state`, `entry_backdate`,
    `list_time_entries`, `create_customer`, `list_customers`, `create_project`,
    `list_projects`, `run_backup`, `app_lock_check`, `set_server_connection`,
    `sync_push`, `sync_pull`. JS passes **camelCase** args; Tauri maps them to the
    **snake_case** Rust params.
-2. **Data model** — `@tarlog/core` types + zod schemas (doc 06). Wire rows reuse
+2. **Data model**, `@tarlog/core` types + zod schemas (doc 06). Wire rows reuse
    `CustomerInput` / `ProjectInput` / `TimeEntryInput` / `TimerStateInput`, so
    the shape cannot drift.
 
 Read queries → `src/lib/db.ts` (`tauri-plugin-sql`). Business mutations (timer
 state machine, rounding, snapshots, sync events) → `bridge.ts` commands only.
 
-## Design direction (BINDING — doc 11 §1)
+## Design direction (BINDING, doc 11 §1)
 
 **Tarlog Flow** is an Apple-inspired, spatial workspace: bright white canvas in
 Light Mode, deep graphite in Dark Mode, system blue for focus and primary

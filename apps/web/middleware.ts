@@ -1,5 +1,5 @@
 /**
- * middleware.ts — Auth-Gate für geschützte Seiten (doc 05 §5.1, doc 09).
+ * middleware.ts, Auth-Gate für geschützte Seiten (doc 05 §5.1, doc 09).
  *
  * WICHTIG: Middleware läuft im Edge-Runtime und darf KEIN `pg`/Node-Crypto
  * importieren. Sie macht daher nur eine LEICHTE Vorprüfung:

@@ -1,5 +1,5 @@
 /**
- * POST /api/timer/resume — pausierten Timer fortsetzen (doc 04 §3). Schließt die
+ * POST /api/timer/resume, pausierten Timer fortsetzen (doc 04 §3). Schließt die
  * laufende Pause als time_entry_breaks-Block ab und erhöht
  * accumulated_pause_seconds. Compare-and-Set über server_revision.
  */

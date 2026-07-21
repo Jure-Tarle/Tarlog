@@ -29,7 +29,6 @@ const workspaceSchema = z.object({
   customer: z.object({
     name: z.string().trim().min(1).max(240),
     company: z.string().trim().max(240).nullable(),
-    defaultHourlyRateCents: nullableCents,
     defaultCurrency: z.string().regex(/^[A-Z]{3}$/),
   }).nullable(),
   project: z.object({

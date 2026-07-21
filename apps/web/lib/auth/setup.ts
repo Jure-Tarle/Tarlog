@@ -1,5 +1,5 @@
 /**
- * lib/auth/setup.ts — Erststart-/Main-Account-Zustand (doc 02 §4, doc 05 §9.3).
+ * lib/auth/setup.ts, Erststart-/Main-Account-Zustand (doc 02 §4, doc 05 §9.3).
  *
  * Genau EIN main_account darf existieren (Single-Person-Produkt). Diese Helfer
  * lesen den Zustand; die eigentliche Anlage (transaktional + Advisory-Lock)

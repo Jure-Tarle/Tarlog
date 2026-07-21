@@ -1,10 +1,10 @@
 /**
- * useStore.ts — run a `src/data` store call and expose {data, loading, error}.
+ * useStore.ts, run a `src/data` store call and expose {data, loading, error}.
  *
  * The store contract (src/data/index.ts) is a set of stubs that throw
  * "not implemented" until the data author fills them. Screens must still render
  * and stay usable, so this hook catches BOTH synchronous throws and rejected
- * promises and classifies "not implemented" separately from real errors — the
+ * promises and classifies "not implemented" separately from real errors, the
  * UI then shows a neutral placeholder instead of an alarm while the scaffold is
  * unfinished (AC28: architecture prepared, app runs offline).
  */

@@ -1,5 +1,5 @@
 /**
- * lib/auth/cookies.ts — Set-Cookie-Helfer für Session, Browser-Gerät + Setup-Gate.
+ * lib/auth/cookies.ts, Set-Cookie-Helfer für Session, Browser-Gerät + Setup-Gate.
  *
  * Session-Cookie (`ptl_session`): HttpOnly + Secure + SameSite=Lax über
  * `sessionCookieAttributes()` (lib/session). Setup-Gate-Cookie (`ptl_setup`):

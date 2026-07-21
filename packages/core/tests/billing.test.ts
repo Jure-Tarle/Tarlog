@@ -1,5 +1,5 @@
 /**
- * billing.test.ts — tests for the REAL exports of packages/core/src/billing/index.ts.
+ * billing.test.ts, tests for the REAL exports of packages/core/src/billing/index.ts.
  * Signatures verified against source:
  *   resolveRate(opts: ResolveRateOptions): RateSnapshot
  *   computeAmountCents(billing_seconds, rate: RateSnapshot): Cents
@@ -33,7 +33,7 @@ function rate(amount_cents: number, source: RateSnapshot["source"] = "default"):
 }
 
 // ---------------------------------------------------------------------------
-// resolveRate — precedence task > project > customer > default
+// resolveRate, precedence task > project > customer > default
 // ---------------------------------------------------------------------------
 describe("resolveRate precedence (task > project > customer > default)", () => {
   const task = rate(1000, "task");
@@ -77,7 +77,7 @@ describe("resolveRate precedence (task > project > customer > default)", () => {
 });
 
 // ---------------------------------------------------------------------------
-// computeAmountCents — integer correctness, no float drift
+// computeAmountCents, integer correctness, no float drift
 // ---------------------------------------------------------------------------
 describe("computeAmountCents integer correctness (no float drift)", () => {
   it("4500s x 9000c/h = 11250c", () => {
@@ -110,7 +110,7 @@ describe("computeAmountCents integer correctness (no float drift)", () => {
 });
 
 // ---------------------------------------------------------------------------
-// computeDayRate — full day from 6h; 7h -> full, 3.5h -> half, extra hours
+// computeDayRate, full day from 6h; 7h -> full, 3.5h -> half, extra hours
 // ---------------------------------------------------------------------------
 describe("computeDayRate classification (full day >= 6h)", () => {
   const rule: DayRateRule = {
@@ -170,7 +170,7 @@ describe("computeDayRate classification (full day >= 6h)", () => {
 });
 
 // ---------------------------------------------------------------------------
-// computeFixedFeeMargin — cost, margin, ratio, over_budget
+// computeFixedFeeMargin, cost, margin, ratio, over_budget
 // ---------------------------------------------------------------------------
 describe("computeFixedFeeMargin", () => {
   const f: FixedFeeInput = {
@@ -220,7 +220,7 @@ describe("computeFixedFeeMargin", () => {
 });
 
 // ---------------------------------------------------------------------------
-// computeBudgetUsage — ratios per dimension + crossed thresholds
+// computeBudgetUsage, ratios per dimension + crossed thresholds
 // ---------------------------------------------------------------------------
 describe("computeBudgetUsage thresholds", () => {
   const thresholds: BudgetInput["warn_thresholds"] = [0.8, 1.0];

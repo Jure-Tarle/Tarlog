@@ -1,5 +1,5 @@
 /**
- * lib/pdf/format.ts — reine Formatierungs-Helfer für PDF/CSV/Report-Ausgaben.
+ * lib/pdf/format.ts, reine Formatierungs-Helfer für PDF/CSV/Report-Ausgaben.
  *
  * Alle Funktionen sind pure (kein I/O, kein Date.now()), damit die
  * Dokumentdefinitionen ohne Server testbar bleiben (doc 10 §6.4). Geld kommt als
@@ -65,7 +65,7 @@ function localParts(
   }).formatToParts(at);
   const pick = (type: Intl.DateTimeFormatPartTypes): string =>
     parts.find((p) => p.type === type)?.value ?? "00";
-  // Manche Runtimes liefern "24" für Mitternacht — normalisieren.
+  // Manche Runtimes liefern "24" für Mitternacht, normalisieren.
   const hourRaw = pick("hour");
   const hour = hourRaw === "24" ? "00" : hourRaw;
   return { year: pick("year"), month: pick("month"), day: pick("day"), hour, minute: pick("minute") };
@@ -89,7 +89,7 @@ export function formatLocalDateTime(at: EpochMs, timezone: IanaTimezone): string
   return `${p.year}-${p.month}-${p.day} ${p.hour}:${p.minute}`;
 }
 
-/** DATE-Spaltenwert ("yyyy-MM-dd") lesbar darstellen — hier identisch (ISO bleibt). */
+/** DATE-Spaltenwert ("yyyy-MM-dd") lesbar darstellen, hier identisch (ISO bleibt). */
 export function formatDateString(value: string | null | undefined): string {
-  return value ?? "—";
+  return value ?? ",";
 }

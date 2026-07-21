@@ -1,5 +1,5 @@
 /**
- * aggregates.ts — derive day/week summaries and compliance from raw entries.
+ * aggregates.ts, derive day/week summaries and compliance from raw entries.
  *
  * All calculation reuses @tarlog/core pure functions (evaluateDay, evaluateRest-
  * Period, GERMAN_PROFILE) so the desktop never re-implements the engine
@@ -49,7 +49,7 @@ export function sumAmountCents(list: TimeEntry[]): number {
   return list.reduce((a, e) => a + (e.billing_amount_snapshot ?? 0), 0);
 }
 
-/** True if any part of [start,end) falls in the local night window 23:00–06:00. */
+/** True if any part of [start,end) falls in the local night window 23:00,06:00. */
 function touchesNight(startAt: number, endAt: number | null, tz: IanaTimezone): boolean {
   if (endAt == null) return false;
   // Sample each hour boundary; cheap and correct enough for a UI marker.

@@ -1,11 +1,11 @@
 /**
- * sync/types.ts — wire + local types for the OPTIONAL server-connection mode
+ * sync/types.ts, wire + local types for the OPTIONAL server-connection mode
  * (doc 04). Field names mirror `@tarlog/db` sqlite (`sync_events`,
  * `conflict_records`, `sync_states`) and doc 06 EXACTLY so the client never
  * drifts from the data model.
  *
  * Everything here is inert without a server connection: the local-first mode
- * (doc 04 §1) is unaffected — these types only describe what crosses the wire
+ * (doc 04 §1) is unaffected, these types only describe what crosses the wire
  * once a server is paired.
  */
 import type { EpochMs, Uuid } from "@tarlog/core";
@@ -126,7 +126,7 @@ export interface ChangesResponse {
 }
 
 // ---------------------------------------------------------------------------
-// Conflicts (doc 04 §6) — NEVER silently drop a value
+// Conflicts (doc 04 §6), NEVER silently drop a value
 // ---------------------------------------------------------------------------
 
 /** Server/detected conflict payload → persisted into `conflict_records`. */
@@ -183,7 +183,7 @@ export interface ConflictView {
 }
 
 // ---------------------------------------------------------------------------
-// Live channel (doc 04 §5.2) — the 14 live-update event types
+// Live channel (doc 04 §5.2), the 14 live-update event types
 // ---------------------------------------------------------------------------
 
 /** The 14 live-update events (doc 04 §5.2). */
@@ -220,7 +220,7 @@ export interface LiveEvent {
 
 /**
  * Result of a push/pull round. Compatible in spirit with bridge `SyncResult`
- * (doc 04) — `serverRevision` is the new high-water mark.
+ * (doc 04), `serverRevision` is the new high-water mark.
  */
 export interface SyncOutcome {
   ok: boolean;

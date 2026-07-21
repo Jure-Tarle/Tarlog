@@ -1,9 +1,9 @@
 /**
- * /api/rounding-rules/[id] — Detail, Ändern, Soft-Delete
+ * /api/rounding-rules/[id], Detail, Ändern, Soft-Delete
  * (doc 06 §A.4 `rounding_rules`). Jede Mutation schreibt Audit
  * `rounding_rule_changed`.
  */
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, ne } from "drizzle-orm";
 import { json, parseJson, requireAuth } from "@/lib/api";
 import { db, schema } from "@/lib/db";
 import { notFound, resolveActor } from "@/lib/crud/http";
@@ -47,6 +47,7 @@ function buildSet(input: RoundingRuleUpdate, now: number): RoundingRuleSet {
   if (input.min_duration_seconds !== undefined)
     set.min_duration_seconds = input.min_duration_seconds ?? null;
   if (input.scope !== undefined) set.scope = input.scope;
+  if (input.priority !== undefined) set.priority = input.priority;
   if (input.valid_from !== undefined) set.valid_from = input.valid_from;
   if (input.valid_until !== undefined)
     set.valid_until = input.valid_until ?? null;
@@ -68,6 +69,19 @@ export const PATCH = requireAuth<IdCtx>(async (req, ctx, auth) => {
       .where(scoped(id, auth.main_account_id))
       .limit(1);
     if (!before) throw notFound("Rundungsregel");
+
+    if (input.scope === "global") {
+      await tx
+        .update(schema.roundingRules)
+        .set({ scope: "project", priority: 100, updated_at: now })
+        .where(and(
+          eq(schema.roundingRules.main_account_id, auth.main_account_id),
+          eq(schema.roundingRules.scope, "global"),
+          ne(schema.roundingRules.id, id),
+          isNull(schema.roundingRules.deleted_at),
+        ));
+      input.priority = 0;
+    }
 
     const [row] = await tx
       .update(schema.roundingRules)

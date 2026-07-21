@@ -1,5 +1,5 @@
 /**
- * POST /api/timer/pause — laufenden Timer pausieren (doc 04 §3). Compare-and-Set
+ * POST /api/timer/pause, laufenden Timer pausieren (doc 04 §3). Compare-and-Set
  * über timer_states.server_revision (409 conflict bei Divergenz).
  */
 import { requireAuth, json, parseJson } from "@/lib/api";

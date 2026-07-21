@@ -8,16 +8,16 @@ Leitprinzip: **local-first mit optionalem Server-Sync**. Die App ist vollständi
 
 ---
 
-## 1. Plattformstrategie (SPEC §5 — alle 16 Punkte)
+## 1. Plattformstrategie (SPEC §5, alle 16 Punkte)
 
 Die empfohlene technische Zielarchitektur aus SPEC §5 wird 1:1 übernommen. Jeder Punkt mit Rolle und Begründung:
 
 | # | Punkt (SPEC §5) | Umsetzung | Begründung |
 |---|---|---|---|
-| 1 | Web App mit Next.js und TypeScript | `apps/web` — Next.js 15, App Router, TypeScript strict | SSR/Route Handlers, gute Self-Host-Story (`output: 'standalone'`), gemeinsames TS-Ökosystem |
-| 2 | Desktop App mit Tauri für macOS und Windows | `apps/desktop` — Tauri 2.x, Rust-Kern + Web-Frontend | kleine Binaries, native Menüleiste/Tray, SQL-Plugin, geringer RAM-Footprint statt Electron |
-| 3 | Mobile App mit Expo und React Native für iOS | `apps/mobile` — Expo SDK, React Native | schnelle iOS-Iteration, `expo-sqlite` für local-first, Config-Plugins für Widget/Live-Activity |
-| 4 | gemeinsames TypeScript Core Package für Business Logik | `packages/core` | eine Quelle für Zeitberechnung, Rundung, Compliance, Abrechnung — identisches Verhalten auf allen Plattformen |
+| 1 | Web App mit Next.js und TypeScript | `apps/web`, Next.js 15, App Router, TypeScript strict | SSR/Route Handlers, gute Self-Host-Story (`output: 'standalone'`), gemeinsames TS-Ökosystem |
+| 2 | Desktop App mit Tauri für macOS und Windows | `apps/desktop`, Tauri 2.x, Rust-Kern + Web-Frontend | kleine Binaries, native Menüleiste/Tray, SQL-Plugin, geringer RAM-Footprint statt Electron |
+| 3 | Mobile App mit Expo und React Native für iOS | `apps/mobile`, Expo SDK, React Native | schnelle iOS-Iteration, `expo-sqlite` für local-first, Config-Plugins für Widget/Live-Activity |
+| 4 | gemeinsames TypeScript Core Package für Business Logik | `packages/core` | eine Quelle für Zeitberechnung, Rundung, Compliance, Abrechnung, identisches Verhalten auf allen Plattformen |
 | 5 | lokale Desktop Datenbank mit SQLite | SQLite über `tauri-plugin-sql` | serverlos, dateibasiert, offline, `PRAGMA integrity_check`, optional SQLCipher |
 | 6 | Server Datenbank mit PostgreSQL | PostgreSQL 16 im Server-Modus | robuste Nebenläufigkeit, partielle Indizes, `TIMESTAMPTZ`, JSONB für `rules_json`/Audit |
 | 7 | typisierte API | tRPC intern + REST/OpenAPI extern, End-to-End-Typen aus Zod | Typsicherheit vom Client bis zur DB, keine Drift zwischen Schema und Handler |
@@ -33,7 +33,7 @@ Die empfohlene technische Zielarchitektur aus SPEC §5 wird 1:1 übernommen. Jed
 
 ---
 
-## 2. Konkrete technische Empfehlung (SPEC §37 — alle 16 Punkte)
+## 2. Konkrete technische Empfehlung (SPEC §37, alle 16 Punkte)
 
 SPEC §37 verlangt eine klare Empfehlung. Die folgende Tabelle deckt alle 16 Punkte mit Empfehlung und Begründung ab. Die Entscheidungen aus dem Plan (§1) werden dokumentiert, nicht neu verhandelt.
 
@@ -54,7 +54,7 @@ SPEC §37 verlangt eine klare Empfehlung. Die folgende Tabelle deckt alle 16 Pun
 | 13 | PDF Generierung mit serverseitiger Rendering Pipeline | **Playwright/Chromium** serverseitig (optional) + `pdfmake` Kern | pixelgenaue HTML-Templates/Charts serverseitig; portabler Kern für Desktop |
 | 14 | lokale PDF Generierung für reinen Desktop Modus optional | **`pdfmake`** lokal in Tauri | ohne Chromium lauffähig, JSON-deklarativ, ideal für strukturierte Nachweise/Rechnungen |
 | 15 | Event Log für Sync | **`sync_events`** append-only Event-Log | Feld-Level-LWW mit Hybrid Logical Clock (HLC), Server als kanonische Wahrheit |
-| 16 | Audit Log für Nachvollziehbarkeit | **`audit_logs`** (before/after JSON) | revisionsfähige Protokollierung kritischer Änderungen — siehe [Datenmodell](06-datenmodell.md) |
+| 16 | Audit Log für Nachvollziehbarkeit | **`audit_logs`** (before/after JSON) | revisionsfähige Protokollierung kritischer Änderungen, siehe [Datenmodell](06-datenmodell.md) |
 
 ### 2.1 ORM-Entscheidung: Drizzle vs. Prisma (ausführlich begründet)
 
@@ -124,15 +124,15 @@ Das gemeinsame Core-Package enthält die gesamte determinismus-kritische Busines
 | `rounding/` | Rundungsmodi, Intervalle (5/6/10/15/30/60 Minuten), `rounding_delta_seconds`, `rounding_reason` | §14 |
 | `compliance/` | DE-Profil (ArbZG §3/§4/§5), EU-Profil (2003/88/EG), versionierte Länderprofile, `calculation_version` | §15, §16 |
 | `billing/` | Stundensatz (Auflösung Aufgabe > Projekt > Kunde > Default), Tagessatz, Festpreis-Profitabilität, Retainer, `rate_snapshot`, `billing_amount_snapshot` | §12/13 |
-| `schemas/` | Zod-Schemas als **single source of truth** — leiten TS-Typen ab und speisen die OpenAPI-Generierung | §5 Nr. 8 |
+| `schemas/` | Zod-Schemas als **single source of truth**, leiten TS-Typen ab und speisen die OpenAPI-Generierung | §5 Nr. 8 |
 
-Kernprinzip (siehe [Zeitberechnung & Rundung](07-zeitberechnung-rundung.md)): **`actual_duration_seconds` und `billing_duration_seconds` bleiben strikt getrennt** — die Rundung überschreibt nie die tatsächliche Arbeitszeit. Jede Berechnung trägt eine `calculation_version`, damit finalisierte Rechnungen stabil bleiben.
+Kernprinzip (siehe [Zeitberechnung & Rundung](07-zeitberechnung-rundung.md)): **`actual_duration_seconds` und `billing_duration_seconds` bleiben strikt getrennt**, die Rundung überschreibt nie die tatsächliche Arbeitszeit. Jede Berechnung trägt eine `calculation_version`, damit finalisierte Rechnungen stabil bleiben.
 
 ---
 
-## 5. API-Konzept (SPEC §32 — alle 18 Funktionsbereiche)
+## 5. API-Konzept (SPEC §32, alle 18 Funktionsbereiche)
 
-Die API existiert nur im Server-Modus. Drei Zugänge über **denselben Service-Layer**: **tRPC** für interne TypeScript-Clients (Web/Desktop/Mobile), **REST** für externe Integrationen, **OpenAPI 3.1** als Vertrag (aus Zod generiert). Kein Handler dupliziert Logik — alle rufen `packages/core` + `packages/db` auf.
+Die API existiert nur im Server-Modus. Drei Zugänge über **denselben Service-Layer**: **tRPC** für interne TypeScript-Clients (Web/Desktop/Mobile), **REST** für externe Integrationen, **OpenAPI 3.1** als Vertrag (aus Zod generiert). Kein Handler dupliziert Logik, alle rufen `packages/core` + `packages/db` auf.
 
 Alle 18 API-Funktionsbereiche aus SPEC §32 mit REST-Skizze:
 
@@ -146,13 +146,13 @@ Alle 18 API-Funktionsbereiche aus SPEC §32 mit REST-Skizze:
 | 6 | Zeiteintrag nachtragen | `POST /v1/time-entries` (`source: manual`) | `manual_entry.created` |
 | 7 | Zeiteintrag ändern | `PATCH /v1/time-entries/{id}` | `time_entry.updated` |
 | 8 | Zeiteintrag löschen | `DELETE /v1/time-entries/{id}` (soft delete) | `time_entry.deleted` |
-| 9 | Kunden verwalten | `GET/POST/PATCH/DELETE /v1/customers` | — |
-| 10 | Projekte verwalten | `GET/POST/PATCH/DELETE /v1/projects` | — |
-| 11 | Aufgaben verwalten | `GET/POST/PATCH/DELETE /v1/tasks` | — |
-| 12 | Reports abrufen | `GET /v1/reports/{type}` (Filter als Query) | — |
+| 9 | Kunden verwalten | `GET/POST/PATCH/DELETE /v1/customers` |, |
+| 10 | Projekte verwalten | `GET/POST/PATCH/DELETE /v1/projects` |, |
+| 11 | Aufgaben verwalten | `GET/POST/PATCH/DELETE /v1/tasks` |, |
+| 12 | Reports abrufen | `GET /v1/reports/{type}` (Filter als Query) |, |
 | 13 | Rechnungen erstellen | `POST /v1/invoices` | `invoice.created` |
 | 14 | Exporte erstellen | `POST /v1/exports` (async Job) | `export.created` |
-| 15 | Sync Events senden | `POST /v1/sync/events` | — |
+| 15 | Sync Events senden | `POST /v1/sync/events` |, |
 | 16 | Sync Events empfangen | `GET /v1/sync/events?since={hlc}` | `sync.completed` |
 | 17 | Geräte verbinden | `POST /v1/devices` | `device.connected` |
 | 18 | Geräte widerrufen | `DELETE /v1/devices/{id}` | `device.revoked` |
@@ -169,11 +169,11 @@ Alle 18 API-Funktionsbereiche aus SPEC §32 mit REST-Skizze:
 - **Session-basiert** (sichere, HttpOnly-Cookies) für die Browser-App am Server.
 - **Device-Token / Bearer-Token** für Desktop- und iOS-Apps sowie externe Integrationen: `Authorization: Bearer <token>`. Tokens sind an eine `device_id` gebunden, in `api_tokens` gespeichert und **widerrufbar** (Gerät widerrufen, Session widerrufen, Token widerrufen).
 - **Rechteprüfung serverseitig** bei jedem Request; Main-Account-Scoping erzwingt, dass ein Token nur auf Daten des eigenen `main_account` zugreift.
-- Optional 2FA (TOTP) und Passkeys im Server-Modus — Details siehe [Datenschutz & Sicherheit](09-datenschutz-sicherheit.md).
+- Optional 2FA (TOTP) und Passkeys im Server-Modus, Details siehe [Datenschutz & Sicherheit](09-datenschutz-sicherheit.md).
 
 ---
 
-## 6. Webhooks (SPEC §33 — alle 12 Events, HMAC-Signatur)
+## 6. Webhooks (SPEC §33, alle 12 Events, HMAC-Signatur)
 
 Webhooks sind optional und dienen externen Integrationen (Buchhaltung, Automatisierung). Konfiguration pro Endpoint-URL mit einem geteilten `secret`. Zustellung erfolgt asynchron über den Hintergrundjob-Runner mit Retry und Exponential Backoff.
 
@@ -217,7 +217,7 @@ Ziel (SPEC §6): startet der Nutzer den Timer im Browser auf dem Handy, zeigt di
 
 Kaskade (Entscheidung: WebSocket primär):
 
-1. **WebSocket (primär).** Bidirektional, latenzarm. In Next.js benötigt WS einen **Custom-Node-Server** (`server.js`), da Route Handlers serverless arbeiten und keinen WS-Server halten — deshalb `output: 'standalone'` mit eigenem `server.js`, alternativ `next-ws`.
+1. **WebSocket (primär).** Bidirektional, latenzarm. In Next.js benötigt WS einen **Custom-Node-Server** (`server.js`), da Route Handlers serverless arbeiten und keinen WS-Server halten, deshalb `output: 'standalone'` mit eigenem `server.js`, alternativ `next-ws`.
 2. **Server-Sent Events (Alternative).** Für Umgebungen ohne WS: SSE nativ via Route Handler + `ReadableStream`. Unidirektional (Server → Client); Client-Aktionen laufen dann über normale POST-Requests.
 3. **Polling (Fallback).** Für einfache Serverumgebungen hinter restriktiven Reverse-Proxies: `GET /v1/sync/events?since=<hlc>` in Intervallen. Funktioniert überall, höhere Latenz.
 
@@ -225,7 +225,7 @@ Alle drei Wege liefern denselben Event-Strom; der Client wählt automatisch die 
 
 ---
 
-## 8. Konventionen (Entscheidungen 6–8)
+## 8. Konventionen (Entscheidungen 6,8)
 
 Diese Konventionen gelten projektweit und werden im [Datenmodell](06-datenmodell.md) durchgesetzt.
 
@@ -240,7 +240,7 @@ Die IANA-Zone pro Eintrag ist notwendig, damit Sommerzeit/Winterzeit-Übergänge
 
 ---
 
-## 9. Server-Betrieb (SPEC §4.2 — selbst gehosteter Server-Modus)
+## 9. Server-Betrieb (SPEC §4.2, selbst gehosteter Server-Modus)
 
 Der Server-Modus ist optional, aber professionell vorbereitet. Kein externer Anbieter ist erforderlich.
 

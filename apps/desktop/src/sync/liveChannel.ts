@@ -1,5 +1,5 @@
 /**
- * sync/liveChannel.ts — the live update channel (doc 04 §5). WebSocket primary,
+ * sync/liveChannel.ts, the live update channel (doc 04 §5). WebSocket primary,
  * long-poll fallback. Emits {@link LiveEvent}s so the caller can mirror the live
  * timer state (and the other 14 event types) across devices in real time.
  *
@@ -16,7 +16,7 @@ import { ServerUnreachableError } from "../lib/serverClient";
 import type { LiveChannelStatus, LiveEvent } from "./types";
 
 export interface LiveChannelHandlers {
-  /** A live event arrived — mirror it locally (timer state, entry, …). */
+  /** A live event arrived, mirror it locally (timer state, entry, …). */
   onEvent(event: LiveEvent): void;
   /** Active channel changed (websocket → polling → none) for the UI badge. */
   onStatus?(status: LiveChannelStatus): void;

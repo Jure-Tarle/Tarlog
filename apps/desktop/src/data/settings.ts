@@ -1,5 +1,5 @@
 /**
- * settings.ts — account-scoped key/value settings (doc 06 `settings`). Values are
+ * settings.ts, account-scoped key/value settings (doc 06 `settings`). Values are
  * JSON (`value_json`). Direct SQL (local bookkeeping) via {@link ../lib/db}; the
  * unique index `ux_settings_key(main_account_id, scope, device_id, key)` makes
  * writes an upsert on `key` within `scope = "account"` (device_id NULL).
@@ -65,6 +65,44 @@ export async function setSetting(key: string, value: unknown): Promise<void> {
        (id, main_account_id, scope, device_id, key, value_json, created_at, updated_at)
      VALUES ($1,$2,'account',NULL,$3,$4,$5,$6)`,
     [uuidv7(), ctx.mainAccountId, key, json, ts, ts],
+  );
+}
+
+/** Read a setting that belongs only to this physical device. */
+export async function getDeviceSetting<T = unknown>(key: string): Promise<T | null> {
+  const ctx = await getContext();
+  const rows = await select<SettingRow>(
+    `SELECT id, key, value_json FROM settings
+      WHERE main_account_id = $1 AND scope = 'device' AND device_id = $2 AND key = $3
+      LIMIT 1`,
+    [ctx.mainAccountId, ctx.deviceId, key],
+  );
+  return rows[0] ? decode<T>(rows[0].value_json) : null;
+}
+
+/** Upsert a setting for this device (shortcuts must not sync across keyboards). */
+export async function setDeviceSetting(key: string, value: unknown): Promise<void> {
+  const ctx = await getContext();
+  const json = JSON.stringify(value ?? null);
+  const ts = now();
+  const existing = await select<{ id: string }>(
+    `SELECT id FROM settings
+      WHERE main_account_id = $1 AND scope = 'device' AND device_id = $2 AND key = $3
+      LIMIT 1`,
+    [ctx.mainAccountId, ctx.deviceId, key],
+  );
+  if (existing[0]) {
+    await execute(
+      `UPDATE settings SET value_json = $1, updated_at = $2 WHERE id = $3`,
+      [json, ts, existing[0].id],
+    );
+    return;
+  }
+  await execute(
+    `INSERT INTO settings
+       (id, main_account_id, scope, device_id, key, value_json, created_at, updated_at)
+     VALUES ($1,$2,'device',$3,$4,$5,$6,$7)`,
+    [uuidv7(), ctx.mainAccountId, ctx.deviceId, key, json, ts, ts],
   );
 }
 

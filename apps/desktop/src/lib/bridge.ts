@@ -1,5 +1,5 @@
 /**
- * bridge.ts — THE FRONTEND↔RUST CONTRACT.
+ * bridge.ts, THE FRONTEND↔RUST CONTRACT.
  *
  * Typed wrappers around Tauri `invoke()` for every backend command. This file
  * and the matching Rust `#[tauri::command]` stubs in `src-tauri/src/commands.rs`
@@ -28,7 +28,7 @@ import type {
 
 // ---------------------------------------------------------------------------
 // Wire types (rows returned by the backend). They mirror the @tarlog/core input
-// types field-for-field — same names, same units — so there is one data model.
+// types field-for-field, same names, same units, so there is one data model.
 // ---------------------------------------------------------------------------
 
 /** A persisted timer singleton (doc 06 A.1 `timer_states`). */
@@ -61,6 +61,12 @@ export interface BackdateEntryInput {
   /** `backdateReasonEnum` key (doc 03 §7.2). */
   reason: string;
   breaks?: BreakSpan[];
+  is_billable?: boolean | null;
+}
+
+/** Editable fields for an existing manual backdate. */
+export interface BackdateEntryUpdateInput extends BackdateEntryInput {
+  id: Uuid;
 }
 
 /** Filter for {@link listTimeEntries}. All fields optional. */
@@ -106,6 +112,10 @@ export interface BackupResult {
   sizeBytes: number;
   createdAt: EpochMs;
   encrypted: boolean;
+  formatVersion?: number;
+  attachmentPath?: string;
+  attachmentFiles?: number;
+  manifestPath?: string;
 }
 
 /** App-lock method (doc 09 §6.1). */
@@ -141,6 +151,13 @@ export interface SyncResult {
   serverRevision: number;
   /** Conflicts detected in this round (doc 04 §6). */
   conflicts: number;
+}
+
+export interface NativeTrackingShortcutBinding {
+  id: string;
+  projectId: Uuid;
+  action: "toggle" | "start" | "stop";
+  accelerator: string;
 }
 
 /** Semantic, whitelisted SF Symbols exposed by the macOS native shell. */
@@ -182,21 +199,21 @@ export interface NativeTimerCommandState {
 }
 
 // ---------------------------------------------------------------------------
-// Command wrappers — one per registered Rust command. Function names are
+// Command wrappers, one per registered Rust command. Function names are
 // camelCase; the invoked command string is the snake_case contract name.
 // ---------------------------------------------------------------------------
 
-/** `db_init` — open/create the local SQLite DB at the app-data path. */
+/** `db_init`, open/create the local SQLite DB at the app-data path. */
 export function dbInit(): Promise<DbInitResult> {
   return invoke<DbInitResult>("db_init");
 }
 
-/** `db_migrate` — apply pending Drizzle migrations to the local DB. */
+/** `db_migrate`, apply pending Drizzle migrations to the local DB. */
 export function dbMigrate(): Promise<DbMigrateResult> {
   return invoke<DbMigrateResult>("db_migrate");
 }
 
-/** `timer_start` — start the singleton timer (doc 03, doc 06 `timer_states`). */
+/** `timer_start`, start the singleton timer (doc 03, doc 06 `timer_states`). */
 export function timerStart(args: {
   projectId?: Uuid | null;
   taskId?: Uuid | null;
@@ -207,17 +224,17 @@ export function timerStart(args: {
   return invoke<TimerState>("timer_start", args);
 }
 
-/** `timer_pause` — pause the running timer. */
+/** `timer_pause`, pause the running timer. */
 export function timerPause(args: { at?: EpochMs | null } = {}): Promise<TimerState> {
   return invoke<TimerState>("timer_pause", args);
 }
 
-/** `timer_resume` — resume a paused timer. */
+/** `timer_resume`, resume a paused timer. */
 export function timerResume(args: { at?: EpochMs | null } = {}): Promise<TimerState> {
   return invoke<TimerState>("timer_resume", args);
 }
 
-/** `timer_stop` — stop the timer and finalize the entry (Stop-Dialog, doc 03). */
+/** `timer_stop`, stop the timer and finalize the entry (Stop-Dialog, doc 03). */
 export function timerStop(args: {
   description?: string | null;
   at?: EpochMs | null;
@@ -225,17 +242,22 @@ export function timerStop(args: {
   return invoke<TimerStopResult>("timer_stop", args);
 }
 
-/** `timer_get_state` — read the current timer singleton (crash-safe recovery). */
+/** `timer_get_state`, read the current timer singleton (crash-safe recovery). */
 export function timerGetState(): Promise<TimerState> {
   return invoke<TimerState>("timer_get_state");
 }
 
-/** `entry_backdate` — create a manually backdated entry (doc 03 §7). */
+/** `entry_backdate`, create a manually backdated entry (doc 03 §7). */
 export function entryBackdate(input: BackdateEntryInput): Promise<TimeEntryRow> {
   return invoke<TimeEntryRow>("entry_backdate", { input });
 }
 
-/** `list_time_entries` — query entries by range/project/customer. */
+/** Update an existing manual backdate and replace its break spans atomically. */
+export function entryBackdateUpdate(input: BackdateEntryUpdateInput): Promise<TimeEntryRow> {
+  return invoke<TimeEntryRow>("entry_backdate_update", { input });
+}
+
+/** `list_time_entries`, query entries by range/project/customer. */
 export function listTimeEntries(
   filter: TimeEntryFilter = {},
 ): Promise<TimeEntryRow[]> {
@@ -244,45 +266,45 @@ export function listTimeEntries(
   return invoke<TimeEntryRow[]>("list_time_entries", { ...filter });
 }
 
-/** `create_customer` — insert a customer (doc 06 A.2). */
+/** `create_customer`, insert a customer (doc 06 A.2). */
 export function createCustomer(input: CustomerInput): Promise<CustomerRow> {
   return invoke<CustomerRow>("create_customer", { input });
 }
 
-/** `list_customers` — list customers, optionally filtered by status. */
+/** `list_customers`, list customers, optionally filtered by status. */
 export function listCustomers(
   args: { status?: string | null } = {},
 ): Promise<CustomerRow[]> {
   return invoke<CustomerRow[]>("list_customers", args);
 }
 
-/** `create_project` — insert a project (doc 06 A.2). */
+/** `create_project`, insert a project (doc 06 A.2). */
 export function createProject(input: ProjectInput): Promise<ProjectRow> {
   return invoke<ProjectRow>("create_project", { input });
 }
 
-/** `list_projects` — list projects, optionally filtered by customer/status. */
+/** `list_projects`, list projects, optionally filtered by customer/status. */
 export function listProjects(
   args: { customerId?: Uuid | null; status?: string | null } = {},
 ): Promise<ProjectRow[]> {
   return invoke<ProjectRow[]>("list_projects", args);
 }
 
-/** `run_backup` — create a local SQLite backup (doc 11 §5 nr. 14). */
+/** `run_backup`, create a local SQLite backup (doc 11 §5 nr. 14). */
 export function runBackup(
   args: { manual?: boolean; encrypt?: boolean } = {},
 ): Promise<BackupResult> {
   return invoke<BackupResult>("run_backup", args);
 }
 
-/** `app_lock_check` — verify the app lock (password or macOS Touch ID, doc 09 §6.1). */
+/** `app_lock_check`, verify the app lock (password or macOS Touch ID, doc 09 §6.1). */
 export function appLockCheck(
   args: { method?: AppLockMethod | null; password?: string | null } = {},
 ): Promise<AppLockResult> {
   return invoke<AppLockResult>("app_lock_check", args);
 }
 
-/** `set_server_connection` — switch local vs. server mode (doc 02 §3.1). */
+/** `set_server_connection`, switch local vs. server mode (doc 02 §3.1). */
 export function setServerConnection(args: {
   mode: ConnectionMode;
   baseUrl?: string | null;
@@ -291,14 +313,14 @@ export function setServerConnection(args: {
   return invoke<ServerConnectionResult>("set_server_connection", args);
 }
 
-/** `sync_push` — push local outbox events to the server (doc 04). */
+/** `sync_push`, push local outbox events to the server (doc 04). */
 export function syncPush(
   args: { sinceRevision?: number | null } = {},
 ): Promise<SyncResult> {
   return invoke<SyncResult>("sync_push", args);
 }
 
-/** `sync_pull` — pull the server delta since the last revision (doc 04). */
+/** `sync_pull`, pull the server delta since the last revision (doc 04). */
 export function syncPull(
   args: { sinceRevision?: number | null } = {},
 ): Promise<SyncResult> {
@@ -320,7 +342,68 @@ export function nativeTimerCommandsUpdate(
   return invoke<void>("native_timer_commands_update", { ...state });
 }
 
-/** Every command wrapper, grouped — convenient for tests/mocks. */
+/** Update the native menu-bar label and status menu item. */
+export function nativeTimerStatusUpdate(state: {
+  projectName?: string | null;
+  status?: string | null;
+  elapsedSeconds: number;
+}): Promise<void> {
+  return invoke<void>("native_timer_status_update", { ...state });
+}
+
+/** Atomically replace all system-wide project shortcuts for this device. */
+export function trackingShortcutsReplace(
+  bindings: NativeTrackingShortcutBinding[],
+): Promise<void> {
+  return invoke<void>("tracking_shortcuts_replace", { bindings });
+}
+
+/** Bring Tarlog forward for a shortcut-triggered stop confirmation. */
+export function revealMainWindow(): Promise<void> {
+  return invoke<void>("reveal_main_window");
+}
+
+/** Save a generated PDF to the platform Downloads folder. */
+export function saveExportFile(filename: string, bytes: Uint8Array): Promise<string> {
+  return invoke<string>("save_export_file", { filename, bytes: Array.from(bytes) });
+}
+
+export interface ProjectDocumentImportResult {
+  id: string;
+  filename: string;
+  sizeBytes: number;
+  checksumSha256: string;
+}
+
+/** Import a user-selected document into Tarlog's private app-data directory. */
+export function projectDocumentImport(input: {
+  entityType: "project" | "task";
+  entityId: string;
+  category: "lastenheft" | "pflichtenheft" | "angebot" | "entwurf" | "sonstiges";
+  filename: string;
+  mimeType: string;
+  bytes: Uint8Array;
+}): Promise<ProjectDocumentImportResult> {
+  return invoke<ProjectDocumentImportResult>("project_document_import", {
+    ...input,
+    bytes: Array.from(input.bytes),
+  });
+}
+
+export function projectDocumentOpen(id: string): Promise<void> {
+  return invoke<void>("project_document_open", { id });
+}
+
+export interface ProjectDocumentDeleteResult {
+  deleted: boolean;
+  warning: string | null;
+}
+
+export function projectDocumentDelete(id: string): Promise<ProjectDocumentDeleteResult> {
+  return invoke<ProjectDocumentDeleteResult>("project_document_delete", { id });
+}
+
+/** Every command wrapper, grouped, convenient for tests/mocks. */
 export const bridge = {
   dbInit,
   dbMigrate,
@@ -330,6 +413,7 @@ export const bridge = {
   timerStop,
   timerGetState,
   entryBackdate,
+  entryBackdateUpdate,
   listTimeEntries,
   createCustomer,
   listCustomers,
@@ -342,4 +426,8 @@ export const bridge = {
   syncPull,
   nativeSystemSymbols,
   nativeTimerCommandsUpdate,
+  nativeTimerStatusUpdate,
+  trackingShortcutsReplace,
+  revealMainWindow,
+  saveExportFile,
 } as const;

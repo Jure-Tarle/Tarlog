@@ -1,5 +1,5 @@
 /**
- * PostgreSQL dialect schema (server DB) — Drizzle ORM.
+ * PostgreSQL dialect schema (server DB), Drizzle ORM.
  *
  * Setzt dasselbe Datenmodell wie schema/sqlite.ts um (docs/project-time-ledger/
  * 06-datenmodell.md): alle 40 Tabellen (31 SPEC-V1 + abgeleitete `timer_states`
@@ -8,7 +8,7 @@
  * Postgres-Typenwahl (doc 06 §0):
  *  - `id`/FKs: UUIDv7/UUIDv4 als TEXT (uuidv7 wird app-seitig erzeugt).
  *  - Enums: TEXT mit `{ enum: [...] }`.
- *  - `*_at` Zeitpunkte: BIGINT epoch-ms (UTC) — Konsistenz mit SQLite/core `EpochMs`.
+ *  - `*_at` Zeitpunkte: BIGINT epoch-ms (UTC), Konsistenz mit SQLite/core `EpochMs`.
  *  - `*_seconds` Dauern: INTEGER.
  *  - Geld `*_cents`: BIGINT.
  *  - Prozente/Stunden NUMERIC(p,s): NUMERIC.
@@ -271,7 +271,7 @@ export const timerStates = pgTable(
 );
 
 // ===========================================================================
-// A.2 Stammdaten — Kunden, Projekte, Aufgaben, Tags
+// A.2 Stammdaten, Kunden, Projekte, Aufgaben, Tags
 // ===========================================================================
 
 export const customers = pgTable(
@@ -282,10 +282,17 @@ export const customers = pgTable(
       .notNull()
       .references(() => mainAccounts.id),
     name: text("name").notNull(),
+    first_name: text("first_name"),
+    last_name: text("last_name"),
     company: text("company"),
     contact_person: text("contact_person"),
     email: text("email"),
     phone: text("phone"),
+    street: text("street"),
+    house_number: text("house_number"),
+    postal_code: text("postal_code"),
+    city: text("city"),
+    country: text("country"),
     billing_address: text("billing_address"),
     shipping_address: text("shipping_address"),
     vat_id: text("vat_id"),
@@ -430,7 +437,7 @@ export const tags = pgTable(
 );
 
 // ===========================================================================
-// A.3 Zeiterfassung — Kernentität
+// A.3 Zeiterfassung, Kernentität
 // ===========================================================================
 
 export const timeEntries = pgTable(
@@ -566,6 +573,7 @@ export const roundingRules = pgTable("rounding_rules", {
   scope: text("scope", {
     enum: ["global", "customer", "project", "task"],
   }).default("global"),
+  priority: integer("priority").notNull().default(0),
   valid_from: date("valid_from").notNull(),
   valid_until: date("valid_until"),
   calculation_version: integer("calculation_version").notNull(),
@@ -1091,7 +1099,7 @@ export const conflictRecords = pgTable(
 );
 
 // ===========================================================================
-// TEIL B — 8 vorbereitete Team-Tabellen (Phase 6, angelegt aber inaktiv)
+// TEIL B, 8 vorbereitete Team-Tabellen (Phase 6, angelegt aber inaktiv)
 // ===========================================================================
 
 export const organizations = pgTable(

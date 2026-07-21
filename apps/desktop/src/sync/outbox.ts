@@ -1,5 +1,5 @@
 /**
- * sync/outbox.ts — the local event outbox, backed by the `sync_events` table
+ * sync/outbox.ts, the local event outbox, backed by the `sync_events` table
  * (doc 04 §1.2 outbox pattern). This module reads the rows already produced by
  * integrated local mutation paths and marks them accepted once the server
  * confirms. Complete mutation-to-outbox wiring remains preview work.
@@ -83,7 +83,7 @@ export async function loadPendingEvents(
   return rows.map(toRecord);
 }
 
-/** Count of unpushed events — drives the per-device pending badge (doc 04 §2). */
+/** Count of unpushed events, drives the per-device pending badge (doc 04 §2). */
 export async function countPendingEvents(
   mainAccountId: string,
 ): Promise<number> {
@@ -110,7 +110,7 @@ export function toWireEvent(e: SyncEventRecord): WireEvent {
 
 /**
  * Mark events accepted by the server: stamp `server_revision` and `applied=1`.
- * Idempotent — re-marking already-pushed events is harmless (doc 04 §1.4).
+ * Idempotent, re-marking already-pushed events is harmless (doc 04 §1.4).
  */
 export async function markEventsPushed(
   eventIds: string[],

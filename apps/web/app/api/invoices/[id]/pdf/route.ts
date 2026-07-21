@@ -1,5 +1,5 @@
 /**
- * app/api/invoices/[id]/pdf — PDF-Rechnung (doc 10 §5.1 Fn 23, §5.3 §14-UStG).
+ * app/api/invoices/[id]/pdf, PDF-Rechnung (doc 10 §5.1 Fn 23, §5.3 §14-UStG).
  *
  * Rendert die finalisierte (oder als Entwurf markierte) Rechnung über die
  * reine pdfmake-Dokumentdefinition (lib/pdf/invoice). Aussteller-/Kundenangaben
@@ -82,13 +82,13 @@ export const GET = requireAuth<RouteCtx>(async (_req, ctx, auth) => {
 
   const servicePeriod =
     inv.service_period_start && inv.service_period_end
-      ? `${String(inv.service_period_start)} – ${String(inv.service_period_end)}`
+      ? `${String(inv.service_period_start)}, ${String(inv.service_period_end)}`
       : null;
 
   const docDefinition = buildInvoiceDocDefinition({
     issuer: { name: issuerName, address: issuer.address, taxLine: issuerTaxLine, email: issuer.email },
     customer: {
-      name: (cust.company as string) ?? (cust.name as string) ?? "—",
+      name: (cust.company as string) ?? (cust.name as string) ?? ",",
       address: (cust.billing_address as string) ?? null,
       vatId: (cust.vat_id as string) ?? null,
       number: (cust.customer_number as string) ?? null,

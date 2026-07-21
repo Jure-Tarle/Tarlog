@@ -1,5 +1,5 @@
 /**
- * Timer area (doc 11 §7 nr. 1–10): the live capture surface.
+ * Timer area (doc 11 §7 nr. 1,10): the live capture surface.
  *
  * A large tabular running clock sits at the top (single accent, quiet 1 Hz
  * pulse while running). Below it: project + task selection, a description field
@@ -10,7 +10,7 @@
  * crashing (offline-safe scaffold).
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Animated, StyleSheet, View } from "react-native";
+import { AccessibilityInfo, Animated, StyleSheet, View } from "react-native";
 import {
   Body,
   Button,
@@ -45,6 +45,7 @@ export default function TimerScreen() {
   const [projectId, setProjectId] = useState<string | null>(null);
   const [description, setDescription] = useState("");
   const [note, setNote] = useState<string | null>(null);
+  const [reduceMotion, setReduceMotion] = useState(false);
 
   const tasks = useStore(() => taskStore.list(projectId ?? undefined), [projectId]);
 
@@ -63,10 +64,16 @@ export default function TimerScreen() {
 
   const seconds = useMemo(() => elapsedSeconds(state, tick), [state, tick]);
 
+  useEffect(() => {
+    void AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion);
+    const subscription = AccessibilityInfo.addEventListener("reduceMotionChanged", setReduceMotion);
+    return () => subscription.remove();
+  }, []);
+
   // Quiet accent pulse while running (doc 11 §1 motion).
   const pulse = useRef(new Animated.Value(1)).current;
   useEffect(() => {
-    if (!running) {
+    if (!running || reduceMotion) {
       pulse.setValue(1);
       return;
     }
@@ -78,7 +85,7 @@ export default function TimerScreen() {
     );
     loop.start();
     return () => loop.stop();
-  }, [running, pulse]);
+  }, [reduceMotion, running, pulse]);
 
   async function act(fn: () => Promise<unknown>, okMsg: string) {
     const res = await runStore(fn);
@@ -128,6 +135,7 @@ export default function TimerScreen() {
           <View style={styles.heroHead}>
             <View style={styles.statusRow}>
               <Animated.View
+                accessible={false}
                 style={[
                   styles.pulseDot,
                   { backgroundColor: running ? colors.accent : colors.textFaint, opacity: pulse },

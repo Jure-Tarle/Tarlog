@@ -4,6 +4,7 @@
 //! actions. Other desktop platforms keep Tauri's platform-appropriate default
 //! menu so this integration does not introduce macOS-only runtime failures.
 
+use crate::l10n::{tr, Lang};
 use crate::native_timer::TimerCommandItems;
 #[cfg(target_os = "macos")]
 use crate::tray::{
@@ -23,18 +24,21 @@ const APPEARANCE_LIGHT_EVENT: &str = "menu://appearance/light";
 const APPEARANCE_DARK_EVENT: &str = "menu://appearance/dark";
 
 /// Install the application-wide native menu.
-pub fn install<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<TimerCommandItems<R>> {
+pub fn install<R: Runtime>(app: &AppHandle<R>, lang: Lang) -> tauri::Result<TimerCommandItems<R>> {
     let mut commands = TimerCommandItems::empty();
 
     #[cfg(target_os = "macos")]
     let menu = {
-        let (menu, macos_commands) = macos_menu(app)?;
+        let (menu, macos_commands) = macos_menu(app, lang)?;
         commands.extend(macos_commands);
         menu
     };
 
     #[cfg(not(target_os = "macos"))]
-    let menu = Menu::default(app)?;
+    let menu = {
+        let _ = lang;
+        Menu::default(app)?
+    };
 
     app.set_menu(menu)?;
 
@@ -72,7 +76,10 @@ fn register_macos_actions<R: Runtime>(app: &AppHandle<R>) {
 }
 
 #[cfg(target_os = "macos")]
-fn macos_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<(Menu<R>, TimerCommandItems<R>)> {
+fn macos_menu<R: Runtime>(
+    app: &AppHandle<R>,
+    lang: Lang,
+) -> tauri::Result<(Menu<R>, TimerCommandItems<R>)> {
     use tauri::menu::{
         AboutMetadata, MenuItem, PredefinedMenuItem, Submenu, HELP_SUBMENU_ID, WINDOW_SUBMENU_ID,
     };
@@ -89,7 +96,7 @@ fn macos_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<(Menu<R>, TimerCo
     let settings = MenuItem::with_id(
         app,
         "app_settings",
-        "Einstellungen…",
+        tr(lang, "Einstellungen…"),
         true,
         Some("CmdOrCtrl+,"),
     )?;
@@ -99,53 +106,53 @@ fn macos_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<(Menu<R>, TimerCo
         "Tarlog",
         true,
         &[
-            &PredefinedMenuItem::about(app, Some("Über Tarlog"), Some(about))?,
+            &PredefinedMenuItem::about(app, Some(tr(lang, "Über Tarlog")), Some(about))?,
             &settings,
             &PredefinedMenuItem::separator(app)?,
-            &PredefinedMenuItem::services(app, Some("Dienste"))?,
+            &PredefinedMenuItem::services(app, Some(tr(lang, "Dienste")))?,
             &PredefinedMenuItem::separator(app)?,
-            &PredefinedMenuItem::hide(app, Some("Tarlog ausblenden"))?,
-            &PredefinedMenuItem::hide_others(app, Some("Andere ausblenden"))?,
-            &PredefinedMenuItem::show_all(app, Some("Alle einblenden"))?,
+            &PredefinedMenuItem::hide(app, Some(tr(lang, "Tarlog ausblenden")))?,
+            &PredefinedMenuItem::hide_others(app, Some(tr(lang, "Andere ausblenden")))?,
+            &PredefinedMenuItem::show_all(app, Some(tr(lang, "Alle einblenden")))?,
             &PredefinedMenuItem::separator(app)?,
-            &PredefinedMenuItem::quit(app, Some("Tarlog beenden"))?,
+            &PredefinedMenuItem::quit(app, Some(tr(lang, "Tarlog beenden")))?,
         ],
     )?;
 
     let timer_start = MenuItem::with_id(
         app,
         "app_timer_start",
-        "Timer starten",
+        tr(lang, "Timer starten"),
         false,
         Some("CmdOrCtrl+T"),
     )?;
     let timer_pause = MenuItem::with_id(
         app,
         "app_timer_pause",
-        "Timer pausieren",
+        tr(lang, "Timer pausieren"),
         false,
         None::<&str>,
     )?;
     let timer_resume = MenuItem::with_id(
         app,
         "app_timer_resume",
-        "Timer fortsetzen",
+        tr(lang, "Timer fortsetzen"),
         false,
         None::<&str>,
     )?;
     let timer_stop =
-        MenuItem::with_id(app, "app_timer_stop", "Timer stoppen", false, None::<&str>)?;
+        MenuItem::with_id(app, "app_timer_stop", tr(lang, "Timer stoppen"), false, None::<&str>)?;
     let backdate = MenuItem::with_id(
         app,
         "app_entry_backdate",
-        "Nachtrag…",
+        tr(lang, "Nachtrag…"),
         true,
         Some("CmdOrCtrl+Shift+N"),
     )?;
 
     let file = Submenu::with_items(
         app,
-        "Ablage",
+        tr(lang, "Ablage"),
         true,
         &[
             &timer_start,
@@ -155,46 +162,46 @@ fn macos_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<(Menu<R>, TimerCo
             &PredefinedMenuItem::separator(app)?,
             &backdate,
             &PredefinedMenuItem::separator(app)?,
-            &PredefinedMenuItem::close_window(app, Some("Fenster schließen"))?,
+            &PredefinedMenuItem::close_window(app, Some(tr(lang, "Fenster schließen")))?,
         ],
     )?;
 
     let edit = Submenu::with_items(
         app,
-        "Bearbeiten",
+        tr(lang, "Bearbeiten"),
         true,
         &[
-            &PredefinedMenuItem::undo(app, Some("Widerrufen"))?,
-            &PredefinedMenuItem::redo(app, Some("Wiederholen"))?,
+            &PredefinedMenuItem::undo(app, Some(tr(lang, "Widerrufen")))?,
+            &PredefinedMenuItem::redo(app, Some(tr(lang, "Wiederholen")))?,
             &PredefinedMenuItem::separator(app)?,
-            &PredefinedMenuItem::cut(app, Some("Ausschneiden"))?,
-            &PredefinedMenuItem::copy(app, Some("Kopieren"))?,
-            &PredefinedMenuItem::paste(app, Some("Einsetzen"))?,
-            &PredefinedMenuItem::select_all(app, Some("Alles auswählen"))?,
+            &PredefinedMenuItem::cut(app, Some(tr(lang, "Ausschneiden")))?,
+            &PredefinedMenuItem::copy(app, Some(tr(lang, "Kopieren")))?,
+            &PredefinedMenuItem::paste(app, Some(tr(lang, "Einsetzen")))?,
+            &PredefinedMenuItem::select_all(app, Some(tr(lang, "Alles auswählen")))?,
         ],
     )?;
 
     let toggle_sidebar = MenuItem::with_id(
         app,
         "app_toggle_sidebar",
-        "Seitenleiste ein-/ausblenden",
+        tr(lang, "Seitenleiste ein-/ausblenden"),
         true,
         Some("CmdOrCtrl+Alt+S"),
     )?;
     let appearance_system = MenuItem::with_id(
         app,
         "app_appearance_system",
-        "Systemdarstellung",
+        tr(lang, "Systemdarstellung"),
         true,
         None::<&str>,
     )?;
     let appearance_light =
-        MenuItem::with_id(app, "app_appearance_light", "Hell", true, None::<&str>)?;
+        MenuItem::with_id(app, "app_appearance_light", tr(lang, "Hell"), true, None::<&str>)?;
     let appearance_dark =
-        MenuItem::with_id(app, "app_appearance_dark", "Dunkel", true, None::<&str>)?;
+        MenuItem::with_id(app, "app_appearance_dark", tr(lang, "Dunkel"), true, None::<&str>)?;
     let view = Submenu::with_items(
         app,
-        "Darstellung",
+        tr(lang, "Darstellung"),
         true,
         &[
             &toggle_sidebar,
@@ -203,7 +210,7 @@ fn macos_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<(Menu<R>, TimerCo
             &appearance_light,
             &appearance_dark,
             &PredefinedMenuItem::separator(app)?,
-            &PredefinedMenuItem::fullscreen(app, Some("Vollbild ein-/ausschalten"))?,
+            &PredefinedMenuItem::fullscreen(app, Some(tr(lang, "Vollbild ein-/ausschalten")))?,
         ],
     )?;
 
@@ -211,17 +218,17 @@ fn macos_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<(Menu<R>, TimerCo
     let window = Submenu::with_id_and_items(
         app,
         WINDOW_SUBMENU_ID,
-        "Fenster",
+        tr(lang, "Fenster"),
         true,
         &[
-            &PredefinedMenuItem::minimize(app, Some("Im Dock ablegen"))?,
-            &PredefinedMenuItem::maximize(app, Some("Zoomen"))?,
+            &PredefinedMenuItem::minimize(app, Some(tr(lang, "Im Dock ablegen")))?,
+            &PredefinedMenuItem::maximize(app, Some(tr(lang, "Zoomen")))?,
             &PredefinedMenuItem::separator(app)?,
-            &PredefinedMenuItem::bring_all_to_front(app, Some("Alle nach vorne bringen"))?,
+            &PredefinedMenuItem::bring_all_to_front(app, Some(tr(lang, "Alle nach vorne bringen")))?,
         ],
     )?;
 
-    let help = Submenu::with_id(app, HELP_SUBMENU_ID, "Hilfe", true)?;
+    let help = Submenu::with_id(app, HELP_SUBMENU_ID, tr(lang, "Hilfe"), true)?;
 
     let menu = Menu::with_items(app, &[&application, &file, &edit, &view, &window, &help])?;
     let commands =

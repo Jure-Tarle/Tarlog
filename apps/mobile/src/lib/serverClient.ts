@@ -1,17 +1,17 @@
 /**
- * serverClient.ts — optional REST client against the self-hosted `apps/web` API
+ * serverClient.ts, optional REST client against the self-hosted `apps/web` API
  * (doc 04 §1, §5; doc 05 §5.1, §9.3).
  *
  * Local-first is the rule: the mobile app is fully functional WITHOUT a server.
  * This client is the ONLY edge that talks to the server, and it stays INERT
  * until a device has been paired. When no server is configured every transport
  * call throws `ServerNotConfiguredError`, which the sync engine treats as
- * "offline / local-only" — it never surfaces to the user as an error.
+ * "offline / local-only", it never surfaces to the user as an error.
  *
  * Authentication is a Bearer **device_token** (an `api_tokens` row on the
  * server) obtained once via the pairing flow (`POST /api/devices/connect` with
  * a short-lived pairing code). The token plus its identity (`device_id`,
- * `main_account_id`, `baseUrl`) is persisted in `expo-secure-store` — the token
+ * `main_account_id`, `baseUrl`) is persisted in `expo-secure-store`, the token
  * is a credential and never touches AsyncStorage or the SQLite DB.
  *
  * This module contains ZERO business logic (no rounding/billing/compliance).
@@ -21,7 +21,7 @@
 import * as SecureStore from "expo-secure-store";
 
 // ---------------------------------------------------------------------------
-// Wire contract — mirrors apps/web/lib/sync/{schemas,service}.ts exactly.
+// Wire contract, mirrors apps/web/lib/sync/{schemas,service}.ts exactly.
 // ---------------------------------------------------------------------------
 
 /** One client mutation to upload (POST /api/sync/events). */
@@ -111,7 +111,7 @@ export interface DeviceConnectInput {
   local_db_version?: number;
 }
 
-/** Response of a successful pairing — the device_token is returned ONCE. */
+/** Response of a successful pairing, the device_token is returned ONCE. */
 export interface DeviceConnectResult {
   device_id: string;
   main_account_id: string;
@@ -130,7 +130,7 @@ export interface ServerConfig {
 }
 
 // ---------------------------------------------------------------------------
-// Typed errors — let the sync engine branch without string matching.
+// Typed errors, let the sync engine branch without string matching.
 // ---------------------------------------------------------------------------
 
 /** No server paired yet → the app runs purely local. NOT a user-facing error. */
@@ -161,7 +161,7 @@ export class AuthError extends Error {
   }
 }
 
-/** 409 on push — the server returned conflicts that must be surfaced. */
+/** 409 on push, the server returned conflicts that must be surfaced. */
 export class ConflictError extends Error {
   readonly kind = "conflict" as const;
   constructor(readonly result: PushResult) {
@@ -316,7 +316,7 @@ export async function connectDevice(
 
 /**
  * Upload local events (POST /api/sync/events). On a 409 the server returned
- * conflicts — this throws `ConflictError` carrying the full body so the caller
+ * conflicts, this throws `ConflictError` carrying the full body so the caller
  * can persist accepted ids AND surface the conflicts (never silently drop).
  */
 export async function pushEvents(events: SyncEventInput[]): Promise<PushResult> {

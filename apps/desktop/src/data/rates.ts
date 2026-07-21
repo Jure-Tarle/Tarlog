@@ -1,11 +1,11 @@
 /**
- * rates.ts — resolve the effective hourly {@link RateSnapshot} for an entry by
- * precedence task > project > customer > default (doc 07 §5, doc 10 §4.0) using
+ * rates.ts, resolve the effective hourly {@link RateSnapshot} for an entry by
+ * precedence task > project > account default using
  * the @tarlog/core `resolveRate`. Sources, in order per level:
  *   1. historised `billing_rates` (scope + id, newest `valid_from` ≤ entry day),
  *   2. the entity's own `default_hourly_rate_cents` column,
  *   3. account default from `settings["billing.default_hourly_rate_cents"]` (0
- *      when unset — non-billable/zero-rate entries never crash the writeback).
+ *      when unset, non-billable/zero-rate entries never crash the writeback).
  */
 import { select } from "../lib/db";
 import { getContext } from "./context";
@@ -16,7 +16,6 @@ import { resolveRate, type RateSnapshot, type Uuid } from "@tarlog/core";
 export interface RateContext {
   taskId?: Uuid | null;
   projectId?: Uuid | null;
-  customerId?: Uuid | null;
   /** Local calendar day "YYYY-MM-DD" of the entry (for rate historisation). */
   onDate: string;
 }
@@ -59,9 +58,9 @@ async function historisedRate(
     : null;
 }
 
-/** Entity `default_hourly_rate_cents` fallback for task/project/customer. */
+/** Entity rate fallback for task or project. */
 async function entityDefaultRate(
-  table: "tasks" | "projects" | "customers",
+  table: "tasks" | "projects",
   column: "default_hourly_rate_cents" | "hourly_rate_cents",
   id: Uuid,
   scope: Scope,
@@ -94,11 +93,6 @@ export async function resolveEntryRate(rc: RateContext): Promise<RateSnapshot> {
       (await entityDefaultRate("projects", "hourly_rate_cents", rc.projectId, "project", currency))
     : undefined;
 
-  const customer = rc.customerId
-    ? (await historisedRate("customer", "customer_id", rc.customerId, rc.onDate)) ??
-      (await entityDefaultRate("customers", "default_hourly_rate_cents", rc.customerId, "customer", currency))
-    : undefined;
-
   const accountDefaultCents = (await getSetting<number>("billing.default_hourly_rate_cents")) ?? 0;
   const fallback =
     (await historisedRate("default", null, null, rc.onDate)) ??
@@ -107,7 +101,6 @@ export async function resolveEntryRate(rc: RateContext): Promise<RateSnapshot> {
   return resolveRate({
     task: task ?? undefined,
     project: project ?? undefined,
-    customer: customer ?? undefined,
     default: fallback,
   });
 }

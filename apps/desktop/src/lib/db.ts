@@ -1,9 +1,9 @@
 /**
- * db.ts — direct SQLite access via `tauri-plugin-sql`.
+ * db.ts, direct SQLite access via `tauri-plugin-sql`.
  *
  * This is the READ path and the local repository base. For mutations that carry
  * business logic (timer state machine, rounding, snapshots, sync events) go
- * through {@link ./bridge} Rust commands instead — those own invariants that
+ * through {@link ./bridge} Rust commands instead, those own invariants that
  * must not be bypassed by raw SQL.
  *
  * Use this module for:
@@ -38,7 +38,7 @@ export function resetDb(): void {
 
 /**
  * Run a parameterized SELECT and return typed rows. Values are bound via `$1..$n`
- * placeholders (tauri-plugin-sql sqlite dialect) — never string-concatenate SQL.
+ * placeholders (tauri-plugin-sql sqlite dialect), never string-concatenate SQL.
  */
 export async function select<T = Record<string, unknown>>(
   sql: string,

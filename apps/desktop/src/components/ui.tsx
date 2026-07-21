@@ -2,6 +2,8 @@ import {
   cloneElement,
   isValidElement,
   useId,
+  useLayoutEffect,
+  useRef,
   type ButtonHTMLAttributes,
   type InputHTMLAttributes,
   type ReactElement,
@@ -12,6 +14,7 @@ import {
 import { CircleAlert, Inbox } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import type { ComplianceStatus } from "@tarlog/core";
+import { t } from "../i18n";
 
 const SPRING = { type: "spring", bounce: 0, duration: 0.38 } as const;
 
@@ -20,15 +23,17 @@ export function Page({
   hint,
   actions,
   children,
+  className,
 }: {
   title: string;
   hint?: ReactNode;
   actions?: ReactNode;
   children: ReactNode;
+  className?: string;
 }) {
   const titleId = useId();
   return (
-    <section className="page" aria-labelledby={titleId}>
+    <section className={["page", className].filter(Boolean).join(" ")} aria-labelledby={titleId}>
       <header className="page__head">
         <div className="page__headmain">
           <h1 className="page__title" id={titleId}>{title}</h1>
@@ -41,7 +46,7 @@ export function Page({
   );
 }
 
-export function Toolbar({ children, label = "Aktionen" }: { children: ReactNode; label?: string }) {
+export function Toolbar({ children, label = t("Aktionen") }: { children: ReactNode; label?: string }) {
   return <div className="toolbar" role="toolbar" aria-label={label}>{children}</div>;
 }
 
@@ -81,8 +86,8 @@ export function Card({
   );
 }
 
-export function StatGrid({ children }: { children: ReactNode }) {
-  return <div className="statgrid">{children}</div>;
+export function StatGrid({ children, balanced = false }: { children: ReactNode; balanced?: boolean }) {
+  return <div className={`statgrid${balanced ? " statgrid--balanced" : ""}`}>{children}</div>;
 }
 
 export function StatTile({
@@ -122,6 +127,7 @@ export function StatTile({
   );
 }
 
+// Labels bleiben deutsch (Wörterbuch-Schlüssel); t() erst beim Rendern.
 const STATUS_LABEL: Record<ComplianceStatus, string> = {
   green: "Konform",
   yellow: "Risiko",
@@ -137,7 +143,7 @@ const STATUS_TONE: Record<ComplianceStatus, "ok" | "warn" | "danger"> = {
 export function StatusDot({ status }: { status: ComplianceStatus }) {
   return (
     <span className={`cdot cdot--${STATUS_TONE[status]}`}>
-      <span className="sr-only">{STATUS_LABEL[status]}</span>
+      <span className="sr-only">{t(STATUS_LABEL[status])}</span>
     </span>
   );
 }
@@ -147,7 +153,7 @@ export function ComplianceBadge({ status, children }: { status: ComplianceStatus
   return (
     <span className={`badge badge--${tone}`}>
       <span aria-hidden><StatusDot status={status} /></span>
-      {children ?? STATUS_LABEL[status]}
+      {children ?? t(STATUS_LABEL[status])}
     </span>
   );
 }
@@ -170,12 +176,12 @@ export function ErrorNote({ error }: { error: string }) {
   return (
     <div className="notice notice--error" role="alert">
       <CircleAlert size={16} aria-hidden />
-      <span><strong>Nicht verfügbar.</strong> {error}</span>
+      <span><strong>{t("Nicht verfügbar.")}</strong> {error}</span>
     </div>
   );
 }
 
-export function Loading({ label = "Lädt…" }: { label?: string }) {
+export function Loading({ label = t("Lädt…") }: { label?: string }) {
   return (
     <div className="loading" aria-live="polite">
       <span className="loading__spinner" aria-hidden />
@@ -196,13 +202,32 @@ export function AsyncBody<T>({
   if (state.loading && state.data == null) return <Loading />;
   if (state.error && state.data == null) return <ErrorNote error={state.error} />;
   if (state.data == null || (Array.isArray(state.data) && state.data.length === 0)) {
-    return <>{empty ?? <EmptyState title="Keine Daten" />}</>;
+    return <>{empty ?? <EmptyState title={t("Keine Daten")} />}</>;
   }
   return <>{children(state.data)}</>;
 }
 
 export function TableWrap({ children }: { children: ReactNode }) {
-  return <div className="tablewrap">{children}</div>;
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
+
+    const updateOverflow = () => {
+      wrapper.dataset.horizontalOverflow = String(wrapper.scrollWidth - wrapper.clientWidth > 1);
+    };
+
+    updateOverflow();
+
+    const resizeObserver = new ResizeObserver(updateOverflow);
+    resizeObserver.observe(wrapper);
+    if (wrapper.firstElementChild) resizeObserver.observe(wrapper.firstElementChild);
+
+    return () => resizeObserver.disconnect();
+  }, [children]);
+
+  return <div ref={wrapperRef} className="tablewrap">{children}</div>;
 }
 
 export function Field({
@@ -323,7 +348,7 @@ export function Button({
   variant = "default",
   children,
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "default" | "primary" | "ghost" | "danger" }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "default" | "primary" | "ghost" | "danger" | "glass" }) {
   const classes = variant === "default" ? "btn" : `btn btn--${variant}`;
   return (
     <button type="button" {...props} className={`${classes} ${props.className ?? ""}`}>

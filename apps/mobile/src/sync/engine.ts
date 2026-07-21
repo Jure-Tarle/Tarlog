@@ -1,16 +1,16 @@
 /**
- * engine.ts — the sync orchestrator (doc 04 §1 flow, §5 live cascade).
+ * engine.ts, the sync orchestrator (doc 04 §1 flow, §5 live cascade).
  *
  * Ties the transport client to the durable outbox, the high-water cursor, the
  * conflict list and a pluggable local applier. It is the single entry point the
  * Sync screen and background tasks drive:
- *   - `flush()`  — push queued outbox events; 409 → conflict list, never lost.
- *   - `pull()`   — fetch the foreign-device delta and apply it locally.
- *   - `sync()`   — flush then pull (one round trip pair).
- *   - `startLiveMirror()` — long-poll loop to mirror a running timer live.
+ *   - `flush()`, push queued outbox events; 409 → conflict list, never lost.
+ *   - `pull()`, fetch the foreign-device delta and apply it locally.
+ *   - `sync()`, flush then pull (one round trip pair).
+ *   - `startLiveMirror()`, long-poll loop to mirror a running timer live.
  *
  * INERT GUARANTEE: with no server paired (or while offline) every method
- * returns an outcome and mutates nothing remote — the local-first app is
+ * returns an outcome and mutates nothing remote, the local-first app is
  * unaffected. Applying incoming changes to local tables is delegated to a
  * `RemoteApplier` provided by the data layer (it owns `src/data` + row shapes);
  * the engine itself writes no entity rows and runs no business logic.
@@ -44,17 +44,17 @@ export interface RemoteApplier {
 /** No-op applier: advances the cursor only. Used until the data layer wires in. */
 export const noopApplier: RemoteApplier = {
   async apply() {
-    /* intentionally empty — high-water still advances in pull() */
+    /* intentionally empty, high-water still advances in pull() */
   },
 };
 
 /** Why a sync step did nothing / what it did. */
 export type SyncStatus =
   | "ok"
-  | "local" // no server paired — local-only mode
+  | "local" // no server paired, local-only mode
   | "offline" // paired but transport failed; stays queued
   | "conflict" // server returned conflicts (surfaced to the list)
-  | "auth"; // token rejected — re-pairing required
+  | "auth"; // token rejected, re-pairing required
 
 export interface FlushOutcome {
   status: SyncStatus;
@@ -117,7 +117,7 @@ export async function flush(db: SQLiteDatabase = getDb()): Promise<FlushOutcome>
       // Offline / unpaired mid-flight → keep everything queued, retry later.
       return { status: "offline", pushed: 0, conflicts: 0, rejected: 0, serverRevision: 0 };
     }
-    throw err; // unexpected ServerError — let the caller see it
+    throw err; // unexpected ServerError, let the caller see it
   }
 }
 

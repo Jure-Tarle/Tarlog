@@ -1,5 +1,5 @@
 /**
- * ids.ts — UUIDv7 generation (doc 05 §8, doc 06 §0).
+ * ids.ts, UUIDv7 generation (doc 05 §8, doc 06 §0).
  *
  * All primary keys and sync `event_id`s are UUIDv7: time-sortable, collision-
  * safe across offline devices, and identical to the id scheme used by the

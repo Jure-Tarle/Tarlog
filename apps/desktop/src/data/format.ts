@@ -1,14 +1,20 @@
 /**
- * format.ts — display formatters for the ledger UI.
+ * format.ts, display formatters for the ledger UI.
  *
  * All time math stays in the entry's IANA timezone (never the device zone) via
  * luxon, mirroring @tarlog/core conventions (doc 07 §6). Durations render from
- * integer seconds, money from integer cents — the UI never invents precision.
+ * integer seconds, money from integer cents, the UI never invents precision.
  */
 import { DateTime } from "luxon";
 import type { EpochMs, IanaTimezone, Seconds, Cents } from "@tarlog/core";
+import { getLanguage, getLocale, t } from "../i18n";
 
-/** The device's IANA timezone — the sensible default for new entries. */
+/** Language-matched date pattern: German dot notation vs. US slashes. */
+function datePattern(): string {
+  return getLanguage() === "en" ? "MM/dd/yyyy" : "dd.MM.yyyy";
+}
+
+/** The device's IANA timezone, the sensible default for new entries. */
 export function deviceTimezone(): IanaTimezone {
   return Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Berlin";
 }
@@ -27,7 +33,7 @@ export function fmtHMS(seconds: Seconds): string {
   return `${pad2(h)}:${pad2(m)}:${pad2(sec)}`;
 }
 
-/** Duration as `HH:MM` — the display rounding used across lists (doc 03 fn 35). */
+/** Duration as `HH:MM`, the display rounding used across lists (doc 03 fn 35). */
 export function fmtHM(seconds: Seconds): string {
   const s = Math.max(0, Math.round(seconds / 60));
   const h = Math.floor(s / 60);
@@ -45,16 +51,16 @@ export function fmtDurationShort(seconds: Seconds): string {
   return `${h}h ${m}m`;
 }
 
-/** Decimal hours, e.g. 4500s → "1,25 h" (German decimal comma). */
+/** Decimal hours, e.g. 4500s → "1,25 h" / "1.25 h" (UI language). */
 export function fmtHoursDecimal(seconds: Seconds): string {
   const hours = seconds / 3600;
-  return `${hours.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} h`;
+  return `${hours.toLocaleString(getLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })} h`;
 }
 
 /** Integer cents → localized currency string, e.g. 12345 → "123,45 €". */
 export function fmtMoney(cents: Cents | null | undefined, currency = "EUR"): string {
   const value = (cents ?? 0) / 100;
-  return value.toLocaleString("de-DE", { style: "currency", currency });
+  return value.toLocaleString(getLocale(), { style: "currency", currency });
 }
 
 /** Local wall-clock `HH:mm` of an instant in a timezone. */
@@ -62,19 +68,20 @@ export function fmtClock(at: EpochMs, tz: IanaTimezone): string {
   return DateTime.fromMillis(at, { zone: tz }).toFormat("HH:mm");
 }
 
-/** Local `dd.MM.yyyy` of an instant in a timezone. */
+/** Local date in the UI language's notation (`dd.MM.yyyy` / `MM/dd/yyyy`). */
 export function fmtDate(at: EpochMs, tz: IanaTimezone): string {
-  return DateTime.fromMillis(at, { zone: tz }).toFormat("dd.MM.yyyy");
+  return DateTime.fromMillis(at, { zone: tz }).toFormat(datePattern());
 }
 
-/** Local `dd.MM.yyyy HH:mm`. */
+/** Local date + `HH:mm` in the UI language's notation. */
 export function fmtDateTime(at: EpochMs, tz: IanaTimezone): string {
-  return DateTime.fromMillis(at, { zone: tz }).toFormat("dd.MM.yyyy HH:mm");
+  return DateTime.fromMillis(at, { zone: tz }).toFormat(`${datePattern()} HH:mm`);
 }
 
-/** Long local weekday + date, e.g. "Montag, 8. Juli 2026". */
+/** Long local weekday + date, e.g. "Montag, 8. Juli 2026" / "Monday, July 8, 2026". */
 export function fmtDayLong(at: EpochMs, tz: IanaTimezone): string {
-  return DateTime.fromMillis(at, { zone: tz }).setLocale("de").toFormat("cccc, d. LLLL yyyy");
+  const dt = DateTime.fromMillis(at, { zone: tz }).setLocale(getLanguage());
+  return getLanguage() === "en" ? dt.toFormat("cccc, LLLL d, yyyy") : dt.toFormat("cccc, d. LLLL yyyy");
 }
 
 /** ISO local date "YYYY-MM-DD". */
@@ -102,9 +109,9 @@ export function fromDateTimeInputs(date: string, time: string, tz: IanaTimezone)
   return dt.isValid ? dt.toMillis() : null;
 }
 
-/** Relative "vor 3 Min." / "in 2 Std." style label from now. */
+/** Relative "vor 3 Min." / "3 minutes ago" style label from now. */
 export function fmtRelative(at: EpochMs): string {
-  const rel = DateTime.fromMillis(at).setLocale("de").toRelative();
+  const rel = DateTime.fromMillis(at).setLocale(getLanguage()).toRelative();
   return rel ?? "";
 }
 
@@ -126,8 +133,8 @@ export function monthRange(tz: IanaTimezone, ref: EpochMs = Date.now()): { from:
   return { from: start.toMillis(), to: start.plus({ months: 1 }).toMillis() };
 }
 
-/** ISO week number label, e.g. "KW 28 · 2026". */
+/** ISO week number label, e.g. "KW 28 | 2026" / "Week 28 | 2026". */
 export function weekLabel(tz: IanaTimezone, ref: EpochMs = Date.now()): string {
   const dt = DateTime.fromMillis(ref, { zone: tz });
-  return `KW ${dt.weekNumber} · ${dt.weekYear}`;
+  return t("KW {week} | {year}", { week: dt.weekNumber, year: dt.weekYear });
 }

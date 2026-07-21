@@ -1,5 +1,5 @@
 /**
- * lib/sync/service.ts — Sync-Protokoll (doc 04 §1, §5).
+ * lib/sync/service.ts, Sync-Protokoll (doc 04 §1, §5).
  *
  * push  (POST /api/sync/events): idempotente Anwendung von Client-Events
  *   (Dedup über correlation_id = Client-event_id). Zeiteinträge/Pausen werden
@@ -151,7 +151,7 @@ export async function pushEvents(auth: AuthContext, events: SyncEventInput[]): P
 
   for (const ev of events) {
     if (await alreadyApplied(mainAccountId, ev.event_id)) {
-      accepted.push(ev.event_id); // Idempotenz — bereits angewandt.
+      accepted.push(ev.event_id); // Idempotenz, bereits angewandt.
       continue;
     }
     try {
