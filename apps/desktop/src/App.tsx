@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type Ref } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type Ref } from "react";
 import {
   BriefcaseBusiness,
   CalendarDays,
@@ -22,11 +22,12 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
-import { AnimatePresence, MotionConfig, motion, useReducedMotion } from "motion/react";
+import { MotionConfig, motion } from "motion/react";
 import { isTauri } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { ROUTES, resolveRoute, type RouteDef } from "./pages/routes";
+import { t } from "./i18n";
 import { dbInit, dbMigrate } from "./lib/bridge";
 import type { NativeSystemSymbolKey } from "./lib/bridge";
 import { detectDesktopPlatform, type DesktopPlatform } from "./lib/platform";
@@ -44,13 +45,19 @@ import {
 } from "./data/timer";
 import { useTick } from "./data/hooks";
 import { fmtHMS } from "./data/format";
+import {
+  APPEARANCE_CHANGE_EVENT,
+  APPEARANCE_STORAGE_KEY,
+  normalizeAppearance,
+  readAppearancePreference,
+  type AppearancePreference,
+  type ResolvedAppearance,
+} from "./data/appearance";
 import type { TimerStatus } from "@tarlog/core";
 
 type BootState = { phase: "loading" | "ready" } | { phase: "error"; message: string };
-type AppearancePreference = "system" | "light" | "dark";
-type ResolvedTheme = Exclude<AppearancePreference, "system">;
+type ResolvedTheme = ResolvedAppearance;
 
-const THEME_STORAGE_KEY = "tarlog-theme";
 const SIDEBAR_HIDDEN_STORAGE_KEY = "tarlog-sidebar-hidden";
 const SIDEBAR_WIDTH_STORAGE_KEY = "tarlog-sidebar-width";
 const DEFAULT_SIDEBAR_WIDTH = 256;
@@ -58,6 +65,7 @@ const MIN_SIDEBAR_WIDTH = 220;
 const MAX_SIDEBAR_WIDTH = 360;
 const SPRING = { type: "spring", bounce: 0, duration: 0.38 } as const;
 
+// Labels bleiben deutsch (Wörterbuch-Schlüssel); t() erst beim Rendern.
 const TIMER_STATUS_META = {
   idle: { label: "Bereit", control: "open", attention: false },
   running: { label: "Läuft", control: "pause", attention: false },
@@ -88,6 +96,7 @@ const ROUTE_ICONS: Record<string, LucideIcon> = {
   sync: CloudCog,
 };
 
+// Labels bleiben deutsch (Wörterbuch-Schlüssel); t() erst beim Rendern.
 const NAV_GROUPS = [
   { label: "Arbeitsbereich", ids: ["dashboard", "timer", "today", "week"] },
   { label: "Organisation", ids: ["customers", "projects", "tasks"] },
@@ -109,13 +118,7 @@ function systemTheme(): ResolvedTheme {
 }
 
 function resolveInitialAppearance(): AppearancePreference {
-  try {
-    const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-    if (stored === "system" || stored === "light" || stored === "dark") return stored;
-  } catch {
-    // A disabled Web Storage API must not block the local desktop app.
-  }
-  return "system";
+  return readAppearancePreference();
 }
 
 function useAppearance(platform: DesktopPlatform) {
@@ -139,10 +142,18 @@ function useAppearance(platform: DesktopPlatform) {
   const resolved: ResolvedTheme = preference === "system" ? system : preference;
 
   useEffect(() => {
+    const onAppearanceChange = (event: Event) => {
+      setPreference(normalizeAppearance((event as CustomEvent<unknown>).detail));
+    };
+    window.addEventListener(APPEARANCE_CHANGE_EVENT, onAppearanceChange);
+    return () => window.removeEventListener(APPEARANCE_CHANGE_EVENT, onAppearanceChange);
+  }, []);
+
+  useEffect(() => {
     document.documentElement.dataset.appearance = preference;
     document.documentElement.dataset.theme = resolved;
     try {
-      window.localStorage.setItem(THEME_STORAGE_KEY, preference);
+      window.localStorage.setItem(APPEARANCE_STORAGE_KEY, preference);
     } catch {
       // Theme remains active for this session when persistence is unavailable.
     }
@@ -154,7 +165,12 @@ function useAppearance(platform: DesktopPlatform) {
     }
   }, [platform, preference, resolved]);
 
-  return { preference, resolved, setPreference };
+  const changePreference = useCallback((next: AppearancePreference) => {
+    setPreference(next);
+    window.dispatchEvent(new CustomEvent(APPEARANCE_CHANGE_EVENT, { detail: next }));
+  }, []);
+
+  return { preference, resolved, setPreference: changePreference };
 }
 
 function useWindowActivity(platform: DesktopPlatform) {
@@ -218,13 +234,16 @@ function useDbBoot(): BootState {
 }
 
 function useHashRoute(): RouteDef {
-  const [route, setRoute] = useState<RouteDef>(() => resolveRoute(window.location.hash));
+  // Keep the full hash as state. Detail routes resolve to the same top-level
+  // RouteDef object, so storing only that object would make React bail out and
+  // leave `/projects/:id` or `/reports/:id` on the list screen.
+  const [hash, setHash] = useState(() => window.location.hash);
   useEffect(() => {
-    const onHashChange = () => setRoute(resolveRoute(window.location.hash));
+    const onHashChange = () => setHash(window.location.hash);
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
-  return route;
+  return resolveRoute(hash);
 }
 
 function navigateTo(id: string) {
@@ -410,6 +429,7 @@ function Sidebar({
   onResizeStart,
   onResizeEnd,
   onResetWidth,
+  onToggle,
   onIntroduction,
   introductionButtonRef,
 }: {
@@ -421,6 +441,7 @@ function Sidebar({
   onResizeStart: () => void;
   onResizeEnd: () => void;
   onResetWidth: () => void;
+  onToggle: () => void;
   onIntroduction: () => void;
   introductionButtonRef: Ref<HTMLButtonElement>;
 }) {
@@ -436,9 +457,27 @@ function Sidebar({
   };
 
   return (
-    <aside className="sidebar" aria-label="Tarlog Navigation" aria-hidden={hidden || undefined} inert={hidden}>
-      <div className="sidebar__window-chrome" data-tauri-drag-region aria-hidden="true" />
-      <a className="sidebar__brand" href="#/dashboard" aria-label="Tarlog Flow – Dashboard">
+    <aside className="sidebar" aria-label={t("Tarlog Navigation")} aria-hidden={hidden || undefined} inert={hidden}>
+      <div className="sidebar__window-chrome">
+        <span className="sidebar__window-drag-region" data-tauri-drag-region aria-hidden="true" />
+        {platform === "macos" ? (
+          <button
+            className="toolbar-icon-button sidebar__chrome-toggle icon-btn"
+            type="button"
+            onClick={onToggle}
+            aria-label={t("Seitenleiste ausblenden")}
+            title={t("Seitenleiste ausblenden (⌥⌘S)")}
+          >
+            <AppleSystemSymbol
+              name="sidebarToggle"
+              className="apple-system-symbol"
+              size={16}
+              fallback={<PanelLeftClose size={16} />}
+            />
+          </button>
+        ) : null}
+      </div>
+      <a className="sidebar__brand" href="#/dashboard" aria-label={t("Tarlog Flow, Dashboard")}>
         <motion.span className="sidebar__mark" whileTap={{ scale: 0.92 }} transition={SPRING} aria-hidden>
           <img className="brand-mark__image" src={brandMarkUrl} alt="" />
         </motion.span>
@@ -448,10 +487,10 @@ function Sidebar({
         </span>
       </a>
 
-      <nav className="sidebar__nav" aria-label="Hauptnavigation">
+      <nav className="sidebar__nav" aria-label={t("Hauptnavigation")}>
         {NAV_GROUPS.map((group) => (
-          <section className="nav-group" key={group.label} aria-label={group.label}>
-            <p className="nav-group__label">{group.label}</p>
+          <section className="nav-group" key={group.label} aria-label={t(group.label)}>
+            <p className="nav-group__label">{t(group.label)}</p>
             <div className="nav-group__items">
               {group.ids.map((id) => {
                 const route = routeMap.get(id);
@@ -462,13 +501,14 @@ function Sidebar({
                 const shortcutLabel = shortcut
                   ? platform === "macos" ? shortcut.mac : shortcut.other
                   : undefined;
+                const routeLabel = t(route.label);
                 return (
                   <a
                     key={route.id}
                     className="nav-item"
                     href={`#/${route.id}`}
                     aria-current={active ? "page" : undefined}
-                    title={shortcutLabel ? `${route.label} (${shortcutLabel})` : route.label}
+                    title={shortcutLabel ? `${routeLabel} (${shortcutLabel})` : routeLabel}
                     aria-keyshortcuts={shortcut ? `${platform === "macos" ? "Meta" : "Control"}+${shortcut.key}` : undefined}
                   >
                     {active ? (
@@ -485,7 +525,7 @@ function Sidebar({
                       size={16}
                       fallback={<Icon className="nav-item__icon" size={17} strokeWidth={1.9} aria-hidden />}
                     />
-                    <span className="nav-item__label">{route.label}</span>
+                    <span className="nav-item__label">{routeLabel}</span>
                     {shortcutLabel ? <span className="nav-item__shortcut" aria-hidden>{shortcutLabel}</span> : null}
                   </a>
                 );
@@ -500,7 +540,7 @@ function Sidebar({
         className="sidebar__introduction"
         type="button"
         onClick={onIntroduction}
-        title="Einführung erneut öffnen"
+        title={t("Einführung erneut öffnen")}
       >
         <AppleSystemSymbol
           name="onboarding"
@@ -508,7 +548,7 @@ function Sidebar({
           size={16}
           fallback={<CircleHelp size={16} strokeWidth={1.9} aria-hidden />}
         />
-        <span>Einführung</span>
+        <span>{t("Einführung")}</span>
       </button>
 
       <div className="sidebar__foot">
@@ -517,14 +557,14 @@ function Sidebar({
         </span>
         <span className="sidebar__footcopy">
           <strong>Local first</strong>
-          <small>Deine Zeit bleibt bei dir.</small>
+          <small>{t("Deine Zeit bleibt bei dir.")}</small>
         </span>
       </div>
       {platform === "macos" ? (
         <div
           className="sidebar__resize-handle"
           role="separator"
-          aria-label="Breite der Seitenleiste ändern"
+          aria-label={t("Breite der Seitenleiste ändern")}
           aria-orientation="vertical"
           aria-valuemin={MIN_SIDEBAR_WIDTH}
           aria-valuemax={MAX_SIDEBAR_WIDTH}
@@ -566,10 +606,10 @@ function PersistentTimer() {
   const status: TimerStatus = timer.state?.status ?? "idle";
   const meta = TIMER_STATUS_META[status];
   const statusLabel = timer.error
-    ? "Aktion fehlgeschlagen"
+    ? t("Aktion fehlgeschlagen")
     : timer.pending
-      ? "Wird aktualisiert"
-      : meta.label;
+      ? t("Wird aktualisiert")
+      : t(meta.label);
 
   const runControl = () => {
     if (meta.control === "pause") {
@@ -584,7 +624,7 @@ function PersistentTimer() {
   return (
     <div
       className={`top-timer top-timer--${status} ${meta.attention ? "top-timer--attention" : ""} ${timer.error ? "top-timer--error" : ""}`}
-      aria-label={`Timer ${statusLabel}`}
+      aria-label={t("Timer {status}", { status: statusLabel })}
       aria-busy={timer.pending}
       title={timer.error ?? undefined}
     >
@@ -600,8 +640,8 @@ function PersistentTimer() {
         type="button"
         onClick={runControl}
         disabled={timer.pending}
-        aria-label={meta.control === "pause" ? "Timer pausieren" : meta.control === "resume" ? "Timer fortsetzen" : "Timer öffnen"}
-        title={meta.control === "pause" ? "Pausieren" : meta.control === "resume" ? "Fortsetzen" : "Timer öffnen"}
+        aria-label={meta.control === "pause" ? t("Timer pausieren") : meta.control === "resume" ? t("Timer fortsetzen") : t("Timer öffnen")}
+        title={meta.control === "pause" ? t("Pausieren") : meta.control === "resume" ? t("Fortsetzen") : t("Timer öffnen")}
       >
         {meta.control === "pause" ? (
           <AppleSystemSymbol
@@ -633,23 +673,23 @@ function AppearancePicker({
   onChange: (value: AppearancePreference) => void;
 }) {
   return (
-    <label className="appearance-picker" title="Darstellung">
+    <label className="appearance-picker" title={t("Darstellung")}>
       <AppleSystemSymbol
         name="themeSystem"
         className="appearance-picker__icon apple-system-symbol"
         size={15}
         fallback={<MonitorCog className="appearance-picker__icon" size={15} aria-hidden />}
       />
-      <span className="sr-only">Darstellung</span>
+      <span className="sr-only">{t("Darstellung")}</span>
       <select
         className="appearance-picker__select"
         value={value}
         onChange={(event) => onChange(event.currentTarget.value as AppearancePreference)}
-        aria-label="Darstellung"
+        aria-label={t("Darstellung")}
       >
-        <option value="system">System</option>
-        <option value="light">Hell</option>
-        <option value="dark">Dunkel</option>
+        <option value="system">{t("System")}</option>
+        <option value="light">{t("Hell")}</option>
+        <option value="dark">{t("Dunkel")}</option>
       </select>
     </label>
   );
@@ -671,26 +711,29 @@ function Topbar({
   onAppearanceChange: (value: AppearancePreference) => void;
 }) {
   const group = NAV_GROUPS.find((candidate) => candidate.ids.some((id) => id === route.id));
+  const sidebarToggleLabel = sidebarHidden ? t("Seitenleiste einblenden") : t("Seitenleiste ausblenden");
   return (
-    <header className="topbar">
+    <header className="topbar" data-tauri-drag-region>
       <div className="topbar__leading">
-        <button
-          className="toolbar-icon-button sidebar-toggle icon-btn"
-          type="button"
-          onClick={onSidebarToggle}
-          aria-label={sidebarHidden ? "Seitenleiste einblenden" : "Seitenleiste ausblenden"}
-          title={`${sidebarHidden ? "Seitenleiste einblenden" : "Seitenleiste ausblenden"} (${platform === "macos" ? "⌥⌘S" : "Ctrl+Alt+S"})`}
-        >
-          <AppleSystemSymbol
-            name="sidebarToggle"
-            className="apple-system-symbol"
-            size={16}
-            fallback={sidebarHidden ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
-          />
-        </button>
+        {platform !== "macos" || sidebarHidden ? (
+          <button
+            className="toolbar-icon-button sidebar-toggle icon-btn"
+            type="button"
+            onClick={onSidebarToggle}
+            aria-label={sidebarToggleLabel}
+            title={`${sidebarToggleLabel} (${platform === "macos" ? "⌥⌘S" : "Ctrl+Alt+S"})`}
+          >
+            <AppleSystemSymbol
+              name="sidebarToggle"
+              className="apple-system-symbol"
+              size={16}
+              fallback={sidebarHidden ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+            />
+          </button>
+        ) : null}
         <div className="topbar__current" data-tauri-drag-region>
-          <span className="topbar__eyebrow" data-tauri-drag-region>{group?.label ?? "Tarlog"}</span>
-          <strong className="topbar__title" id="current-route-title" data-tauri-drag-region>{route.label}</strong>
+          <span className="topbar__eyebrow" data-tauri-drag-region>{group ? t(group.label) : "Tarlog"}</span>
+          <strong className="topbar__title" id="current-route-title" data-tauri-drag-region>{t(route.label)}</strong>
         </div>
       </div>
       <div className="topbar__actions">
@@ -737,7 +780,6 @@ function AppContent() {
   useNativeMenuAppearance(platform, setPreference);
   const sidebar = useSidebar(platform);
   const onboarding = useDesktopOnboarding(boot.phase === "ready");
-  const reduceMotion = useReducedMotion();
   const mainRef = useRef<HTMLElement>(null);
   const previousRoute = useRef(route.id);
   const introductionButtonRef = useRef<HTMLButtonElement>(null);
@@ -747,7 +789,11 @@ function AppContent() {
   useEffect(() => {
     if (previousRoute.current === route.id) return;
     previousRoute.current = route.id;
-    const frame = window.requestAnimationFrame(() => mainRef.current?.focus({ preventScroll: true }));
+    const frame = window.requestAnimationFrame(() => {
+      if (!mainRef.current) return;
+      mainRef.current.scrollTop = 0;
+      mainRef.current.focus({ preventScroll: true });
+    });
     return () => window.cancelAnimationFrame(frame);
   }, [route.id]);
 
@@ -768,8 +814,8 @@ function AppContent() {
       <BootScreen>
         <span className="boot__spinner" aria-hidden />
         <div>
-          <p className="boot__title">Tarlog wird vorbereitet</p>
-          <p className="boot__copy">Lokale Datenbank und Arbeitsbereich werden geladen …</p>
+          <p className="boot__title">{t("Tarlog wird vorbereitet")}</p>
+          <p className="boot__copy">{t("Lokale Datenbank und Arbeitsbereich werden geladen …")}</p>
         </div>
       </BootScreen>
     );
@@ -779,13 +825,12 @@ function AppContent() {
     return (
       <BootScreen error>
         <div>
-          <p className="boot__title boot__error">Tarlog konnte nicht gestartet werden</p>
+          <p className="boot__title boot__error">{t("Tarlog konnte nicht gestartet werden")}</p>
           <p className="boot__copy">
-            Die lokale Datenbank ist momentan nicht verfügbar. Beende Tarlog vollständig
-            und versuche es erneut; deine vorhandenen Daten wurden nicht verändert.
+            {t("Die lokale Datenbank ist momentan nicht verfügbar. Beende Tarlog vollständig und versuche es erneut; deine vorhandenen Daten wurden nicht verändert.")}
           </p>
           <div className="boot__actions">
-            <Button variant="primary" onClick={() => window.location.reload()}>Erneut versuchen</Button>
+            <Button variant="primary" onClick={() => window.location.reload()}>{t("Erneut versuchen")}</Button>
           </div>
         </div>
       </BootScreen>
@@ -797,8 +842,8 @@ function AppContent() {
       <BootScreen>
         <span className="boot__spinner" aria-hidden />
         <div>
-          <p className="boot__title">Arbeitsbereich wird geprüft</p>
-          <p className="boot__copy">Tarlog lädt deine lokale Einrichtung …</p>
+          <p className="boot__title">{t("Arbeitsbereich wird geprüft")}</p>
+          <p className="boot__copy">{t("Tarlog lädt deine lokale Einrichtung …")}</p>
         </div>
       </BootScreen>
     );
@@ -808,10 +853,10 @@ function AppContent() {
     return (
       <BootScreen error>
         <div>
-          <p className="boot__title boot__error">Einrichtung konnte nicht geladen werden</p>
-          <p className="boot__copy">Dein lokaler Arbeitsbereich wurde nicht verändert.</p>
+          <p className="boot__title boot__error">{t("Einrichtung konnte nicht geladen werden")}</p>
+          <p className="boot__copy">{t("Dein lokaler Arbeitsbereich wurde nicht verändert.")}</p>
           <div className="boot__actions">
-            <Button variant="primary" onClick={onboarding.retry}>Erneut versuchen</Button>
+            <Button variant="primary" onClick={onboarding.retry}>{t("Erneut versuchen")}</Button>
           </div>
         </div>
       </BootScreen>
@@ -838,7 +883,7 @@ function AppContent() {
   const PageComponent = route.Component;
   return (
     <TimerProvider>
-      <a className="skip-link" href="#main-content">Zum Inhalt springen</a>
+      <a className="skip-link" href="#main-content">{t("Zum Inhalt springen")}</a>
       <div
         className={`app-shell app-shell--${platform} ${sidebar.hidden ? "is-sidebar-hidden" : ""} ${sidebar.resizing ? "is-sidebar-resizing" : ""}`}
         style={{ "--sidebar-user-w": `${sidebar.width}px` } as React.CSSProperties}
@@ -852,6 +897,7 @@ function AppContent() {
           onResizeStart={sidebar.startResize}
           onResizeEnd={sidebar.stopResize}
           onResetWidth={sidebar.resetWidth}
+          onToggle={sidebar.toggle}
           onIntroduction={() => {
             restoreIntroductionFocus.current = true;
             onboarding.openReplay();
@@ -874,18 +920,9 @@ function AppContent() {
             tabIndex={-1}
             aria-labelledby="current-route-title"
           >
-            <AnimatePresence initial={false} mode="popLayout">
-              <motion.div
-                className="route-stage"
-                key={route.id}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: reduceMotion ? 0.08 : 0.16, ease: "easeOut" }}
-              >
-                <PageComponent />
-              </motion.div>
-            </AnimatePresence>
+            <div className="route-stage" key={window.location.hash || route.id}>
+              <PageComponent />
+            </div>
           </main>
         </div>
       </div>
