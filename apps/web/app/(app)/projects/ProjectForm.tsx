@@ -21,7 +21,7 @@ export function ProjectForm({
 }: {
   customers: Array<{ id: string; name: string }>;
   rules: Array<{ id: string; name: string }>;
-}): React.ReactElement {
+}): React.JSX.Element {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);

@@ -30,11 +30,11 @@ function issueEpoch(d: string | null): number | null {
   return d ? new Date(`${d}T00:00:00`).getTime() : null;
 }
 
-export default async function InvoicesPage(): Promise<React.ReactElement> {
+export default async function InvoicesPage(): Promise<React.JSX.Element> {
   const account = await requireAccount();
 
-  let body: React.ReactElement;
-  let create: React.ReactElement | null = null;
+  let body: React.JSX.Element;
+  let create: React.JSX.Element | null = null;
   try {
     const [invoices, customers] = await Promise.all([listInvoices(account.id), listCustomers(account.id)]);
     create = <InvoiceCreate customers={customers.map((c) => ({ id: c.id, name: c.name }))} />;

@@ -120,7 +120,7 @@ export function AppearanceControl({
 }: {
   variant?: "full" | "icons" | "compact";
   className?: string;
-}): React.ReactElement {
+}): React.JSX.Element {
   const { preference, setPreference } = useAppearance();
 
   if (variant === "compact") {

@@ -8,10 +8,10 @@ import { CustomerForm } from "./CustomerForm";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export default async function CustomersPage(): Promise<React.ReactElement> {
+export default async function CustomersPage(): Promise<React.JSX.Element> {
   const account = await requireAccount();
 
-  let body: React.ReactElement;
+  let body: React.JSX.Element;
   try {
     const customers = await listCustomers(account.id);
     body =

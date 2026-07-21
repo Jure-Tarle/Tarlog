@@ -12,10 +12,10 @@ export const dynamic = "force-dynamic";
 
 const RANK: Record<Traffic, number> = { green: 0, yellow: 1, red: 2 };
 
-export default async function CompliancePage(): Promise<React.ReactElement> {
+export default async function CompliancePage(): Promise<React.JSX.Element> {
   const account = await requireAccount();
 
-  let body: React.ReactElement;
+  let body: React.JSX.Element;
   try {
     const month = monthRange(account.timezone);
     const results = await listComplianceResults(account.id, month.start);

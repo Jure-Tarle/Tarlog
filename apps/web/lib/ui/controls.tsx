@@ -31,7 +31,7 @@ export function Button({
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: Variant;
   size?: "sm" | "md";
-}): React.ReactElement {
+}): React.JSX.Element {
   return (
     <button
       {...rest}
@@ -54,7 +54,7 @@ export function ButtonLink({
   href: string;
   variant?: Variant;
   size?: "sm" | "md";
-}): React.ReactElement {
+}): React.JSX.Element {
   return (
     <Link {...rest} href={href as Route} className={buttonClass(variant, size, className)}>
       {children}
@@ -76,7 +76,7 @@ export function Field({
   required?: boolean;
   children: ReactNode;
   htmlFor?: string;
-}): React.ReactElement {
+}): React.JSX.Element {
   const generatedId = useId();
   const childItems = Children.toArray(children);
   const hintId = hint ? `${generatedId}-hint` : undefined;
@@ -147,11 +147,11 @@ function mergeIds(...values: Array<string | undefined>): string | undefined {
   return ids.length > 0 ? [...new Set(ids)].join(" ") : undefined;
 }
 
-export function TextInput({ className, ...props }: InputHTMLAttributes<HTMLInputElement>): React.ReactElement {
+export function TextInput({ className, ...props }: InputHTMLAttributes<HTMLInputElement>): React.JSX.Element {
   return <input {...props} className={cx("ui-input", className)} />;
 }
 
-export function TextArea({ className, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>): React.ReactElement {
+export function TextArea({ className, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>): React.JSX.Element {
   return <textarea {...props} className={cx("ui-textarea", className)} />;
 }
 
@@ -159,7 +159,7 @@ export function Select({
   children,
   className,
   ...props
-}: SelectHTMLAttributes<HTMLSelectElement>): React.ReactElement {
+}: SelectHTMLAttributes<HTMLSelectElement>): React.JSX.Element {
   return (
     <select {...props} className={cx("ui-select", className)}>
       {children}
@@ -171,7 +171,7 @@ export function Checkbox({
   label,
   className,
   ...props
-}: InputHTMLAttributes<HTMLInputElement> & { label: string }): React.ReactElement {
+}: InputHTMLAttributes<HTMLInputElement> & { label: string }): React.JSX.Element {
   return (
     <label className="ui-checkbox">
       <input type="checkbox" {...props} className={className} />
@@ -180,7 +180,7 @@ export function Checkbox({
   );
 }
 
-export function FormRow({ children }: { children: ReactNode }): React.ReactElement {
+export function FormRow({ children }: { children: ReactNode }): React.JSX.Element {
   return <div className="form-row">{children}</div>;
 }
 
@@ -190,7 +190,7 @@ export function StatusLine({
 }: {
   kind: "error" | "success" | "info";
   children: ReactNode;
-}): React.ReactElement {
+}): React.JSX.Element {
   return (
     <div role={kind === "error" ? "alert" : "status"} className={`status-line kind-${kind}`}>
       {children}

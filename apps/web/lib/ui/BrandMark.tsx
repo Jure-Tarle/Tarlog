@@ -1,4 +1,4 @@
-export function BrandMark({ className }: { className?: string }): React.ReactElement {
+export function BrandMark({ className }: { className?: string }): React.JSX.Element {
   return (
     <span className={className ? `brand-mark ${className}` : "brand-mark"} aria-hidden>
       <svg viewBox="0 0 64 64" focusable="false">

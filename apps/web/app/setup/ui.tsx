@@ -16,7 +16,7 @@ export function Field({
   error?: string | null;
   required?: boolean;
   children: ReactNode;
-}): React.ReactElement {
+}): React.JSX.Element {
   const generatedId = useId();
   const candidate = Children.toArray(children)[0];
   const hintId = hint ? `${generatedId}-hint` : undefined;
@@ -53,11 +53,11 @@ interface AuthControlProps {
   "aria-errormessage"?: string;
 }
 
-export function TextInput({ className, ...props }: InputHTMLAttributes<HTMLInputElement>): React.ReactElement {
+export function TextInput({ className, ...props }: InputHTMLAttributes<HTMLInputElement>): React.JSX.Element {
   return <input {...props} className={cx("ui-input", className)} />;
 }
 
-export function FormError({ message }: { message: string | null }): React.ReactElement | null {
+export function FormError({ message }: { message: string | null }): React.JSX.Element | null {
   if (!message) return null;
   return <div role="alert" className="auth-error">{message}</div>;
 }
@@ -68,7 +68,7 @@ export function SubmitButton({
 }: {
   loading: boolean;
   children: ReactNode;
-}): React.ReactElement {
+}): React.JSX.Element {
   return (
     <button
       type="submit"

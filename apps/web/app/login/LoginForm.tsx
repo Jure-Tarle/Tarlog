@@ -18,7 +18,7 @@ function safeNext(): string {
   return "/dashboard";
 }
 
-export function LoginForm(): React.ReactElement {
+export function LoginForm(): React.JSX.Element {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);

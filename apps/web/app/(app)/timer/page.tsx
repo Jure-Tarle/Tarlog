@@ -17,10 +17,10 @@ import { TimerConsole } from "./TimerConsole";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export default async function TimerPage(): Promise<React.ReactElement> {
+export default async function TimerPage(): Promise<React.JSX.Element> {
   const account = await requireAccount();
 
-  let content: React.ReactElement;
+  let content: React.JSX.Element;
   try {
     const [timer, projects, tasks, rules] = await Promise.all([
       getTimer(account.id),

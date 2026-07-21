@@ -14,7 +14,7 @@ export function AuthShell({
   subtitle?: string;
   children: ReactNode;
   footer?: ReactNode;
-}): React.ReactElement {
+}): React.JSX.Element {
   return (
     <main className="auth-shell">
       <section className="auth-card" aria-labelledby="auth-title">

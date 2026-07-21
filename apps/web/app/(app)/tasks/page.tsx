@@ -8,11 +8,11 @@ import { TaskForm } from "./TaskForm";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export default async function TasksPage(): Promise<React.ReactElement> {
+export default async function TasksPage(): Promise<React.JSX.Element> {
   const account = await requireAccount();
 
-  let body: React.ReactElement;
-  let form: React.ReactElement | null = null;
+  let body: React.JSX.Element;
+  let form: React.JSX.Element | null = null;
   try {
     const [tasks, projects] = await Promise.all([listTasks(account.id), listProjects(account.id)]);
     form = <TaskForm projects={projects.map((p) => ({ id: p.id, name: p.name }))} />;

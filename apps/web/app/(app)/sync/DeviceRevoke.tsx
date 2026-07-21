@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import { API, ApiClientError, api } from "@/lib/ui/api";
 import { Button, StatusLine } from "@/lib/ui/controls";
 
-export function DeviceRevoke({ id, revoked }: { id: string; revoked: boolean }): React.ReactElement {
+export function DeviceRevoke({ id, revoked }: { id: string; revoked: boolean }): React.JSX.Element {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);

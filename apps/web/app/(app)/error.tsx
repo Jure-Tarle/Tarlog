@@ -9,7 +9,7 @@ export default function AppRouteError({
 }: {
   error: Error & { digest?: string };
   reset: () => void;
-}): React.ReactElement {
+}): React.JSX.Element {
   useEffect(() => {
     console.error("Tarlog route failed", error);
   }, [error]);

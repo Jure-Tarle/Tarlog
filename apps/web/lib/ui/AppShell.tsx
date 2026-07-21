@@ -116,7 +116,7 @@ function initials(name: string): string {
     .join("") || "T";
 }
 
-function Brand({ compact = false }: { compact?: boolean }): React.ReactElement {
+function Brand({ compact = false }: { compact?: boolean }): React.JSX.Element {
   return (
     <Link href="/dashboard" className={compact ? "brand brand-compact" : "brand"} aria-label="Tarlog Flow, Übersicht">
       <BrandMark />
@@ -128,7 +128,7 @@ function Brand({ compact = false }: { compact?: boolean }): React.ReactElement {
   );
 }
 
-function MiniTimer({ timer, compact = false }: { timer: AppShellTimer | null; compact?: boolean }): React.ReactElement {
+function MiniTimer({ timer, compact = false }: { timer: AppShellTimer | null; compact?: boolean }): React.JSX.Element {
   const status = timer?.status ?? "idle";
   const presentation = TIMER_STATUS_PRESENTATION[status];
   const workLabel = [timer?.projectName, timer?.taskName].filter(Boolean).join(" | ");
@@ -177,7 +177,7 @@ function Navigation({
   variant: "desktop" | "drawer";
   onNavigate?: () => void;
   firstLinkRef?: RefObject<HTMLAnchorElement | null>;
-}): React.ReactElement {
+}): React.JSX.Element {
   let isFirst = true;
 
   return (
@@ -229,7 +229,7 @@ function Sidebar({
   pathname: string;
   account: AppShellAccount;
   timer: AppShellTimer | null;
-}): React.ReactElement {
+}): React.JSX.Element {
   return (
     <aside className="app-sidebar material-heavy">
       <Brand />
@@ -264,7 +264,7 @@ function MobileDrawer({
   account: AppShellAccount;
   timer: AppShellTimer | null;
   triggerRef: RefObject<HTMLButtonElement | null>;
-}): React.ReactElement {
+}): React.JSX.Element {
   const panelRef = useRef<HTMLElement>(null);
   const firstLinkRef = useRef<HTMLAnchorElement>(null);
 
@@ -372,7 +372,7 @@ export function AppShell({
   account: AppShellAccount;
   initialTimer: AppShellTimer | null;
   children: ReactNode;
-}): React.ReactElement {
+}): React.JSX.Element {
   const pathname = usePathname() || "/dashboard";
   const reduceMotion = useReducedMotion();
   const [drawerOpen, setDrawerOpen] = useState(false);

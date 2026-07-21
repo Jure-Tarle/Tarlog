@@ -16,7 +16,7 @@ export default async function ReportsPage({
   searchParams,
 }: {
   searchParams: Promise<{ from?: string; to?: string; project?: string; billable?: string }>;
-}): Promise<React.ReactElement> {
+}): Promise<React.JSX.Element> {
   const account = await requireAccount();
   const sp = await searchParams;
   const tz = account.timezone;
@@ -24,8 +24,8 @@ export default async function ReportsPage({
   const from = sp.from ?? toLocalDate(month.start, tz);
   const to = sp.to ?? toLocalDate(Date.now(), tz);
 
-  let filters: React.ReactElement;
-  let body: React.ReactElement;
+  let filters: React.JSX.Element;
+  let body: React.JSX.Element;
   try {
     const projects = await listProjects(account.id);
     filters = (

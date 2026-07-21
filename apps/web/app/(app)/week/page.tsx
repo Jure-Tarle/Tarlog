@@ -32,7 +32,7 @@ export default async function WeekPage({
   searchParams,
 }: {
   searchParams: Promise<{ date?: string }>;
-}): Promise<React.ReactElement> {
+}): Promise<React.JSX.Element> {
   const account = await requireAccount();
   const sp = await searchParams;
   const tz = account.timezone;
@@ -40,7 +40,7 @@ export default async function WeekPage({
   const range = weekRange(tz, iso);
   const mondayIso = toLocalDate(range.start, tz);
 
-  let body: React.ReactElement;
+  let body: React.JSX.Element;
   try {
     const [entries, compliance] = await Promise.all([
       listEntries(account.id, range),

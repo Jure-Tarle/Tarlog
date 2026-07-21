@@ -47,7 +47,7 @@ export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
-}): React.ReactElement {
+}): React.JSX.Element {
   return (
     <html lang="de" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>

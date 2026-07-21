@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { API, ApiClientError, api } from "@/lib/ui/api";
 import { Button, StatusLine, TextInput } from "@/lib/ui/controls";
 
-export function ComplianceOverride({ id, existing }: { id: string; existing: string | null }): React.ReactElement {
+export function ComplianceOverride({ id, existing }: { id: string; existing: string | null }): React.JSX.Element {
   const router = useRouter();
   const [openInput, setOpenInput] = useState(false);
   const [reason, setReason] = useState(existing ?? "");

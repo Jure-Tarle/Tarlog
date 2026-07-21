@@ -29,11 +29,11 @@ import { DashboardLive } from "./DashboardLive";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage(): Promise<React.ReactElement> {
+export default async function DashboardPage(): Promise<React.JSX.Element> {
   const account = await requireAccount();
   const cur = account.currency;
 
-  let body: React.ReactElement;
+  let body: React.JSX.Element;
   try {
     const week = weekRange(account.timezone);
     const [timer, dash, conflicts, compliance, devices] = await Promise.all([

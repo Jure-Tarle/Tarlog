@@ -21,7 +21,7 @@ export default async function NachtragPage({
   searchParams,
 }: {
   searchParams: Promise<{ date?: string; start?: string; end?: string; kind?: string }>;
-}): Promise<React.ReactElement> {
+}): Promise<React.JSX.Element> {
   const account = await requireAccount();
   const sp = await searchParams;
   const tz = account.timezone;
@@ -34,7 +34,7 @@ export default async function NachtragPage({
     endTime: Number.isFinite(endMs) ? formatTime(endMs, tz) : "10:00",
   };
 
-  let body: React.ReactElement;
+  let body: React.JSX.Element;
   try {
     const [projects, tasks, rules] = await Promise.all([
       listProjects(account.id),

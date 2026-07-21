@@ -25,11 +25,11 @@ function rate(p: { billing_type: string; hourly_rate_cents: number | null; day_r
   return p.hourly_rate_cents != null ? formatMoney(p.hourly_rate_cents, cur) + " / h" : ",";
 }
 
-export default async function ProjectsPage(): Promise<React.ReactElement> {
+export default async function ProjectsPage(): Promise<React.JSX.Element> {
   const account = await requireAccount();
 
-  let body: React.ReactElement;
-  let form: React.ReactElement | null = null;
+  let body: React.JSX.Element;
+  let form: React.JSX.Element | null = null;
   try {
     const [projects, customers, rules] = await Promise.all([
       listProjects(account.id),

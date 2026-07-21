@@ -36,7 +36,7 @@ export function TimerTicker({
   timer: TickerTimer | null;
   size?: number;
   showDot?: boolean;
-}): React.ReactElement {
+}): React.JSX.Element {
   const running = timer?.status === "running";
   const [now, setNow] = useState<number>(() => Date.now());
 

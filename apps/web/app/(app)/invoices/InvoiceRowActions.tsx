@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import { API, ApiClientError, api } from "@/lib/ui/api";
 import { Button, ButtonLink, StatusLine } from "@/lib/ui/controls";
 
-export function InvoiceRowActions({ id, status }: { id: string; status: string }): React.ReactElement {
+export function InvoiceRowActions({ id, status }: { id: string; status: string }): React.JSX.Element {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);

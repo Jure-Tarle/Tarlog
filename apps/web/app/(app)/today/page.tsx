@@ -46,13 +46,13 @@ export default async function TodayPage({
   searchParams,
 }: {
   searchParams: Promise<{ date?: string }>;
-}): Promise<React.ReactElement> {
+}): Promise<React.JSX.Element> {
   const account = await requireAccount();
   const sp = await searchParams;
   const iso = sp.date ?? todayIso(account.timezone);
   const tz = account.timezone;
 
-  let body: React.ReactElement;
+  let body: React.JSX.Element;
   try {
     const range = dayRange(tz, iso);
     const [entries, compliance] = await Promise.all([

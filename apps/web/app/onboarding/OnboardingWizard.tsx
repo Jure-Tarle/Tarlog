@@ -119,7 +119,7 @@ export function OnboardingWizard({
   customers: initialCustomers,
   projects: initialProjects,
   rules,
-}: WizardProps): React.ReactElement {
+}: WizardProps): React.JSX.Element {
   const replayingCompleted = replay && launch.progress.status === "completed";
   const [step, setStep] = useState<OnboardingStep>(
     replayingCompleted ? "welcome" : launch.progress.step,
@@ -360,7 +360,7 @@ export function OnboardingWizard({
   );
 }
 
-function WelcomeStep({ accountName }: { accountName: string }): React.ReactElement {
+function WelcomeStep({ accountName }: { accountName: string }): React.JSX.Element {
   return (
     <div className="onboarding-copy-stack">
       <p className="onboarding-lead">
@@ -377,7 +377,7 @@ function WelcomeStep({ accountName }: { accountName: string }): React.ReactEleme
   );
 }
 
-function Feature({ icon: Icon, title, children }: { icon: LucideIcon; title: string; children: React.ReactNode }): React.ReactElement {
+function Feature({ icon: Icon, title, children }: { icon: LucideIcon; title: string; children: React.ReactNode }): React.JSX.Element {
   return (
     <div className="onboarding-feature">
       <Icon size={20} aria-hidden />
@@ -414,7 +414,7 @@ function WorkspaceStep({
     step: OnboardingStep,
     ids?: { customerId?: string | null; projectId?: string | null },
   ) => Promise<boolean>;
-}): React.ReactElement {
+}): React.JSX.Element {
   const [mode, setMode] = useState<"existing" | "new">(projects.length > 0 ? "existing" : "new");
   const [existingProjectId, setExistingProjectId] = useState(initialProjectId ?? projects[0]?.id ?? "");
   const [customerChoice, setCustomerChoice] = useState(initialCustomerId ?? "");
@@ -596,7 +596,7 @@ function WorkspaceStep({
   );
 }
 
-function LiveTrackingStep({ project }: { project: ProjectOption | null }): React.ReactElement {
+function LiveTrackingStep({ project }: { project: ProjectOption | null }): React.JSX.Element {
   return (
     <div className="onboarding-copy-stack">
       <p className="onboarding-lead compact">
@@ -618,7 +618,7 @@ function LiveTrackingStep({ project }: { project: ProjectOption | null }): React
   );
 }
 
-function DemoAction({ icon: Icon, label, text, active = false }: { icon: LucideIcon; label: string; text: string; active?: boolean }): React.ReactElement {
+function DemoAction({ icon: Icon, label, text, active = false }: { icon: LucideIcon; label: string; text: string; active?: boolean }): React.JSX.Element {
   return (
     <div className={`onboarding-demo-action${active ? " is-active" : ""}`}>
       <span><Icon size={17} aria-hidden /></span>
@@ -627,7 +627,7 @@ function DemoAction({ icon: Icon, label, text, active = false }: { icon: LucideI
   );
 }
 
-function BackdatingStep({ project }: { project: ProjectOption | null }): React.ReactElement {
+function BackdatingStep({ project }: { project: ProjectOption | null }): React.JSX.Element {
   return (
     <div className="onboarding-copy-stack">
       <p className="onboarding-lead compact">
@@ -649,7 +649,7 @@ function BackdatingStep({ project }: { project: ProjectOption | null }): React.R
   );
 }
 
-function SyncStep(): React.ReactElement {
+function SyncStep(): React.JSX.Element {
   return (
     <div className="onboarding-copy-stack">
       <p className="onboarding-lead compact">
@@ -670,7 +670,7 @@ function SyncStep(): React.ReactElement {
   );
 }
 
-function ReadyStep({ project }: { project: ProjectOption | null }): React.ReactElement {
+function ReadyStep({ project }: { project: ProjectOption | null }): React.JSX.Element {
   const summary = useMemo(() => [
     { label: "Projekt", value: project?.name ?? "ausgewählt" },
     { label: "Timer", value: "bereit" },

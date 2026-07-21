@@ -4,7 +4,7 @@ import { Monitor, Moon, Sun } from "lucide-react";
 import { AppearanceControl } from "@/lib/ui/AppearanceControl";
 import { Card } from "@/lib/ui/ui";
 
-export function AppearanceSettings(): React.ReactElement {
+export function AppearanceSettings(): React.JSX.Element {
   return (
     <Card className="settings-appearance-card">
       <div className="settings-appearance-card__copy">

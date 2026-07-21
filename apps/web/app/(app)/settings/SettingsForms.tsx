@@ -34,7 +34,7 @@ export function ProfileForm({
   initial,
 }: {
   initial: { displayName: string; companyName: string | null; currency: string; timezone: string; locale: string };
-}): React.ReactElement {
+}): React.JSX.Element {
   const { busy, msg, save } = useSaver();
   const [f, setF] = useState({
     display_name: initial.displayName,
@@ -66,7 +66,7 @@ export function ProfileForm({
   );
 }
 
-export function RoundingRuleForm(): React.ReactElement {
+export function RoundingRuleForm(): React.JSX.Element {
   const { busy, msg, save } = useSaver();
   const [f, setF] = useState({ name: "", mode: "nearest_interval", interval_minutes: "15", min_duration_seconds: "", scope: "global" });
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((p) => ({ ...p, [k]: v }));
@@ -145,7 +145,7 @@ export function NumberRangeForm({
   initial,
 }: {
   initial: { prefix: string; next_number: string; padding: string };
-}): React.ReactElement {
+}): React.JSX.Element {
   const { busy, msg, save } = useSaver();
   const [f, setF] = useState(initial);
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((p) => ({ ...p, [k]: v }));

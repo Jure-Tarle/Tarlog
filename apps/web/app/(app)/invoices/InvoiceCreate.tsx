@@ -11,7 +11,7 @@ import { toLocalDate } from "@/lib/ui/format";
 import { Button, Field, FormRow, Select, StatusLine, TextArea, TextInput } from "@/lib/ui/controls";
 import { Modal } from "@/lib/ui/Modal";
 
-export function InvoiceCreate({ customers }: { customers: Array<{ id: string; name: string }> }): React.ReactElement {
+export function InvoiceCreate({ customers }: { customers: Array<{ id: string; name: string }> }): React.JSX.Element {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);

@@ -29,7 +29,7 @@ export default async function MonthPage({
   searchParams,
 }: {
   searchParams: Promise<{ date?: string }>;
-}): Promise<React.ReactElement> {
+}): Promise<React.JSX.Element> {
   const account = await requireAccount();
   const sp = await searchParams;
   const tz = account.timezone;
@@ -40,7 +40,7 @@ export default async function MonthPage({
   const prevIso = `${(mm ?? 1) === 1 ? (yy ?? 1970) - 1 : yy}-${pad((mm ?? 1) === 1 ? 12 : (mm ?? 1) - 1)}-01`;
   const nextIso = `${(mm ?? 1) === 12 ? (yy ?? 1970) + 1 : yy}-${pad((mm ?? 1) === 12 ? 1 : (mm ?? 1) + 1)}-01`;
 
-  let body: React.ReactElement;
+  let body: React.JSX.Element;
   try {
     const [entries, compliance] = await Promise.all([
       listEntries(account.id, range),

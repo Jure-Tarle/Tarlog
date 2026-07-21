@@ -9,7 +9,7 @@ export function PageHeader({
   title: string;
   subtitle?: string;
   actions?: ReactNode;
-}): React.ReactElement {
+}): React.JSX.Element {
   return (
     <header className="page-header">
       <div className="page-header-copy">
@@ -31,7 +31,7 @@ export function Card({
   style?: CSSProperties;
   className?: string;
   padded?: boolean;
-}): React.ReactElement {
+}): React.JSX.Element {
   return (
     <div className={cx("ui-card", padded && "is-padded", className)} style={style}>
       {children}
@@ -49,7 +49,7 @@ export function Grid({
   gap?: number;
   children: ReactNode;
   style?: CSSProperties;
-}): React.ReactElement {
+}): React.JSX.Element {
   const gridStyle = {
     "--grid-min": `${min}px`,
     "--grid-gap": `${gap}px`,
@@ -70,7 +70,7 @@ export function StatTile({
   hint?: ReactNode;
   accent?: boolean;
   href?: string;
-}): React.ReactElement {
+}): React.JSX.Element {
   const inner = (
     <>
       <div className="stat-label">{label}</div>
@@ -82,7 +82,7 @@ export function StatTile({
   return href ? <a href={href} className={className}>{inner}</a> : <div className={className}>{inner}</div>;
 }
 
-export function Duration({ seconds }: { seconds: number }): React.ReactElement {
+export function Duration({ seconds }: { seconds: number }): React.JSX.Element {
   return <span className="tabular">{secondsToHMS(seconds)}</span>;
 }
 
@@ -92,7 +92,7 @@ export function Money({
 }: {
   cents: number | null | undefined;
   currency?: string;
-}): React.ReactElement {
+}): React.JSX.Element {
   return <span className="tabular">{formatMoney(cents, currency)}</span>;
 }
 
@@ -112,7 +112,7 @@ export function ComplianceBadge({
   status: Traffic;
   label?: string;
   count?: number;
-}): React.ReactElement {
+}): React.JSX.Element {
   const t = TRAFFIC[status];
   return (
     <span className={`compliance-badge tone-${status}`}>
@@ -129,7 +129,7 @@ export function Badge({
 }: {
   children: ReactNode;
   tone?: "neutral" | "accent" | "muted";
-}): React.ReactElement {
+}): React.JSX.Element {
   return <span className={`status-badge tone-${tone}`}>{children}</span>;
 }
 
@@ -139,7 +139,7 @@ export function Table({
 }: {
   head: ReactNode;
   children: ReactNode;
-}): React.ReactElement {
+}): React.JSX.Element {
   return (
     <div className="table-shell">
       <table className="data-table">
@@ -158,7 +158,7 @@ export function Th({
   children?: ReactNode;
   align?: "left" | "right" | "center";
   width?: number | string;
-}): React.ReactElement {
+}): React.JSX.Element {
   return <th style={{ textAlign: align, width }}>{children}</th>;
 }
 
@@ -172,7 +172,7 @@ export function Td({
   align?: "left" | "right" | "center";
   mono?: boolean;
   muted?: boolean;
-}): React.ReactElement {
+}): React.JSX.Element {
   return (
     <td className={cx(mono && "tabular", muted && "is-muted")} style={{ textAlign: align }}>
       {children}
@@ -188,7 +188,7 @@ export function EmptyState({
   title: string;
   hint?: string;
   action?: ReactNode;
-}): React.ReactElement {
+}): React.JSX.Element {
   return (
     <div className="empty-state">
       <div className="empty-state-inner">
@@ -200,7 +200,7 @@ export function EmptyState({
   );
 }
 
-export function LoadError({ message }: { message?: string }): React.ReactElement {
+export function LoadError({ message }: { message?: string }): React.JSX.Element {
   return (
     <div role="alert" className="load-error">
       {message ?? "Daten konnten nicht geladen werden. Prüfe Serververbindung und Anmeldung."}
@@ -214,7 +214,7 @@ export function SectionTitle({
 }: {
   children: ReactNode;
   right?: ReactNode;
-}): React.ReactElement {
+}): React.JSX.Element {
   return (
     <div className="section-title">
       <h2>{children}</h2>

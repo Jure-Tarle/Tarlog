@@ -8,7 +8,7 @@
 import { useState } from "react";
 import { Field, FormError, SubmitButton, TextInput, readApiError } from "./ui";
 
-export function SetupForm(): React.ReactElement {
+export function SetupForm(): React.JSX.Element {
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [company, setCompany] = useState("");

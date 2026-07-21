@@ -10,7 +10,7 @@ import { toLocalDate } from "@/lib/ui/format";
 import { Button, Field, FormRow, Select, StatusLine, TextInput } from "@/lib/ui/controls";
 import { Modal } from "@/lib/ui/Modal";
 
-export function ExportCreate(): React.ReactElement {
+export function ExportCreate(): React.JSX.Element {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);

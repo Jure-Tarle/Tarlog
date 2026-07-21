@@ -15,7 +15,7 @@ export default async function OnboardingPage({
   searchParams,
 }: {
   searchParams: Promise<{ replay?: string }>;
-}): Promise<React.ReactElement> {
+}): Promise<React.JSX.Element> {
   const account = await requireAccount();
   const replayRequested = (await searchParams).replay === "1";
   const launch = await getOnboardingLaunch(account.id);

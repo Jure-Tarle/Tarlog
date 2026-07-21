@@ -15,7 +15,7 @@ import { SetupForm } from "./SetupForm";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export default async function SetupPage(): Promise<React.ReactElement> {
+export default async function SetupPage(): Promise<React.JSX.Element> {
   if (await isSetupComplete()) redirect("/login");
   return (
     <AuthShell

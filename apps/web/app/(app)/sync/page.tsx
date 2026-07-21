@@ -14,10 +14,10 @@ export const dynamic = "force-dynamic";
 const PLATFORM: Record<string, string> = { macos: "macOS", windows: "Windows", web: "Web", ios: "iOS" };
 const SYNC_STATE: Record<string, string> = { synced: "synchron", pending: "ausstehend", offline: "offline", error: "Fehler", conflict: "Konflikt" };
 
-export default async function SyncPage(): Promise<React.ReactElement> {
+export default async function SyncPage(): Promise<React.JSX.Element> {
   const account = await requireAccount();
 
-  let body: React.ReactElement;
+  let body: React.JSX.Element;
   try {
     const [devices, conflicts] = await Promise.all([listDevices(account.id), getConflictCount(account.id)]);
     const lastSync = devices.reduce<number | null>((m, d) => (d.last_sync_at && (!m || d.last_sync_at > m) ? d.last_sync_at : m), null);

@@ -15,10 +15,10 @@ function humanSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export default async function AttachmentsPage(): Promise<React.ReactElement> {
+export default async function AttachmentsPage(): Promise<React.JSX.Element> {
   const account = await requireAccount();
 
-  let body: React.ReactElement;
+  let body: React.JSX.Element;
   try {
     const rows = await listAttachments(account.id);
     body =

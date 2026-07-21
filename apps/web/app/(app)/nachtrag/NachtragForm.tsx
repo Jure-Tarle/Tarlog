@@ -50,7 +50,7 @@ export function NachtragForm({
   rules: RoundingRuleRow[];
   currency: string;
   prefill: { date: string; startTime: string; endTime: string };
-}): React.ReactElement {
+}): React.JSX.Element {
   const router = useRouter();
   const [date, setDate] = useState(prefill.date);
   const [startTime, setStartTime] = useState(prefill.startTime);
@@ -213,7 +213,7 @@ export function NachtragForm({
   );
 }
 
-function Metric({ label, value, hint, accent }: { label: string; value: string; hint?: string; accent?: boolean }): React.ReactElement {
+function Metric({ label, value, hint, accent }: { label: string; value: string; hint?: string; accent?: boolean }): React.JSX.Element {
   return (
     <div>
       <div style={{ fontSize: 11, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.03em" }}>{label}</div>

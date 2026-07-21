@@ -28,10 +28,10 @@ const SCOPE_LABEL: Record<string, string> = {
   task: "Bestimmtes Teilprojekt",
 };
 
-export default async function SettingsPage(): Promise<React.ReactElement> {
+export default async function SettingsPage(): Promise<React.JSX.Element> {
   const account = await requireAccount();
 
-  let content: React.ReactElement;
+  let content: React.JSX.Element;
   try {
     const [rules, settings] = await Promise.all([listRoundingRules(account.id), listSettings(account.id)]);
     const nr = settings.find((s) => s.key === "invoice_number_range")?.value_json ?? {};

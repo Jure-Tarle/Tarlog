@@ -10,7 +10,7 @@ export default async function AuthenticatedLayout({
   children,
 }: {
   children: React.ReactNode;
-}): Promise<React.ReactElement> {
+}): Promise<React.JSX.Element> {
   const account = await requireAccount();
   const onboarding = await getOnboardingLaunch(account.id);
   if (onboarding.required) redirect("/onboarding");

@@ -12,7 +12,7 @@ import { LoginForm } from "./LoginForm";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export default async function LoginPage(): Promise<React.ReactElement> {
+export default async function LoginPage(): Promise<React.JSX.Element> {
   if (!(await isSetupComplete())) redirect("/setup");
   if (await getAuth()) redirect("/dashboard");
   return (

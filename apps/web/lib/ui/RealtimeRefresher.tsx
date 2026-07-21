@@ -26,7 +26,7 @@ export function RealtimeRefresher({
   types?: string[];
   showIndicator?: boolean;
   minIntervalMs?: number;
-}): React.ReactElement | null {
+}): React.JSX.Element | null {
   const router = useRouter();
   const lastRefresh = useRef(0);
 

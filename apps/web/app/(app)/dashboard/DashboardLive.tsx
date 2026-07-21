@@ -19,7 +19,7 @@ export function DashboardLive({
 }: {
   initialTimer: TimerRow | null;
   recentProjects: Array<{ id: string; name: string }>;
-}): React.ReactElement {
+}): React.JSX.Element {
   const router = useRouter();
   const [timer, setTimer] = useState<TimerRow | null>(initialTimer);
   const [projectId, setProjectId] = useState(recentProjects[0]?.id ?? "");

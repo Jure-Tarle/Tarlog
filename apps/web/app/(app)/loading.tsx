@@ -1,4 +1,4 @@
-export default function AppLoading(): React.ReactElement {
+export default function AppLoading(): React.JSX.Element {
   return (
     <section className="route-loading" aria-busy="true" aria-live="polite">
       <span className="sr-only">Inhalt wird geladen</span>

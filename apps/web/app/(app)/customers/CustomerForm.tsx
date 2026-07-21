@@ -9,7 +9,7 @@ import { API, ApiClientError, api } from "@/lib/ui/api";
 import { Button, Checkbox, Field, FormRow, Select, StatusLine, TextInput } from "@/lib/ui/controls";
 import { Modal } from "@/lib/ui/Modal";
 
-export function CustomerForm(): React.ReactElement {
+export function CustomerForm(): React.JSX.Element {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);

@@ -23,7 +23,7 @@ export function Modal({
   children: ReactNode;
   footer?: ReactNode;
   width?: number;
-}): React.ReactElement | null {
+}): React.JSX.Element | null {
   const [mounted, setMounted] = useState(false);
   const surfaceRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);

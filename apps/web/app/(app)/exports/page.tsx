@@ -17,10 +17,10 @@ function humanSize(bytes: number | null): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export default async function ExportsPage(): Promise<React.ReactElement> {
+export default async function ExportsPage(): Promise<React.JSX.Element> {
   const account = await requireAccount();
 
-  let body: React.ReactElement;
+  let body: React.JSX.Element;
   try {
     const rows = await listExports(account.id);
     body =

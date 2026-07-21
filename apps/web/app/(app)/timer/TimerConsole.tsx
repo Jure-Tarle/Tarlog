@@ -38,7 +38,7 @@ function coreRule(r: RoundingRuleRow | undefined): RoundingRule {
   };
 }
 
-export function TimerConsole({ initialTimer, projects, tasks, rules, currency }: TimerConsoleProps): React.ReactElement {
+export function TimerConsole({ initialTimer, projects, tasks, rules, currency }: TimerConsoleProps): React.JSX.Element {
   const router = useRouter();
   const [timer, setTimer] = useState<TimerRow | null>(initialTimer);
   const [busy, setBusy] = useState(false);
@@ -233,7 +233,7 @@ function StopDialog({
   currency: string;
   busy: boolean;
   onSubmit: (payload: Record<string, unknown>) => Promise<void>;
-}): React.ReactElement | null {
+}): React.JSX.Element | null {
   const startedAt = timer?.started_at ?? Date.now() - 3600_000;
   const [description, setDescription] = useState("");
   const [summary, setSummary] = useState("");
@@ -404,7 +404,7 @@ function StopDialog({
   );
 }
 
-function Metric({ label, value, hint, accent }: { label: string; value: string; hint?: string; accent?: boolean }): React.ReactElement {
+function Metric({ label, value, hint, accent }: { label: string; value: string; hint?: string; accent?: boolean }): React.JSX.Element {
   return (
     <div>
       <div style={{ fontSize: 11, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.03em" }}>{label}</div>
